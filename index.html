@@ -1464,101 +1464,85 @@
 
         const initialTrips = [
             {
-                id: 'trip-oman',
-                title: 'Omani Dreams',
-                destination: 'Oman • Mascate, Nizwa & Wadi Shab',
-                countdown: 'J-12',
-                duration: 10,
-                status: 'active',
-                currency: 'OMR',
-                rate: 0.41,
-                totalBudget: 1800,
-                companions: ['Alex'],
-                overviewOrder: ['flights', 'rentals', 'todos'],
-                overviewNotes: 'Urgences Oman : 9999 • Code Wi-Fi Hôtel : OMAN2026 • Vol de drone : autorisation CAA imprimée dans la pochette.',
-                itineraryNotes: 'Privilégier les départs avant 8h00 pour la lumière drone.',
-                bagageNotes: 'Batteries LiPo obligatoirement en bagage cabine.',
-                budgetNotes: 'Retirer 60 OMR en espèces dès l’aéroport de Mascate.',
-                tabChecklists: {
-                    itinerary: [{ id: 1, text: 'Télécharger la carte Google Maps d’Oman hors-ligne', done: true }],
-                    bagage: [{ id: 2, text: 'Peser le sac à dos drone la veille', done: false }],
-                    budget: [{ id: 3, text: 'Activer l’option internationale sur la carte bancaire', done: true }]
-                },
-                flights: [
-                    { id: 1, number: 'WY 172', airline: 'Oman Air', depDate: '15/01', depTime: '20:00', depIata: 'AMS', depCity: 'Amsterdam Schiphol', arrDate: '16/01', arrTime: '05:55', arrIata: 'MCT', arrCity: 'Muscat International', terminal: '3', gate: 'G4', seat: '14A', baggage: '1 Cabine 10kg + 1 Soute 23kg', pnr: 'OMN882', costEur: 345, notes: 'Enregistrement en ligne 24h avant', image: SAMPLE_QR_SVG },
-                    { id: 2, number: 'WY 171', airline: 'Oman Air', depDate: '25/01', depTime: '13:55', depIata: 'MCT', depCity: 'Muscat International', arrDate: '25/01', arrTime: '18:35', arrIata: 'AMS', arrCity: 'Amsterdam Schiphol', terminal: '1', gate: 'A12', seat: '14A', baggage: '1 Cabine 10kg + 1 Soute 23kg', pnr: 'OMN882', costEur: 345, notes: 'Vol retour', image: null }
-                ],
-                rentals: [
-                    { id: 1, agency: 'Sixt Muscat Airport', vehicle: 'SUV 4x4 (Jebel Akhdar)', pickup: '16/01 • 07:00 Aéroport MCT', dropoff: '25/01 • 11:00 Aéroport MCT', pnr: 'SXT-9021', contact: '+968 24 510 222 (Assistance 24/7)', notes: 'Assurance tous risques + Franchissement Jebel Akhdar inclus', costEur: 320 }
-                ],
-                todos: [
-                    { id: 1, type: 'todo', text: 'S’enregistrer sur les vols Oman Air', done: false },
-                    { id: 2, type: 'todo', text: 'Télécharger cartes d’embarquement hors-ligne', done: false },
-                    { id: 3, type: 'buy', text: 'Adaptateur prise UK (Type G)', done: true },
-                    { id: 4, type: 'buy', text: 'Chaussures d’eau pour Wadi Shab', done: false }
-                ],
-                inspirations: [
-                    { id: 1, url: 'https://www.tiktok.com/@travel/video/wadi-shab', platform: 'TikTok', title: 'Gorges de Wadi Shab (Plan drone matin)', address: 'Wadi Shab, Tiwi, Oman', category: 'Drone', booked: false, status: 'unorganized', assignedDay: null, image: null },
-                    { id: 2, url: 'https://www.instagram.com/reel/wahiba-sunset', platform: 'Instagram', title: 'Dunes de Wahiba Sands — Coucher de soleil', address: 'Wahiba Sands, Oman', category: 'Sunset View', booked: true, status: 'unorganized', assignedDay: null, image: null },
-                    { id: 3, url: 'https://www.booking.com/hotel/om/chedi-muscat', platform: 'Booking', title: 'The Chedi Muscat (Pass journée piscine & plage)', address: 'The Chedi, Muscat', category: 'Beach club', booked: true, status: 'planned', assignedDay: 1, image: SAMPLE_QR_SVG }
-                ],
-                daysMeta: {
-                    1: { title: 'Jour 1 • Arrivée Mascate', date: 'Jour 1' },
-                    2: { title: 'Jour 2 • Grande Mosquée & Mutrah', date: 'Jour 2' },
-                    3: { title: 'Jour 3 • Wadi Shab & Bimmah Sinkhole', date: 'Jour 3' }
-                },
-                itinerary: {
-                    1: [
-                        { id: 101, time: '05:55', title: 'Atterrissage Aéroport Mascate (MCT)', address: 'Muscat, Oman', transit: '', booked: true, tag: 'Lieu à visiter' },
-                        { id: 102, time: '11:00', title: 'Détente & Plage The Chedi Muscat', address: 'The Chedi, Muscat', transit: '15 min • 14 km', booked: true, tag: 'Beach club' }
-                    ],
-                    2: [
-                        { id: 201, time: '08:00', title: 'Grande Mosquée du Sultan Qaboos', address: 'Mosquée, Muscat', transit: '', booked: true, tag: 'Lieu à visiter' },
-                        { id: 202, time: '18:30', title: 'Souk de Mutrah & Corniche', address: 'Mutrah, Muscat', transit: '22 min • 19 km', booked: false, tag: 'Restaurant' }
-                    ],
-                    3: [
-                        { id: 301, time: '07:30', title: 'Randonnée & Drone à Wadi Shab', address: 'Wadi Shab, Oman', transit: '', booked: false, tag: 'Drone' }
-                    ]
-                },
-                luggages: [
-                    { id: 'bag-1', name: 'Valise Cabine Rigide', emptyWeight: 2.30, maxWeight: 10.0 },
-                    { id: 'bag-2', name: 'Sac à dos Photo & Drone', emptyWeight: 0.90, maxWeight: 5.0 }
-                ],
-                gearList: [
-                    { id: 1, bagId: 'bag-2', category: 'Tech & Drone', name: 'DJI Mini 4 Pro + Fly More', weight: 1.15, checked: true },
-                    { id: 2, bagId: 'bag-2', category: 'Tech & Drone', name: 'Radiocommande DJI RC 2', weight: 0.42, checked: true },
-                    { id: 3, bagId: 'bag-2', category: 'Essentiels & Papiers', name: 'Passeport + Permis international', weight: 0.15, checked: true },
-                    { id: 4, bagId: 'bag-1', category: 'Tenues & Soins', name: 'Tenues 5 jours (Compression)', weight: 3.80, checked: true },
-                    { id: 5, bagId: 'bag-1', category: 'Tenues & Soins', name: 'Trousse toilette 100ml', weight: 0.95, checked: true }
-                ],
-                settlements: [],
-                expenses: [
-                    { id: 1, label: 'Vols A/R Oman Air (WY 172/171)', amountEur: 690.00, category: 'Vols', day: 'Jour 1', paidBy: 'Moi', method: 'CB', createdAt: 4 },
-                    { id: 2, label: 'Location 4x4 Sixt (9 jours)', amountEur: 320.00, category: 'Location de voiture', day: 'Jour 1', paidBy: 'Alex', method: 'CB', createdAt: 3 },
-                    { id: 3, label: 'Campement Désert Wahiba', amountEur: 210.00, category: 'Hébergement', day: 'Jour 3', paidBy: 'Moi', method: 'CB', createdAt: 2 },
-                    { id: 4, label: 'Dîner fruits de mer Mutrah', amountEur: 48.00, category: 'Gastronomie', day: 'Jour 2', paidBy: 'Alex', method: 'Espèces', createdAt: 1 }
-                ]
-            },
-            {
-                id: 'trip-algerie',
-                title: 'Roadtrip Algérie',
-                destination: 'Destination à définir',
-                countdown: 'Brouillon',
+                id: 'starter-sahara',
+                title: 'Sur les pistes du Sahara',
+                destination: 'Algérie • Djanet, Tassili n’Ajjer & désert',
+                countdown: 'Planifié',
                 duration: 8,
-                status: 'draft',
+                status: 'active',
                 currency: 'DZD',
                 rate: 147,
-                totalBudget: 1100,
+                totalBudget: 1200,
                 companions: [],
                 overviewOrder: ['flights', 'rentals', 'todos'],
+                overviewNotes: '',
+                itineraryNotes: 'Prévoir les temps de trajet dans le désert et vérifier les conditions locales avant le départ.',
+                bagageNotes: '',
+                budgetNotes: '',
+                tabChecklists: {
+                    itinerary: [{ id: 1, text: 'Repérer les étapes et les temps de trajet', done: false }],
+                    bagage: [{ id: 2, text: 'Préparer une protection solaire et des vêtements adaptés', done: false }],
+                    budget: [{ id: 3, text: 'Estimer le budget transport et hébergement', done: false }]
+                },
                 flights: [],
                 rentals: [],
-                todos: [],
-                inspirations: [],
+                todos: [
+                    { id: 1, type: 'todo', text: 'Comparer les vols vers Djanet', done: false },
+                    { id: 2, type: 'todo', text: 'Se renseigner sur les excursions dans le Tassili', done: false },
+                    { id: 3, type: 'todo', text: 'Préparer les documents de voyage', done: false }
+                ],
+                inspirations: [
+                    { id: 1, url: '', platform: 'ALBA', title: 'Tassili n’Ajjer', address: 'Djanet, Algérie', category: 'Lieu à visiter', booked: false, status: 'unorganized', assignedDay: null, image: null },
+                    { id: 2, url: '', platform: 'ALBA', title: 'Dunes du Sahara', address: 'Sahara algérien', category: 'Spot photo', booked: false, status: 'unorganized', assignedDay: null, image: null }
+                ],
+                daysMeta: {
+                    1: { title: 'Jour 1 • Arrivée', date: 'Jour 1' },
+                    2: { title: 'Jour 2 • Découverte du désert', date: 'Jour 2' },
+                    3: { title: 'Jour 3 • Tassili n’Ajjer', date: 'Jour 3' }
+                },
+                itinerary: {
+                    1: [],
+                    2: [{ id: 201, time: '', title: 'Découverte des paysages du Sahara', address: 'Djanet, Algérie', transit: '', booked: false, tag: 'Lieu à visiter' }],
+                    3: [{ id: 301, time: '', title: 'Explorer le Tassili n’Ajjer', address: 'Parc culturel du Tassili n’Ajjer, Algérie', transit: '', booked: false, tag: 'Lieu à visiter' }]
+                },
+                luggages: [{ id: 'bag-default', name: 'Valise cabine', emptyWeight: 2.2, maxWeight: 10 }],
+                gearList: [],
+                settlements: [],
+                expenses: []
+            },
+            {
+                id: 'starter-dubai',
+                title: 'Dubaï, entre ville & désert',
+                destination: 'Émirats arabes unis • Dubaï',
+                countdown: 'Brouillon',
+                duration: 5,
+                status: 'draft',
+                currency: 'AED',
+                rate: 4,
+                totalBudget: 1000,
+                companions: [],
+                overviewOrder: ['flights', 'rentals', 'todos'],
+                overviewNotes: '',
+                itineraryNotes: '',
+                bagageNotes: '',
+                budgetNotes: '',
+                tabChecklists: { itinerary: [], bagage: [], budget: [] },
+                flights: [],
+                rentals: [],
+                todos: [
+                    { id: 1, type: 'todo', text: 'Comparer les vols pour Dubaï', done: false },
+                    { id: 2, type: 'todo', text: 'Choisir un quartier où séjourner', done: false },
+                    { id: 3, type: 'todo', text: 'Enregistrer les lieux à découvrir', done: false }
+                ],
+                inspirations: [
+                    { id: 1, url: '', platform: 'ALBA', title: 'Burj Khalifa', address: 'Downtown Dubai, Émirats arabes unis', category: 'Lieu à visiter', booked: false, status: 'unorganized', assignedDay: null, image: null },
+                    { id: 2, url: '', platform: 'ALBA', title: 'Désert de Dubaï', address: 'Dubaï, Émirats arabes unis', category: 'Spot photo', booked: false, status: 'unorganized', assignedDay: null, image: null }
+                ],
                 daysMeta: { 1: { title: 'Jour 1 • Arrivée', date: 'Jour 1' } },
                 itinerary: { 1: [] },
-                luggages: [{ id: 'bag-1', name: 'Valise Cabine', emptyWeight: 2.2, maxWeight: 10.0 }],
+                luggages: [{ id: 'bag-default', name: 'Valise cabine', emptyWeight: 2.2, maxWeight: 10 }],
                 gearList: [],
+                settlements: [],
                 expenses: []
             }
         ];
@@ -1643,7 +1627,17 @@
                 const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('noma_travel_v4_state');
                 if (raw) return JSON.parse(raw);
             } catch (e) { console.warn('Lecture locale impossible', e); }
-            return { trips: initialTrips, templates: defaultTemplates };
+            // Chaque nouvelle installation reçoit ses propres copies des voyages de démonstration.
+            const freshState = {
+                trips: initialTrips.map(trip => ({ ...trip, id: crypto.randomUUID() })),
+                templates: defaultTemplates
+            };
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(freshState));
+            } catch (e) {
+                console.warn('Initialisation locale impossible', e);
+            }
+            return freshState;
         }
 
         function ensureUuid(value) {
