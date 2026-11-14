@@ -5070,10 +5070,48 @@
             lucide.createIcons();
         }
 
+        const ALBA_VAPID_PUBLIC_KEY = 'BA_UG-JdOuTw-rwAdn61zK48Omqknz4yCwngFNhmKaXGrM5q6eFGGpgGG-dohyg0xaloR8Rb16xofO_WthTNU6k';
+
+        function albaBase64UrlToUint8Array(value) {
+            const padding = '='.repeat((4 - value.length % 4) % 4);
+            const base64 = (value + padding).replace(/-/g, '+').replace(/_/g, '/');
+            const raw = atob(base64);
+            return Uint8Array.from([...raw].map(char => char.charCodeAt(0)));
+        }
+
         async function enableAlbaNotifications() {
-            if (!('Notification' in window)) return showToast('Les notifications ne sont pas disponibles sur ce navigateur');
-            const permission = await Notification.requestPermission();
-            showToast(permission === 'granted' ? 'Notifications activées sur cet appareil' : 'Autorisation de notification refusée');
+            if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+                return showToast('Les notifications push ne sont pas disponibles sur cet appareil');
+            }
+            if (!albaUserId || storageMode !== 'hybrid') return showToast('Connecte-toi à ALBA pour activer les notifications');
+            const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+            const isInstalledIOS = !isIOS || window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+            if (!isInstalledIOS) return showToast("Sur iPhone, ajoute d'abord ALBA à l'écran d'accueil puis ouvre son icône");
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') return showToast('Autorisation de notification refusée');
+                const registration = await navigator.serviceWorker.ready;
+                let subscription = await registration.pushManager.getSubscription();
+                if (!subscription) {
+                    subscription = await registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: albaBase64UrlToUint8Array(ALBA_VAPID_PUBLIC_KEY)
+                    });
+                }
+                const payload = subscription.toJSON();
+                const { error } = await supabaseClient.from('trip_push_subscriptions').upsert({
+                    user_id: albaUserId,
+                    endpoint: payload.endpoint,
+                    p256dh: payload.keys?.p256dh,
+                    auth: payload.keys?.auth,
+                    updated_at: new Date().toISOString()
+                }, { onConflict: 'endpoint' });
+                if (error) throw error;
+                showToast('Notifications push activées, même application fermée');
+            } catch (error) {
+                console.error('Activation push ALBA:', error);
+                showToast(error?.message || "Impossible d'activer les notifications");
+            }
         }
 
         async function saveTripReminder() {
