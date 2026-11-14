@@ -111,6 +111,24 @@
 
     <div id="iphone-frame" class="relative w-full sm:w-[393px] h-[100dvh] sm:h-[852px] bg-stoneBg sm:rounded-[52px] sm:border-[10px] sm:border-zinc-900 sm:shadow-2xl overflow-hidden flex flex-col">
         
+        <!-- MODE DÉPART : vue compagnon de voyage -->
+        <div id="departure-mode" class="hidden fixed inset-0 z-[80] bg-stoneBg flex flex-col">
+            <header class="safe-top-pad bg-ink text-white px-5 pb-4 pt-3 flex items-center justify-between shrink-0">
+                <button onclick="closeDepartureMode()" class="flex items-center gap-1 text-xs text-white/80"><i data-lucide="chevron-left" class="w-4 h-4"></i> Retour</button>
+                <span class="font-alba text-xs tracking-widest">ALBA <span class="text-sand">TRAVEL</span></span>
+                <button onclick="openDocModal()" class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center" aria-label="Ouvrir le coffre-fort"><i data-lucide="shield-check" class="w-4 h-4 text-sand"></i></button>
+            </header>
+            <main class="flex-1 overflow-y-auto no-scrollbar px-5 py-5 space-y-4 pb-10">
+                <div><p class="text-[10px] uppercase tracking-[0.18em] text-sand font-semibold">Compagnon de voyage</p><h1 id="departure-title" class="text-2xl font-bold text-ink mt-1">Mode départ</h1><p id="departure-subtitle" class="text-xs text-muted mt-1">Tes informations essentielles, même en déplacement.</p></div>
+                <div id="departure-countdown" class="rounded-2xl bg-white border border-borderSubtle p-4"></div>
+                <section class="space-y-2"><div class="flex items-center justify-between"><h2 class="text-sm font-bold text-ink">Transport</h2><span class="text-[9px] text-muted">Vols & locations</span></div><div id="departure-transport" class="space-y-2"></div></section>
+                <section class="space-y-2"><div class="flex items-center justify-between"><h2 class="text-sm font-bold text-ink">Réservations</h2><span class="text-[9px] text-muted">Hébergements & activités</span></div><div id="departure-reservations" class="space-y-2"></div></section>
+                <section class="space-y-2"><div class="flex items-center justify-between"><h2 class="text-sm font-bold text-ink">Programme du séjour</h2><button onclick="closeDepartureMode();switchTab('itineraire')" class="text-[10px] font-semibold text-sand">Ouvrir l’itinéraire</button></div><div id="departure-itinerary" class="space-y-2"></div></section>
+                <section class="rounded-2xl bg-white border border-borderSubtle p-4 space-y-2"><h2 class="text-sm font-bold text-ink">Accès rapides</h2><div class="grid grid-cols-2 gap-2"><button onclick="openDocModal()" class="rounded-xl bg-stoneBg p-3 text-left"><i data-lucide="shield-check" class="w-4 h-4 text-sand mb-1"></i><span class="block text-[10px] font-semibold">Coffre-fort</span><span class="block text-[9px] text-muted">Documents privés</span></button><button onclick="closeDepartureMode();switchTab('budget')" class="rounded-xl bg-stoneBg p-3 text-left"><i data-lucide="wallet" class="w-4 h-4 text-sand mb-1"></i><span class="block text-[10px] font-semibold">Budget</span><span class="block text-[9px] text-muted">Dépenses du voyage</span></button></div></section>
+                <p class="text-[9px] text-muted text-center">Garde une copie hors ligne de tes documents importants. Les liens externes nécessitent une connexion internet.</p>
+            </main>
+        </div>
+
         <!-- Toast -->
         <div id="toast" class="fixed sm:absolute top-14 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-all duration-300 transform -translate-y-2">
             <div class="bg-zinc-900 text-white text-xs font-medium px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 whitespace-nowrap">
@@ -259,6 +277,34 @@
                             </button>
                         </div>
                     </header>
+
+                    <button onclick="openDepartureMode()" class="w-full rounded-2xl bg-ink text-white p-4 flex items-center justify-between shadow-sm active:scale-[0.99] transition">
+                        <span class="flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center"><i data-lucide="navigation" class="w-5 h-5 text-sand"></i></span><span class="text-left"><span class="block text-xs font-bold">Mode départ</span><span class="block text-[10px] text-white/65 mt-0.5">Tous tes essentiels au même endroit</span></span></span>
+                        <i data-lucide="arrow-up-right" class="w-4 h-4 text-sand"></i>
+                    </button>
+
+                    <div id="trip-readiness-card" class="bg-white rounded-2xl border border-borderSubtle p-4 space-y-3">
+                        <div class="flex items-start justify-between gap-3">
+                            <div><p class="text-[10px] font-semibold uppercase tracking-[0.14em] text-sand">ALBA · Préparation</p><h2 class="text-sm font-bold text-ink mt-1">Prêt(e) pour le départ ?</h2><p id="trip-readiness-summary" class="text-[10px] text-muted mt-1">Analyse de ton voyage…</p></div>
+                            <div class="text-right shrink-0"><span id="trip-readiness-score" class="text-2xl font-semibold text-ink tabular-nums">—</span><span class="text-[10px] text-muted"> / 100</span></div>
+                        </div>
+                        <div class="h-2 rounded-full bg-stoneBg overflow-hidden"><div id="trip-readiness-progress" class="h-full rounded-full bg-sand transition-all duration-300" style="width:0%"></div></div>
+                        <div id="trip-readiness-items" class="space-y-2"></div>
+                        <div id="trip-readiness-alerts" class="space-y-2 border-t border-borderSubtle pt-3"></div>
+                        <p class="text-[9px] text-muted border-t border-borderSubtle pt-2">Le score se met à jour avec les informations enregistrées. Les éléments non concernés par ton voyage ne sont pas pénalisés.</p>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-borderSubtle p-3 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div><p class="text-xs font-bold text-ink">Ton voyage, en un coup d’œil</p><p id="trip-countdown-detail" class="text-[10px] text-muted">Compte à rebours et rappels</p></div>
+                            <button onclick="openReminderModal()" class="text-[10px] font-semibold text-sand px-2.5 py-2 rounded-lg bg-sandLight">Gérer les rappels</button>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="openDocModal()" class="rounded-xl bg-stoneBg p-2.5 text-center"><i data-lucide="shield-check" class="w-4 h-4 mx-auto mb-1 text-sand"></i><span class="text-[10px] font-semibold text-ink">Coffre-fort</span></button>
+                            <button onclick="openAlbumModal()" class="rounded-xl bg-stoneBg p-2.5 text-center"><i data-lucide="images" class="w-4 h-4 mx-auto mb-1 text-sand"></i><span class="text-[10px] font-semibold text-ink">Souvenirs</span></button>
+                            <button onclick="openAiPlannerModal()" class="rounded-xl bg-stoneBg p-2.5 text-center"><i data-lucide="sparkles" class="w-4 h-4 mx-auto mb-1 text-sand"></i><span class="text-[10px] font-semibold text-ink">Assistant IA</span></button>
+                        </div>
+                    </div>
 
                     <!-- 1. SECTION CONVERTISSEUR EN PREMIER -->
                     <div class="bg-white rounded-2xl p-4 border border-borderSubtle shadow-2xs">
@@ -587,6 +633,15 @@
                     </div>
                     <div id="itinerary-conflict-alert" class="hidden rounded-xl border border-amber-300/60 bg-amber-50 text-amber-800 px-3 py-2 text-[10px]"></div>
                     <div id="itinerary-timeline" class="relative pl-4 space-y-2 before:content-[''] before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-[1.5px] before:bg-borderSubtle"></div>
+
+                    <div class="bg-white rounded-2xl p-4 border border-borderSubtle space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-ink flex items-center gap-1.5"><i data-lucide="book-heart" class="w-3.5 h-3.5 text-sand"></i> Carnet du jour</span>
+                            <span class="text-[9px] text-muted">Partagé avec le voyage</span>
+                        </div>
+                        <textarea id="day-journal-input" rows="3" oninput="saveDayJournal(this.value)" placeholder="Les petits détails à retenir, les bonnes adresses, vos impressions..." class="w-full bg-stoneBg text-xs text-ink rounded-xl p-3 border border-borderSubtle focus:outline-none focus:border-sand"></textarea>
+                        <p class="text-[9px] text-muted">Tes notes sont enregistrées avec cette journée et synchronisées avec les compagnons autorisés.</p>
+                    </div>
 
                     <!-- ESPACE BAS ITINÉRAIRE : NOTES & CHECK-LIST -->
                     <div class="bg-white rounded-2xl p-4 border border-borderSubtle space-y-3 mt-4">
@@ -1286,11 +1341,18 @@
                         <i data-lucide="x" class="w-4 h-4"></i>
                     </button>
                 </div>
-                <div class="flex items-center gap-2">
-                    <input id="new-companion-name" type="text" placeholder="Prénom (ex: Alex, Camélia...)" class="flex-1 bg-stoneBg text-xs text-ink rounded-xl px-3 py-2.5 border border-borderSubtle">
-                    <button onclick="addCompanion()" class="bg-ink text-white text-xs font-semibold px-4 py-2.5 rounded-xl">Ajouter</button>
+                <p class="text-[10px] text-muted">Personnes ayant rejoint ce voyage via ton lien privé. Tu peux gérer leurs accès ici.</p>
+                <div id="cloud-members-list" class="space-y-2">
+                    <p class="text-xs text-muted text-center py-3">Chargement des participants…</p>
                 </div>
-                <div id="companions-list-modal" class="space-y-2"></div>
+                <div class="border-t border-borderSubtle pt-3 space-y-2">
+                    <p class="text-[10px] font-semibold uppercase tracking-wide text-muted">Compagnons ajoutés manuellement</p>
+                    <div class="flex items-center gap-2">
+                        <input id="new-companion-name" type="text" placeholder="Prénom (ex: Alex, Camélia...)" class="flex-1 bg-stoneBg text-xs text-ink rounded-xl px-3 py-2.5 border border-borderSubtle">
+                        <button onclick="addCompanion()" class="bg-ink text-white text-xs font-semibold px-4 py-2.5 rounded-xl">Ajouter</button>
+                    </div>
+                    <div id="companions-list-modal" class="space-y-2"></div>
+                </div>
             </div>
         </div>
 
@@ -1337,7 +1399,45 @@
                         <i data-lucide="x" class="w-4 h-4"></i>
                     </button>
                 </div>
-                <div id="doc-modal-body" class="space-y-2.5 max-h-72 overflow-y-auto no-scrollbar"></div>
+                <div class="flex gap-2">
+                    <button onclick="document.getElementById('vault-file-input').click()" class="flex-1 bg-ink text-white rounded-xl py-2.5 text-[11px] font-semibold">+ Ajouter un document</button>
+                    <input id="vault-file-input" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.heic,.heif,.doc,.docx,.xls,.xlsx" class="hidden" onchange="handleVaultFileUpload(this,'document')">
+                </div>
+                <div id="vault-files-list" class="space-y-2 max-h-52 overflow-y-auto no-scrollbar"><p class="text-[10px] text-muted text-center py-2">Chargement du coffre-fort…</p></div>
+                <div class="border-t border-borderSubtle pt-3"><p class="text-[10px] font-semibold text-muted uppercase tracking-wide mb-2">Liens et billets déjà enregistrés</p><div id="doc-modal-body" class="space-y-2.5 max-h-52 overflow-y-auto no-scrollbar"></div></div>
+            </div>
+        </div>
+
+        <div id="album-modal" class="hidden absolute inset-0 z-[58] bg-zinc-950/50 backdrop-blur-[2px] flex items-end justify-center">
+            <div class="bg-white w-full rounded-t-3xl p-5 pb-8 space-y-3 max-h-[90%] overflow-y-auto">
+                <div class="flex items-center justify-between"><div><h3 class="text-base font-bold text-ink">Album & souvenirs</h3><p class="text-[10px] text-muted">Les photos restent privées et partagées avec les membres du voyage</p></div><button onclick="closeModal('album-modal')" class="w-8 h-8 rounded-full bg-stoneBg"><i data-lucide="x" class="w-4 h-4 mx-auto"></i></button></div>
+                <button onclick="document.getElementById('album-file-input').click()" class="w-full bg-ink text-white rounded-xl py-3 text-xs font-semibold">+ Ajouter des photos</button>
+                <input id="album-file-input" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple class="hidden" onchange="handleVaultFileUpload(this,'photo')">
+                <div id="album-grid" class="grid grid-cols-2 gap-2"><p class="col-span-2 text-xs text-muted text-center py-5">Chargement de l’album…</p></div>
+            </div>
+        </div>
+
+        <div id="ai-planner-modal" class="hidden absolute inset-0 z-[58] bg-zinc-950/50 backdrop-blur-[2px] flex items-end justify-center">
+            <div class="bg-white w-full rounded-t-3xl p-5 pb-8 space-y-3 max-h-[90%] overflow-y-auto">
+                <div class="flex items-center justify-between"><div><h3 class="text-base font-bold text-ink">ALBA · Assistant de voyage</h3><p class="text-[10px] text-muted">Suggestions et vérifications sans frais</p></div><button onclick="closeModal('ai-planner-modal')" class="w-8 h-8 rounded-full bg-stoneBg"><i data-lucide="x" class="w-4 h-4 mx-auto"></i></button></div>
+                <label class="text-[10px] font-semibold text-muted">Journée à travailler</label><select id="ai-planner-day" class="w-full bg-stoneBg rounded-xl px-3 py-2.5 text-xs"></select>
+                <div class="grid grid-cols-3 gap-2"><button onclick="runAlbaAssistant('build')" class="bg-stoneBg rounded-xl p-2 text-[10px] font-semibold">Construire</button><button onclick="runAlbaAssistant('optimize')" class="bg-stoneBg rounded-xl p-2 text-[10px] font-semibold">Optimiser</button><button onclick="runAlbaAssistant('check')" class="bg-stoneBg rounded-xl p-2 text-[10px] font-semibold">Vérifier</button></div>
+                <div id="ai-planner-status" class="text-[10px] text-muted"></div>
+                <div id="ai-planner-answer" class="bg-stoneBg rounded-xl p-3 text-xs text-ink whitespace-pre-wrap min-h-20">Choisis une action : ALBA analyse les informations déjà enregistrées, sans API payante.</div>
+                <p class="text-[9px] text-muted">Les suggestions sont calculées dans l’application, sans IA externe. Vérifie toujours les informations pratiques avant de partir.</p>
+            </div>
+        </div>
+
+        <div id="reminder-modal" class="hidden absolute inset-0 z-[58] bg-zinc-950/50 backdrop-blur-[2px] flex items-end justify-center">
+            <div class="bg-white w-full rounded-t-3xl p-5 pb-8 space-y-3">
+                <div class="flex items-center justify-between"><div><h3 class="text-base font-bold text-ink">Compte à rebours & rappels</h3><p id="reminder-countdown-copy" class="text-[10px] text-muted">Prépare ton départ sans stress</p></div><button onclick="closeModal('reminder-modal')" class="w-8 h-8 rounded-full bg-stoneBg"><i data-lucide="x" class="w-4 h-4 mx-auto"></i></button></div>
+                <button onclick="enableAlbaNotifications()" class="w-full bg-sandLight text-sand rounded-xl py-2.5 text-[11px] font-semibold">Activer les notifications sur cet appareil</button>
+                <label class="text-[10px] font-semibold text-muted">Date et heure du rappel</label>
+                <input id="reminder-datetime" type="datetime-local" class="w-full bg-stoneBg rounded-xl px-3 py-2.5 text-xs">
+                <input id="reminder-title" type="text" maxlength="100" placeholder="Ex. Vérifier les passeports et les billets" class="w-full bg-stoneBg rounded-xl px-3 py-2.5 text-xs">
+                <button onclick="saveTripReminder()" class="w-full bg-ink text-white rounded-xl py-3 text-xs font-semibold">Enregistrer le rappel</button>
+                <div id="trip-reminders-list" class="space-y-2 max-h-48 overflow-y-auto"></div>
+                <p class="text-[9px] text-muted">Les rappels sont synchronisés avec ton compte. Les notifications locales se déclenchent lorsque l’application est ouverte ou revient au premier plan ; les notifications push quand l’application est fermée nécessitent une configuration serveur supplémentaire.</p>
             </div>
         </div>
 
@@ -2038,6 +2138,16 @@
                 const { data, error } = await supabaseClient.rpc('accept_trip_invite', { p_token_hash: tokenHash });
                 if (error) throw error;
                 showToast('Invitation acceptée ! Le voyage est ajouté.');
+                const displayName = window.prompt('Comment afficher ton prénom aux autres participants ?');
+                if (displayName && displayName.trim()) {
+                    const tripId = typeof data === 'string' ? data : data?.trip_id || data?.id;
+                    if (tripId) {
+                        const { error: nameError } = await supabaseClient.rpc('set_trip_member_name', {
+                            p_trip_id: tripId, p_display_name: displayName.trim().slice(0, 50)
+                        });
+                        if (nameError) console.warn('Enregistrement du nom du participant:', nameError);
+                    }
+                }
                 return data;
             } catch (error) {
                 console.error('Acceptation invitation:', error);
@@ -2067,7 +2177,16 @@
                     if (activeTripId === row.id) refreshTripUI();
                     isApplyingRemoteTrip = false;
                     showToast('Voyage mis à jour par un compagnon');
-                }).subscribe();
+                })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'trip_inspiration_votes', filter: `trip_id=eq.${activeTripId}` }, async () => {
+                    await loadTripVotes();
+                    if (activeTripId) renderInspirations();
+                })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'trip_members', filter: `trip_id=eq.${activeTripId}` }, async () => {
+                    await refreshTripGroupMode();
+                    await loadTripVotes();
+                })
+                .subscribe();
         }
 
         async function initCloudSync(options = {}) {
@@ -2151,6 +2270,153 @@
 
         function getTrip() {
             return state.trips.find(t => t.id === activeTripId);
+        }
+
+        // Tableau de préparation : calcul local, sans API ni modification des données.
+        async function renderTripReadiness() {
+            const trip = getTrip();
+            const root = document.getElementById('trip-readiness-card');
+            if (!trip || !root) return;
+            const tripId = trip.id;
+            const allSteps = Object.values(trip.itinerary || {}).flat().filter(Boolean);
+            const lists = Object.values(trip.tabChecklists || {}).flat().filter(Boolean);
+            const todoItems = (trip.todos || []).filter(Boolean);
+            const tasks = [...lists, ...todoItems];
+            const doneTasks = tasks.filter(item => item.done).length;
+            const reservations = (trip.reservations || []).filter(Boolean);
+            const incompleteReservations = reservations.filter(item => !item.date || !item.time || !item.location || (!item.reference && !item.url));
+            const hasDates = !!(trip.startDate && trip.endDate);
+            const flights = (trip.flights || []).filter(Boolean);
+            const rentals = (trip.rentals || []).filter(Boolean);
+            const hasTransport = flights.length > 0 || rentals.length > 0;
+            const checks = [
+                {label:'Dates du voyage', detail:hasDates ? 'Départ et retour renseignés' : 'Ajoute les dates de départ et de retour', ready:hasDates, tab:'apercu', weight:20},
+                {label:'Itinéraire', detail:allSteps.length ? allSteps.length + ' étape(s) planifiée(s)' : 'Ajoute au moins une étape à ton programme', ready:allSteps.length>0, tab:'itineraire', weight:25},
+                {label:'Tâches & checklists', detail:tasks.length ? doneTasks + ' / ' + tasks.length + ' tâche(s) terminée(s)' : 'Aucune tâche ajoutée pour le moment', ratio:tasks.length ? doneTasks/tasks.length : 0, tab:'itineraire', weight:25},
+            ];
+            if (reservations.length) checks.push({label:'Réservations',detail:incompleteReservations.length ? incompleteReservations.length+' réservation(s) à compléter' : reservations.length+' réservation(s) avec les informations essentielles',ready:incompleteReservations.length===0,tab:'inspirations',weight:15});
+            if (hasTransport) checks.push({label:'Transport',detail:flights.length+' vol(s) · '+rentals.length+' location(s)',ready:true,tab:'apercu',weight:15});
+
+            // Lecture des seuls métadonnées des documents privés, jamais du contenu des fichiers.
+            let documentCount = null;
+            if (albaUserId && storageMode === 'hybrid' && supabaseClient) {
+                try {
+                    const {data,error} = await supabaseClient.from('trip_files').select('id').eq('trip_id',tripId).eq('category','document');
+                    if (!error && getTrip()?.id === tripId) documentCount = (data || []).length;
+                } catch (err) { console.warn('Vérification des documents ALBA:',err); }
+            }
+            if (getTrip()?.id !== tripId) return;
+
+            const totalWeight = checks.reduce((sum,item)=>sum+item.weight,0);
+            const earned = checks.reduce((sum,item)=>sum+item.weight*(item.ratio !== undefined ? item.ratio : (item.ready ? 1 : 0)),0);
+            const score = totalWeight ? Math.round(earned/totalWeight*100) : 0;
+            const pending = checks.filter(item=>item.ratio !== undefined ? item.ratio<1 : !item.ready).length;
+            const scoreEl=document.getElementById('trip-readiness-score');
+            const progress=document.getElementById('trip-readiness-progress');
+            const summary=document.getElementById('trip-readiness-summary');
+            const itemsEl=document.getElementById('trip-readiness-items');
+            if(scoreEl) scoreEl.textContent=String(score);
+            if(progress) progress.style.width=score+'%';
+            if(summary) summary.textContent=pending ? pending+' point(s) à vérifier avant le départ' : 'Les informations essentielles sont renseignées';
+            if(itemsEl) itemsEl.innerHTML=checks.map(item=>{
+                const complete=item.ratio !== undefined ? item.ratio>=1 : item.ready;
+                const partial=item.ratio !== undefined && item.ratio>0 && item.ratio<1;
+                const icon=complete?'check-circle-2':(partial?'circle-dot':'alert-circle');
+                const color=complete?'text-emerald-600':(partial?'text-sand':'text-muted');
+                return '<button type="button" onclick="switchTab(\''+item.tab+'\')" class="w-full flex items-center gap-2.5 text-left py-1.5 group"><i data-lucide="'+icon+'" class="w-4 h-4 '+color+' shrink-0"></i><span class="flex-1 min-w-0"><span class="block text-[11px] font-semibold text-ink">'+item.label+'</span><span class="block text-[9px] text-muted">'+item.detail+'</span></span><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-muted"></i></button>';
+            }).join('');
+
+            const alerts=[];
+            if (trip.startDate) {
+                const today=new Date(); today.setHours(0,0,0,0);
+                const departure=new Date(trip.startDate+'T00:00:00');
+                if (!Number.isNaN(departure.getTime())) {
+                    const days=Math.round((departure-today)/86400000);
+                    if (days>=0 && days<=30) {
+                        const urgency=days<=3?'urgent':(days<=7?'soon':'normal');
+                        alerts.push({title:days===0?'Départ aujourd’hui':(days===1?'Départ demain':'Départ dans '+days+' jours'),detail:'Vérifie les documents, les horaires et les confirmations avant de partir.',tab:'apercu',urgency});
+                    }
+                }
+            }
+            if (flights.length) {
+                const missing=flights.filter(f=>!f.number||!f.depDate||!f.depTime||!f.depCity||!f.arrCity);
+                const noBoardingPass=flights.filter(f=>!f.image);
+                if(missing.length) alerts.push({title:'Informations de vol incomplètes',detail:missing.length+' vol(s) sans toutes les informations essentielles.',tab:'apercu',urgency:'soon'});
+                if(noBoardingPass.length) alerts.push({title:'Billet ou carte d’embarquement à joindre',detail:noBoardingPass.length+' vol(s) sans document attaché dans la fiche du vol.',tab:'apercu',urgency:'normal'});
+                if(trip.startDate && flights.some(f=>f.depDate && f.depDate<trip.startDate)) alerts.push({title:'Vérifie les dates des vols',detail:'Au moins un vol est daté avant le début du séjour.',tab:'apercu',urgency:'soon'});
+            }
+            if(reservations.length && incompleteReservations.length) alerts.push({title:'Réservations à compléter',detail:'Ajoute les horaires, adresses et références manquantes.',tab:'inspirations',urgency:'soon'});
+            if(documentCount===0) alerts.push({title:'Coffre-fort encore vide',detail:'Pense à y déposer passeport ou pièce d’identité, assurance et confirmations utiles.',tab:'apercu',urgency:'normal'});
+            else if(documentCount>0) alerts.push({title:'Documents enregistrés',detail:documentCount+' fichier(s) dans le coffre-fort. Vérifie que les documents de voyage indispensables y figurent.',tab:'apercu',urgency:'normal'});
+            const alertEl=document.getElementById('trip-readiness-alerts');
+            if(alertEl) {
+                alertEl.innerHTML=alerts.length ? '<p class="text-[10px] font-semibold uppercase tracking-wider text-muted mb-1">À ne pas oublier</p>'+alerts.map(a=>{
+                    const icon=a.urgency==='urgent'?'alert-triangle':(a.urgency==='soon'?'clock-3':'info');
+                    const tone=a.urgency==='urgent'?'text-red-600':(a.urgency==='soon'?'text-amber-600':'text-sand');
+                    return '<button type="button" onclick="switchTab(\''+a.tab+'\')" class="w-full flex items-start gap-2 rounded-xl bg-stoneBg p-2.5 text-left"><i data-lucide="'+icon+'" class="w-4 h-4 '+tone+' shrink-0 mt-0.5"></i><span class="min-w-0"><span class="block text-[10px] font-semibold text-ink">'+a.title+'</span><span class="block text-[9px] text-muted">'+a.detail+'</span></span></button>';
+                }).join('') : '<p class="text-[10px] text-emerald-700">Aucune alerte particulière pour le moment.</p>';
+            }
+            if(window.lucide) lucide.createIcons();
+        }
+
+        function closeDepartureMode() {
+            document.getElementById('departure-mode')?.classList.add('hidden');
+        }
+
+        function openDepartureMode() {
+            const trip=getTrip();
+            if(!trip) return;
+            const panel=document.getElementById('departure-mode');
+            panel.classList.remove('hidden');
+            const safe=v=>escapePrintHtml(String(v ?? ''));
+            const title=document.getElementById('departure-title');
+            const subtitle=document.getElementById('departure-subtitle');
+            if(title) title.textContent=trip.title || 'Mode départ';
+            if(subtitle) subtitle.textContent=trip.destination || 'Tes informations essentielles, au même endroit';
+            const countdown=document.getElementById('departure-countdown');
+            if(trip.startDate) {
+                const today=new Date();today.setHours(0,0,0,0);
+                const start=new Date(trip.startDate+'T00:00:00');
+                const days=Math.round((start-today)/86400000);
+                const label=days>0?'Départ dans '+days+' jour(s)':days===0?'Départ aujourd’hui': 'Voyage commencé il y a '+Math.abs(days)+' jour(s)';
+                countdown.innerHTML='<p class="text-[10px] uppercase tracking-wider text-muted">Calendrier</p><p class="text-lg font-bold text-ink mt-1">'+safe(label)+'</p><p class="text-[10px] text-muted mt-1">'+safe(new Date(trip.startDate+'T12:00:00').toLocaleDateString('fr-FR'))+(trip.endDate?' — '+safe(new Date(trip.endDate+'T12:00:00').toLocaleDateString('fr-FR')):'')+'</p>';
+            } else countdown.innerHTML='<p class="text-xs text-muted">Ajoute les dates du voyage pour afficher le compte à rebours.</p>';
+
+            const transport=document.getElementById('departure-transport');
+            const flights=(trip.flights||[]).filter(Boolean);
+            const rentals=(trip.rentals||[]).filter(Boolean);
+            const transportCards=[];
+            flights.forEach(f=>{
+                const route=[f.depCity,f.arrCity].filter(Boolean).map(safe).join(' → ');
+                const when=[f.depDate,f.depTime].filter(Boolean).map(safe).join(' · ');
+                const info=[f.airline,f.number].filter(Boolean).map(safe).join(' · ');
+                transportCards.push('<article class="rounded-2xl bg-white border border-borderSubtle p-3 space-y-2"><div class="flex items-center justify-between gap-2"><p class="text-[11px] font-bold text-ink">'+(info||'Vol')+'</p><span class="text-[9px] text-sand font-semibold">VOL</span></div><p class="text-xs font-semibold text-ink">'+(route||'Trajet à compléter')+'</p><p class="text-[10px] text-muted">'+(when||'Date et heure à renseigner')+'</p><div class="flex flex-wrap gap-2 text-[10px] text-muted">'+(f.depIata?'<span>Départ '+safe(f.depIata)+'</span>':'')+(f.arrIata?'<span>Arrivée '+safe(f.arrIata)+'</span>':'')+(f.terminal?'<span>Terminal '+safe(f.terminal)+'</span>':'')+(f.gate?'<span>Porte '+safe(f.gate)+'</span>':'')+(f.seat?'<span>Siège '+safe(f.seat)+'</span>':'')+'</div>'+(f.pnr?'<p class="text-[10px] bg-stoneBg rounded-lg p-2">Référence : <strong>'+safe(f.pnr)+'</strong></p>':'<p class="text-[9px] text-amber-700">Référence de réservation manquante</p>')+(f.image?'<p class="text-[9px] text-emerald-700">Billet / carte d’embarquement joint(e) à la fiche du vol</p>':'<p class="text-[9px] text-muted">Aucun billet joint à la fiche</p>')+'</article>');
+            });
+            rentals.forEach(r=>{
+                const details=[r.vehicle,r.agency].filter(Boolean).map(safe).join(' · ');
+                transportCards.push('<article class="rounded-2xl bg-white border border-borderSubtle p-3 space-y-1.5"><p class="text-[11px] font-bold text-ink">'+(details||'Location')+'</p>'+(r.pickup?'<p class="text-[10px] text-muted">Prise en charge : '+safe(r.pickup)+'</p>':'')+(r.pnr?'<p class="text-[10px] text-muted">Référence : '+safe(r.pnr)+'</p>':'')+(r.contact?'<p class="text-[10px] text-muted">Contact : '+safe(r.contact)+'</p>':'')+'</article>');
+            });
+            transport.innerHTML=transportCards.length?transportCards.join(''):'<div class="rounded-xl bg-white border border-borderSubtle p-3 text-[10px] text-muted">Aucun vol ou véhicule enregistré. Tu peux les ajouter dans l’aperçu.</div>';
+
+            const reservations=(trip.reservations||[]).filter(Boolean).slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')||(a.time||'').localeCompare(b.time||''));
+            const reservationEl=document.getElementById('departure-reservations');
+            reservationEl.innerHTML=reservations.length?reservations.map(r=>{
+                const mapQuery=r.location?encodeURIComponent(r.location):'';
+                const maps=mapQuery?'<a class="text-[10px] font-semibold text-sand underline" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='+mapQuery+'">Ouvrir l’adresse</a>':'';
+                const booking=r.url && /^https?:\/\//i.test(r.url)?'<a class="text-[10px] font-semibold text-sand underline" target="_blank" rel="noopener noreferrer" href="'+safe(r.url)+'">Confirmation</a>':'';
+                return '<article class="rounded-2xl bg-white border border-borderSubtle p-3 space-y-1.5"><div class="flex items-center justify-between gap-2"><p class="text-[11px] font-bold text-ink">'+safe(r.name||'Réservation')+'</p><span class="text-[9px] text-sand">'+safe(r.type||'')+'</span></div><p class="text-[10px] text-muted">'+[r.date?new Date(r.date+'T12:00:00').toLocaleDateString('fr-FR'):'',r.time||''].filter(Boolean).map(safe).join(' · ')+'</p>'+(r.location?'<p class="text-[10px] text-muted">'+safe(r.location)+'</p>':'')+(r.reference?'<p class="text-[10px] bg-stoneBg rounded-lg p-2">Référence : <strong>'+safe(r.reference)+'</strong></p>':'')+'<div class="flex gap-3 pt-1">'+maps+booking+'</div></article>';
+            }).join(''):'<div class="rounded-xl bg-white border border-borderSubtle p-3 text-[10px] text-muted">Aucune réservation enregistrée pour le moment.</div>';
+
+            const itinerary=document.getElementById('departure-itinerary');
+            const steps=Object.entries(trip.itinerary||{}).flatMap(([day,items])=>(items||[]).map(step=>({day,step})));
+            itinerary.innerHTML=steps.length?steps.map(({day,step})=>{
+                const name=step.title||step.name||step.activity||'Étape';
+                const time=step.time||step.startTime||'Horaire non défini';
+                const place=step.address||step.location||step.place||'';
+                const link=place?'<a target="_blank" rel="noopener" class="text-[10px] text-sand underline" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(place)+'">Itinéraire / carte</a>':'';
+                return '<article class="rounded-xl bg-white border border-borderSubtle p-3 flex items-start justify-between gap-2"><div class="min-w-0"><p class="text-[9px] uppercase tracking-wider text-sand font-semibold">Jour '+safe(day)+'</p><p class="text-[11px] font-bold text-ink mt-1">'+safe(name)+'</p><p class="text-[10px] text-muted">'+safe(time)+'</p>'+(place?'<p class="text-[10px] text-muted">'+safe(place)+'</p>':'')+link+'</div></article>';
+            }).join(''):'<div class="rounded-xl bg-white border border-borderSubtle p-3 text-[10px] text-muted">Ton programme apparaîtra ici dès que tu ajouteras des étapes.</div>';
+            if(window.lucide)lucide.createIcons();
         }
 
         function showToast(msg) {
@@ -2418,6 +2684,14 @@
             switchTab('apercu');
             refreshTripUI();
             subscribeToTripChanges();
+            refreshTripGroupMode().then(() => loadTripVotes());
+            checkDueTripReminders();
+            const openedTrip = getTrip();
+            if (openedTrip && openedTrip._albaRole !== 'owner' && storageMode === 'hybrid' && albaUserId) {
+                supabaseClient.rpc('mark_trip_viewed', { p_trip_id: openedTrip.id })
+                    .then(({ error }) => { if (error) console.warn('Suivi de consultation ALBA:', error); })
+                    .catch(error => console.warn('Suivi de consultation ALBA:', error));
+            }
         }
 
         function exitTripToHome() {
@@ -2661,7 +2935,7 @@
                 trip.luggages = [{ id: 'bag-1', name: 'Valise Cabine', emptyWeight: 2.2, maxWeight: 10.0 }];
             }
 
-            document.getElementById('trip-countdown-badge').textContent = trip.countdown;
+            updateTripCountdown(trip);
             document.getElementById('trip-duration-label').textContent = pluralize(trip.duration || 1, 'jour');
             document.getElementById('trip-title-display').textContent = trip.title;
             document.getElementById('trip-subtitle-display').textContent = trip.destination;
@@ -2721,6 +2995,7 @@
                 }
             });
             document.getElementById('app-viewport').scrollTop = 0;
+            if (tabName === 'apercu') renderTripReadiness();
             lucide.createIcons();
         }
 
@@ -3285,6 +3560,49 @@
             showToast('Enregistré');
         }
 
+        async function toggleInspirationVote(id, choice) {
+            const trip = getTrip();
+            if (!trip || !trip._albaGroupMode) return;
+            if (!albaUserId || storageMode !== 'hybrid') return showToast('Connecte-toi pour voter avec le groupe');
+            const validChoices = ['interested','approve','dislike'];
+            if (!validChoices.includes(choice)) return;
+            const item = trip.inspirations?.find(i => String(i.id) === String(id));
+            if (!item) return;
+            const current = (item.votes || []).find(v => v.userId === albaUserId);
+            const query = supabaseClient.from('trip_inspiration_votes');
+            const result = current?.choice === choice
+                ? await query.delete().eq('trip_id', trip.id).eq('inspiration_id', String(id)).eq('user_id', albaUserId)
+                : await query.upsert({ trip_id: trip.id, inspiration_id: String(id), user_id: albaUserId, choice, updated_at: new Date().toISOString() }, { onConflict: 'trip_id,inspiration_id,user_id' });
+            if (result.error) { console.error('Vote ALBA:', result.error); return showToast('Impossible d’enregistrer ton avis'); }
+            await loadTripVotes();
+            renderInspirations();
+        }
+
+        async function refreshTripGroupMode() {
+            const trip = getTrip();
+            if (!trip) return;
+            let hasCloudMembers = false;
+            if (storageMode === 'hybrid' && albaUserId) {
+                const { data, error } = await supabaseClient.from('trip_members').select('user_id').eq('trip_id', trip.id).limit(1);
+                if (!error) hasCloudMembers = (data || []).length > 0;
+            }
+            trip._albaGroupMode = (trip.companions || []).length > 0 || hasCloudMembers;
+            renderInspirations();
+        }
+
+        async function loadTripVotes() {
+            const trip = getTrip();
+            if (!trip || !trip._albaGroupMode || storageMode !== 'hybrid' || !albaUserId) return;
+            const { data, error } = await supabaseClient.from('trip_inspiration_votes')
+                .select('inspiration_id,user_id,choice')
+                .eq('trip_id', trip.id);
+            if (error) { console.warn('Chargement des votes:', error); return; }
+            (trip.inspirations || []).forEach(item => {
+                item.votes = (data || []).filter(v => v.inspiration_id === String(item.id))
+                    .map(v => ({ userId: v.user_id, choice: v.choice }));
+            });
+        }
+
         function openEditInspoModal(id) {
             const trip = getTrip();
             const item = trip.inspirations.find(i => i.id === id);
@@ -3410,6 +3728,17 @@
                         ${(item.price || item.hours || item.duration) ? `<div class="flex flex-wrap gap-2 mt-2">${item.price ? `<span class="text-[10px] text-muted">💶 ${item.price}</span>` : ''}${item.hours ? `<span class="text-[10px] text-muted">🕒 ${item.hours}</span>` : ''}${item.duration ? `<span class="text-[10px] text-muted">⏱ ${item.duration}</span>` : ''}</div>` : ''}
                         ${item.notes ? `<p class="text-[11px] text-muted mt-2 whitespace-pre-line">${item.notes}</p>` : ''}
                     </div>
+                    ${trip._albaGroupMode ? `
+                    <div class="rounded-xl bg-stoneBg border border-borderSubtle p-3 space-y-2">
+                        <div class="flex items-center justify-between"><p class="text-[10px] font-semibold text-ink">Avis du groupe</p><span class="text-[9px] text-muted">${(item.votes || []).length} avis</span></div>
+                        <div class="grid grid-cols-3 gap-1.5">
+                            ${[['interested','♡ Ça me tente'],['approve','✓ Je valide'],['dislike','✕ Pas pour moi']].map(([choice,label]) => {
+                                const count = (item.votes || []).filter(v => v.choice === choice).length;
+                                const mine = (item.votes || []).some(v => v.userId === albaUserId && v.choice === choice);
+                                return `<button onclick="toggleInspirationVote('${item.id}','${choice}')" class="rounded-lg px-1.5 py-2 text-[9px] font-semibold ${mine ? 'bg-sand text-white' : 'bg-white text-ink border border-borderSubtle'}">${label}<span class="block text-[9px] opacity-75">${count}</span></button>`;
+                            }).join('')}
+                        </div>
+                    </div>` : ''}`
                     ${(item.phone || item.whatsapp || safeExternalUrl(item.website)) ? `<div class="flex flex-wrap gap-2 pt-1">${item.phone ? `<a href="tel:${inspoPhoneHref(item.phone)}" class="text-[10px] font-semibold px-2.5 py-1.5 rounded-lg bg-stoneBg text-ink">☎ Appeler</a>` : ''}${item.whatsapp ? `<a href="https://wa.me/${inspoWhatsAppHref(item.whatsapp)}" target="_blank" rel="noopener" class="text-[10px] font-semibold px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-700">WhatsApp</a>` : ''}${safeExternalUrl(item.website) ? `<a href="${safeExternalUrl(item.website)}" target="_blank" rel="noopener" class="text-[10px] font-semibold px-2.5 py-1.5 rounded-lg bg-stoneBg text-ink">Site / Réservation ↗</a>` : ''}</div>` : ''}
                     <div class="pt-1.5 flex items-center justify-between border-t border-stoneBg">
                         <div class="flex items-center gap-3">
@@ -3905,10 +4234,21 @@
 
         function toMinutes(value) { const m = String(value||'').match(/^(\d{1,2}):(\d{2})$/); return m ? Number(m[1])*60+Number(m[2]) : 0; }
 
+        function saveDayJournal(value) {
+            const trip = getTrip();
+            if (!trip) return;
+            if (!trip.daysMeta) trip.daysMeta = {};
+            if (!trip.daysMeta[selectedDay]) trip.daysMeta[selectedDay] = { title: `Jour ${selectedDay}`, date: '' };
+            trip.daysMeta[selectedDay].journal = String(value || '').slice(0, 5000);
+            saveState();
+        }
+
         function renderItinerary() {
             const trip = getTrip();
             const meta = trip.daysMeta[selectedDay] || { title: `Jour ${selectedDay}`, date: '' };
             document.getElementById('current-day-title').textContent = meta.title;
+            const journalInput = document.getElementById('day-journal-input');
+            if (journalInput) journalInput.value = meta.journal || '';
 
             const steps = trip.itinerary[selectedDay] || [];
             const alertEl = document.getElementById('itinerary-conflict-alert');
@@ -4529,20 +4869,103 @@
         }
 
         // --- COMPANIONS & SHARE/IMPORT ---
-        function openCompanionsModal() {
-            renderCompanionsList();
+        async function openCompanionsModal() {
             document.getElementById('companions-modal').classList.remove('hidden');
+            await renderCompanionsList();
+            lucide.createIcons();
         }
 
-        function renderCompanionsList() {
+        async function renderCompanionsList() {
             const trip = getTrip();
-            const list = document.getElementById('companions-list-modal');
-            list.innerHTML = trip.companions.length ? trip.companions.map(c => `
-                <div class="flex items-center justify-between bg-stoneBg px-3.5 py-2.5 rounded-xl border border-borderSubtle">
-                    <span class="text-xs font-semibold text-ink">${c}</span>
-                    <button onclick="removeCompanion('${c}')" class="text-[11px] text-red-500">Retirer</button>
-                </div>
-            `).join('') : `<p class="text-xs text-muted text-center py-2">Voyage en solo pour le moment.</p>`;
+            if (!trip) return;
+            const cloudList = document.getElementById('cloud-members-list');
+            const localList = document.getElementById('companions-list-modal');
+            const isOwner = !trip._albaRole || trip._albaRole === 'owner';
+            if (cloudList) {
+                if (storageMode !== 'hybrid' || !albaUserId) {
+                    cloudList.innerHTML = '<p class="text-xs text-muted text-center py-3">Connecte-toi au cloud pour afficher les membres du voyage.</p>';
+                } else {
+                    cloudList.innerHTML = '<p class="text-xs text-muted text-center py-3">Chargement…</p>';
+                    const { data: members, error } = await supabaseClient
+                        .from('trip_members')
+                        .select('user_id, role, display_name, last_seen_at, joined_at')
+                        .eq('trip_id', trip.id)
+                        .order('joined_at', { ascending: true });
+                    if (error) {
+                        console.error('Chargement des participants:', error);
+                        cloudList.innerHTML = '<p class="text-xs text-red-500 py-2">Impossible de charger les participants. Réessaie.</p>';
+                    } else {
+                        const ownerRow = isOwner ? `
+                            <div class="flex items-center justify-between bg-sandLight px-3.5 py-3 rounded-xl border border-sand/20">
+                                <div><p class="text-xs font-semibold text-ink">Toi</p><p class="text-[10px] text-muted">Propriétaire du voyage</p></div>
+                                <span class="text-[10px] font-semibold text-sand">Tous les droits</span>
+                            </div>` : '';
+                        const memberRows = (members || []).map(member => {
+                            const name = escapePrintHtml(member.display_name || 'Participant');
+                            const roleLabel = member.role === 'editor' ? 'Peut modifier' : 'Consultation uniquement';
+                            const seen = member.last_seen_at
+                                ? 'Vu le ' + new Date(member.last_seen_at).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })
+                                : 'N’a pas encore ouvert le voyage';
+                            const controls = isOwner ? `
+                                <div class="flex items-center gap-2 mt-2">
+                                    <select aria-label="Droits de ${name}" onchange="changeTripMemberRole('${member.user_id}', this.value)" class="flex-1 bg-white text-[10px] text-ink rounded-lg px-2 py-2 border border-borderSubtle">
+                                        <option value="editor" ${member.role === 'editor' ? 'selected' : ''}>Peut consulter et modifier</option>
+                                        <option value="viewer" ${member.role === 'viewer' ? 'selected' : ''}>Consultation uniquement</option>
+                                    </select>
+                                    <button onclick="removeTripMember('${member.user_id}')" class="text-[10px] text-red-500 px-2 py-2">Retirer</button>
+                                </div>` : `<p class="text-[10px] text-muted mt-1">${roleLabel}</p>`;
+                            return `
+                                <div class="bg-stoneBg px-3.5 py-3 rounded-xl border border-borderSubtle">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <div class="min-w-0"><p class="text-xs font-semibold text-ink truncate">${name}</p><p class="text-[10px] text-muted">${escapePrintHtml(seen)}</p></div>
+                                        <span class="shrink-0 text-[9px] font-semibold uppercase tracking-wide ${member.role === 'editor' ? 'text-emerald-700' : 'text-muted'}">${member.role === 'editor' ? 'Éditeur' : 'Lecteur'}</span>
+                                    </div>
+                                    ${controls}
+                                </div>`;
+                        }).join('');
+                        cloudList.innerHTML = ownerRow + (memberRows || '<p class="text-xs text-muted text-center py-3">Aucun participant n’a encore rejoint ce voyage.</p>');
+                    }
+                }
+            }
+            if (localList) {
+                localList.innerHTML = (trip.companions || []).length ? trip.companions.map(c => `
+                    <div class="flex items-center justify-between bg-stoneBg px-3.5 py-2.5 rounded-xl border border-borderSubtle">
+                        <span class="text-xs font-semibold text-ink">${escapePrintHtml(c)}</span>
+                        <button onclick="removeCompanion('${String(c).replace(/\\/g, '\\\\').replace(/'/g, "\\\\'")}')" class="text-[11px] text-red-500">Retirer</button>
+                    </div>
+                `).join('') : '<p class="text-xs text-muted text-center py-2">Aucun compagnon manuel.</p>';
+            }
+        }
+
+        async function changeTripMemberRole(userId, role) {
+            const trip = getTrip();
+            if (!trip || (trip._albaRole && trip._albaRole !== 'owner') || !['editor', 'viewer'].includes(role)) return;
+            const { error } = await supabaseClient.rpc('set_trip_member_role', {
+                p_trip_id: trip.id, p_user_id: userId, p_role: role
+            });
+            if (error) {
+                console.error('Modification des droits:', error);
+                showToast('Impossible de modifier les droits');
+                await renderCompanionsList();
+                return;
+            }
+            showToast(role === 'editor' ? 'Droits de modification accordés' : 'Accès limité à la consultation');
+            await renderCompanionsList();
+        }
+
+        async function removeTripMember(userId) {
+            const trip = getTrip();
+            if (!trip || (trip._albaRole && trip._albaRole !== 'owner')) return;
+            if (!window.confirm('Retirer cette personne du voyage ?')) return;
+            const { error } = await supabaseClient.from('trip_members').delete()
+                .eq('trip_id', trip.id).eq('user_id', userId);
+            if (error) {
+                console.error('Suppression du participant:', error);
+                showToast('Impossible de retirer ce participant');
+                return;
+            }
+            showToast('Participant retiré');
+            await renderCompanionsList();
         }
 
         function addCompanion() {
@@ -4554,6 +4977,7 @@
             saveState();
             renderCompanionsList();
             refreshTripUI();
+            refreshTripGroupMode().then(() => loadTripVotes());
         }
 
         function removeCompanion(name) {
@@ -4562,6 +4986,7 @@
             saveState();
             renderCompanionsList();
             refreshTripUI();
+            refreshTripGroupMode().then(() => loadTripVotes());
         }
 
         function openShareTripModal() {
@@ -4622,23 +5047,392 @@
             const body = document.getElementById('doc-modal-body');
             const items = [
                 ...trip.flights.filter(f => f.image).map(f => ({ title: `Vol ${f.number}`, sub: `${f.depIata} → ${f.arrIata}`, image: f.image })),
-                ...trip.inspirations.filter(i => i.booked || i.image).map(i => ({ title: i.title, sub: i.address || i.category, image: i.image }))
+                ...trip.inspirations.filter(i => i.booked || i.image).map(i => ({ title: i.title, sub: i.address || i.category, image: i.image })),
+                ...(trip.reservations || []).filter(r => r.url || r.reference).map(r => ({ title: r.name, sub: [r.type, r.date ? new Date(r.date + 'T12:00:00').toLocaleDateString('fr-FR') : '', r.reference ? 'Réf. ' + r.reference : ''].filter(Boolean).join(' • '), url: r.url }))
             ];
 
             if (!items.length) {
-                body.innerHTML = `<p class="text-xs text-muted text-center py-4">Aucun justificatif ou QR code enregistré.</p>`;
+                body.innerHTML = `<p class="text-xs text-muted text-center py-4">Aucun justificatif ou QR code enregistré. Ajoute un lien ou une référence à une réservation pour le retrouver ici.</p>`;
             } else {
-                body.innerHTML = items.map(item => `
-                    <div class="bg-stoneBg p-3.5 rounded-2xl border border-borderSubtle flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-semibold text-ink">${item.title}</p>
-                            <p class="text-[11px] text-muted mt-0.5">${item.sub}</p>
+                body.innerHTML = items.map(item => {
+                    const safeUrl = typeof item.url === 'string' && (item.url.startsWith('https://') || item.url.startsWith('http://')) ? item.url.replace(/&/g, '&amp;').replace(/"/g, '&quot;') : '';
+                    return `
+                    <div class="bg-stoneBg p-3.5 rounded-2xl border border-borderSubtle flex items-center justify-between gap-3">
+                        <div class="min-w-0">
+                            <p class="text-xs font-semibold text-ink truncate">${item.title}</p>
+                            <p class="text-[11px] text-muted mt-0.5">${item.sub || 'Document de voyage'}</p>
                         </div>
-                        ${item.image ? `<button onclick="closeModal('doc-modal'); openQrViewer('${item.title.replace(/'/g, "\\'")}', '${item.image}', '${item.sub}')" class="text-[11px] font-semibold bg-white px-2.5 py-1.5 rounded-xl border border-borderSubtle text-sand">Ouvrir QR</button>` : `<span class="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg">Réservé</span>`}
-                    </div>
-                `).join('');
+                        ${item.image ? `<button onclick="closeModal('doc-modal'); openQrViewer('${item.title.replace(/'/g, "\\'")}', '${item.image}', '${item.sub}')" class="shrink-0 text-[11px] font-semibold bg-white px-2.5 py-1.5 rounded-xl border border-borderSubtle text-sand">Ouvrir QR</button>` : safeUrl ? `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="shrink-0 text-[11px] font-semibold bg-white px-2.5 py-1.5 rounded-xl border border-borderSubtle text-sand">Ouvrir le lien</a>` : `<span class="shrink-0 text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg">Référence enregistrée</span>`}
+                    </div>`;
+                }).join('');
             }
             document.getElementById('doc-modal').classList.remove('hidden');
+            loadTripFiles('document');
+        }
+
+        // --- ALBA PRIVATE VAULT & PHOTO MEMORIES ---
+        window.albaTripFilesCache = [];
+        async function loadTripFiles(category) {
+            const trip = getTrip();
+            const targetId = category === 'photo' ? 'album-grid' : 'vault-files-list';
+            const target = document.getElementById(targetId);
+            if (!trip || !target) return;
+            if (!albaUserId || storageMode !== 'hybrid') {
+                target.innerHTML = '<p class="col-span-2 text-[10px] text-muted text-center py-3">Connecte-toi pour utiliser le coffre-fort et synchroniser tes souvenirs.</p>';
+                return;
+            }
+            target.innerHTML = '<p class="col-span-2 text-[10px] text-muted text-center py-3">Chargement…</p>';
+            const { data, error } = await supabaseClient.from('trip_files').select('id,category,storage_path,file_name,mime_type,size_bytes,created_at,uploaded_by').eq('trip_id', trip.id).eq('category', category).order('created_at', { ascending: false });
+            if (error) {
+                console.error('Chargement des fichiers ALBA:', error);
+                target.innerHTML = '<p class="col-span-2 text-[10px] text-red-500 text-center py-3">Impossible de charger les fichiers.</p>';
+                return;
+            }
+            window.albaTripFilesCache = (window.albaTripFilesCache || []).filter(x => x.category !== category);
+            for (const file of (data || [])) {
+                const { data: signed } = await supabaseClient.storage.from('alba-private-vault').createSignedUrl(file.storage_path, 300);
+                window.albaTripFilesCache.push({ ...file, signedUrl: signed?.signedUrl || '' });
+            }
+            const files = window.albaTripFilesCache.filter(x => x.category === category);
+            if (!files.length) {
+                target.innerHTML = category === 'photo'
+                    ? '<p class="col-span-2 text-[10px] text-muted text-center py-5">Ton album est encore vide. Ajoute les premières photos du voyage.</p>'
+                    : '<p class="text-[10px] text-muted text-center py-3">Aucun document privé pour le moment.</p>';
+                return;
+            }
+            if (category === 'photo') {
+                target.innerHTML = files.map(file => `
+                    <div class="relative rounded-xl overflow-hidden bg-stoneBg aspect-square">
+                        ${file.signedUrl ? `<img src="${file.signedUrl}" alt="${escapePrintHtml(file.file_name)}" class="w-full h-full object-cover" loading="lazy">` : '<div class="p-3 text-[10px]">Aperçu indisponible</div>'}
+                        <div class="absolute inset-x-0 bottom-0 bg-zinc-950/60 p-2 flex items-center justify-between gap-1"><span class="text-[9px] text-white truncate">${escapePrintHtml(file.file_name)}</span><button onclick="deleteTripFile('${file.id}')" class="text-white text-[10px] px-1.5">✕</button></div>
+                    </div>`).join('');
+            } else {
+                target.innerHTML = files.map(file => `
+                    <div class="flex items-center justify-between gap-2 bg-stoneBg border border-borderSubtle rounded-xl p-2.5">
+                        <div class="min-w-0"><p class="text-[10px] font-semibold text-ink truncate">${escapePrintHtml(file.file_name)}</p><p class="text-[9px] text-muted">${(file.size_bytes / 1048576).toFixed(1)} Mo · ${new Date(file.created_at).toLocaleDateString('fr-FR')}</p></div>
+                        <div class="flex items-center gap-2 shrink-0"><button onclick="openTripFile('${file.id}')" class="text-[10px] font-semibold text-sand">Ouvrir</button><button onclick="deleteTripFile('${file.id}')" class="text-[10px] text-red-500">✕</button></div>
+                    </div>`).join('');
+            }
+        }
+
+        async function handleVaultFileUpload(input, category) {
+            const trip = getTrip();
+            const files = Array.from(input.files || []);
+            input.value = '';
+            if (!trip || !files.length) return;
+            if (!albaUserId || storageMode !== 'hybrid') return showToast('Connecte-toi pour enregistrer tes fichiers dans le cloud');
+            const allowed = category === 'photo'
+                ? ['image/jpeg','image/png','image/webp','image/heic','image/heif']
+                : ['application/pdf','image/jpeg','image/png','image/webp','image/heic','image/heif','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.ms-excel','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+            for (const file of files) {
+                if (!allowed.includes(file.type)) { showToast('Format non accepté : ' + file.name); continue; }
+                if (file.size <= 0 || file.size > 250 * 1024 * 1024) { showToast('Fichier trop volumineux (250 Mo maximum)'); continue; }
+                const safeName = file.name.normalize('NFKD').replace(/[^a-zA-Z0-9._-]+/g, '_').slice(-100);
+                const folder = category === 'photo' ? 'photos' : 'documents';
+                const path = `${trip.id}/${folder}/${albaUserId}/${crypto.randomUUID()}-${safeName}`;
+                const { error: uploadError } = await supabaseClient.storage.from('alba-private-vault').upload(path, file, { contentType: file.type, upsert: false });
+                if (uploadError) { console.error('Upload ALBA:', uploadError); showToast('Échec de l’envoi de ' + file.name); continue; }
+                const { error: rowError } = await supabaseClient.from('trip_files').insert({
+                    trip_id: trip.id, uploaded_by: albaUserId, category, storage_path: path,
+                    file_name: file.name.slice(0, 180), mime_type: file.type, size_bytes: file.size
+                });
+                if (rowError) {
+                    await supabaseClient.storage.from('alba-private-vault').remove([path]);
+                    console.error('Index du fichier ALBA:', rowError);
+                    showToast('Le fichier n’a pas pu être ajouté au coffre-fort');
+                }
+            }
+            showToast(category === 'photo' ? 'Photos ajoutées à l’album' : 'Documents ajoutés au coffre-fort');
+            await loadTripFiles(category);
+        }
+
+        async function openTripFile(id) {
+            const file = (window.albaTripFilesCache || []).find(x => x.id === id);
+            if (!file) return;
+            if (file.signedUrl) { window.open(file.signedUrl, '_blank', 'noopener,noreferrer'); return; }
+            const { data, error } = await supabaseClient.storage.from('alba-private-vault').createSignedUrl(file.storage_path, 60);
+            if (error || !data?.signedUrl) return showToast('Impossible d’ouvrir ce fichier');
+            window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+        }
+
+        async function deleteTripFile(id) {
+            const file = (window.albaTripFilesCache || []).find(x => x.id === id);
+            if (!file || !window.confirm('Supprimer définitivement ce fichier du voyage ?')) return;
+            const { error: storageError } = await supabaseClient.storage.from('alba-private-vault').remove([file.storage_path]);
+            if (storageError) return showToast('Impossible de supprimer le fichier');
+            const { error } = await supabaseClient.from('trip_files').delete().eq('id', id);
+            if (error) return showToast('Fichier supprimé du stockage mais index à vérifier');
+            await loadTripFiles(file.category);
+            showToast('Fichier supprimé');
+        }
+
+        function openAlbumModal() {
+            document.getElementById('album-modal').classList.remove('hidden');
+            loadTripFiles('photo');
+            lucide.createIcons();
+        }
+
+        // --- ALBA AI TRIP PLANNER ---
+        function openAiPlannerModal() {
+            const trip = getTrip();
+            if (!trip) return;
+            const select = document.getElementById('ai-planner-day');
+            select.innerHTML = Object.keys(trip.daysMeta || {}).map(day => `<option value="${day}">Jour ${day} · ${escapePrintHtml(trip.daysMeta[day].title || '')}</option>`).join('');
+            select.value = String(selectedDay || 1);
+            document.getElementById('ai-planner-answer').textContent = 'Choisis une action pour obtenir une proposition adaptée à ton voyage.';
+            document.getElementById('ai-planner-status').textContent = '';
+            document.getElementById('ai-planner-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function runAlbaAssistant(task) {
+            const trip = getTrip();
+            if (!trip) return;
+            const day = Number(document.getElementById('ai-planner-day').value || 1);
+            const status = document.getElementById('ai-planner-status');
+            const answer = document.getElementById('ai-planner-answer');
+            const steps = [...((trip.itinerary || {})[day] || [])];
+            const ideas = (trip.inspirations || []).filter(item =>
+                item.status !== 'planned' && (item.assignedDay == null || Number(item.assignedDay) === day)
+            );
+            const dayTitle = trip.daysMeta?.[day]?.title || ('Jour ' + day);
+            const fmt = value => value ? String(value) : 'horaire à définir';
+            const lines = [];
+            status.textContent = 'Analyse locale de ton voyage…';
+            if (task === 'build') {
+                lines.push('PROPOSITION POUR ' + dayTitle.toUpperCase());
+                if (steps.length) {
+                    lines.push('Tu as déjà ' + steps.length + ' étape(s) prévue(s). Je les conserve :');
+                    steps.forEach((step, i) => lines.push((i+1) + '. ' + fmt(step.time) + ' — ' + (step.title || 'Étape sans titre')));
+                    lines.push('');
+                    lines.push('Pour compléter cette journée, voici les idées encore disponibles :');
+                } else {
+                    lines.push('Ta journée est encore libre. Voici une trame équilibrée :');
+                    lines.push('09:00 — Petit-déjeuner et départ tranquille');
+                    lines.push('10:00 — Première visite ou activité');
+                    lines.push('12:30 — Pause déjeuner');
+                    lines.push('14:00 — Deuxième visite / découverte');
+                    lines.push('17:00 — Temps libre, photos ou retour au logement');
+                    lines.push('19:30 — Dîner');
+                    lines.push('');
+                    lines.push('Idées enregistrées à intégrer :');
+                }
+                if (ideas.length) ideas.slice(0,8).forEach((item,i) => lines.push('• ' + (item.title || 'Idée sans titre') + (item.address ? ' · ' + item.address : '') + (item.category ? ' · ' + item.category : '')));
+                else lines.push('• Aucune inspiration non programmée pour cette journée. Ajoute des idées dans Inspirations pour obtenir des suggestions adaptées.');
+            } else if (task === 'optimize') {
+                lines.push('ORGANISATION DE ' + dayTitle.toUpperCase());
+                if (!steps.length) lines.push('Aucune étape à réorganiser pour le moment. Ajoute des lieux ou activités à cette journée.');
+                else {
+                    const ordered = [...steps].sort((a,b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
+                    lines.push('Ordre conseillé (les horaires existants sont conservés) :');
+                    ordered.forEach((step,i) => lines.push((i+1) + '. ' + fmt(step.time) + ' — ' + (step.title || 'Étape sans titre') + (step.address ? ' · ' + step.address : '')));
+                    const missing = ordered.filter(step => !step.time).length;
+                    if (missing) lines.push('À compléter : ' + missing + ' étape(s) sans horaire.');
+                    lines.push('Conseil : regroupe les lieux proches dans la même demi-journée et prévois une marge de déplacement entre deux réservations.');
+                }
+            } else {
+                lines.push('VÉRIFICATION DE ' + dayTitle.toUpperCase());
+                if (!steps.length) lines.push('Cette journée ne contient encore aucune étape.');
+                const untimed = steps.filter(step => !step.time);
+                const noAddress = steps.filter(step => !step.address);
+                const names = steps.map(step => (step.title || '').trim().toLowerCase()).filter(Boolean);
+                const duplicates = names.filter((name,index) => names.indexOf(name) !== index);
+                const dayDate = trip.daysMeta?.[day]?.date || '';
+                const reservations = (trip.reservations || []).filter(item => dayDate && item.date === dayDate);
+                const toMinutes = value => {
+                    if (!/^\d{1,2}:\d{2}$/.test(String(value || ''))) return null;
+                    const [hours, minutes] = value.split(':').map(Number);
+                    return hours * 60 + minutes;
+                };
+                const reservationConflicts = [];
+                reservations.forEach(reservation => {
+                    const reservationTime = toMinutes(reservation.time);
+                    if (reservationTime == null) return;
+                    steps.forEach(step => {
+                        const stepTime = toMinutes(step.time);
+                        if (stepTime == null) return;
+                        const duration = Math.max(15, Number(step.durationMinutes) || 45);
+                        const gap = Math.abs(reservationTime - stepTime);
+                        if (gap < duration && String(reservation.linkedStepId || '') !== String(step.id)) {
+                            reservationConflicts.push(reservation.name + ' (' + reservation.time + ') et ' + (step.title || 'une étape') + ' (' + step.time + ')');
+                        }
+                    });
+                });
+                lines.push('• ' + steps.length + ' étape(s) enregistrée(s).');
+                lines.push('• ' + reservations.length + ' réservation(s) enregistrée(s) à cette date.');
+                if (untimed.length) lines.push('• ' + untimed.length + ' étape(s) sans horaire.');
+                if (noAddress.length) lines.push('• ' + noAddress.length + ' étape(s) sans adresse ou lieu précis.');
+                if (duplicates.length) lines.push('• Doublon(s) possible(s) : ' + [...new Set(duplicates)].join(', ') + '.');
+                if (reservationConflicts.length) lines.push('• Vérifie ces chevauchements possibles avec les réservations : ' + [...new Set(reservationConflicts)].join(' ; ') + '.');
+                const allReservations = trip.reservations || [];
+                const incompleteReservations = allReservations.filter(item => !item.date || !item.time || !item.location || (!item.reference && !item.url));
+                if (incompleteReservations.length) {
+                    const missingDate = incompleteReservations.filter(item => !item.date).length;
+                    const missingTime = incompleteReservations.filter(item => !item.time).length;
+                    const missingLocation = incompleteReservations.filter(item => !item.location).length;
+                    const missingConfirmation = incompleteReservations.filter(item => !item.reference && !item.url).length;
+                    const details = [];
+                    if (missingDate) details.push(missingDate + ' sans date');
+                    if (missingTime) details.push(missingTime + ' sans heure');
+                    if (missingLocation) details.push(missingLocation + ' sans lieu');
+                    if (missingConfirmation) details.push(missingConfirmation + ' sans référence ni lien de confirmation');
+                    lines.push('• Réservations à compléter : ' + incompleteReservations.length + ' (' + details.join(', ') + ').');
+                }
+                if (!untimed.length && !noAddress.length && !duplicates.length && !reservationConflicts.length && !incompleteReservations.length && steps.length) lines.push('• Rien à signaler dans les informations enregistrées.');
+                lines.push('Pense à vérifier les horaires d’ouverture, les temps de trajet et les confirmations de réservation.');
+            }
+            lines.push('');
+            lines.push('— Analyse effectuée directement dans ALBA, sans service IA externe ni frais d’API. Les suggestions utilisent uniquement les informations déjà enregistrées dans ton voyage.');
+            answer.textContent = lines.join('\n');
+            status.textContent = 'Analyse terminée · aucune donnée modifiée';
+        }
+
+        // --- COUNTDOWN & TRIP REMINDERS ---
+        function updateTripCountdown(trip) {
+            const badge = document.getElementById('trip-countdown-badge');
+            const detail = document.getElementById('trip-countdown-detail');
+            const reminderCopy = document.getElementById('reminder-countdown-copy');
+            if (!trip) return;
+            const today = new Date(); today.setHours(0,0,0,0);
+            const start = trip.startDate ? new Date(trip.startDate + 'T00:00:00') : null;
+            const fallbackEnd = trip.startDate && trip.duration ? addDaysToISO(trip.startDate, Math.max(0, Number(trip.duration) - 1)) : '';
+            const end = (trip.endDate || fallbackEnd) ? new Date((trip.endDate || fallbackEnd) + 'T23:59:59') : null;
+            let label = trip.countdown || 'À planifier';
+            let copy = 'Ajoute les dates de ton voyage pour lancer le compte à rebours.';
+            if (start && !Number.isNaN(start.getTime())) {
+                const days = Math.ceil((start - today) / 86400000);
+                if (days > 1) { label = 'J-' + days; copy = 'Départ dans ' + days + ' jours'; }
+                else if (days === 1) { label = 'J-1'; copy = 'Départ demain · dernière ligne droite !'; }
+                else if (days === 0) { label = 'Départ aujourd’hui'; copy = 'C’est le grand départ !'; }
+                else if (end && new Date() <= end) {
+                    const day = Math.floor((today - start) / 86400000) + 1;
+                    label = 'J' + day;
+                    copy = 'Voyage en cours · jour ' + day + (trip.duration ? ' / ' + trip.duration : '');
+                } else { label = 'Terminé'; copy = 'Ce voyage est terminé · garde tes souvenirs.'; }
+            }
+            if (badge) badge.textContent = label;
+            if (detail) detail.textContent = copy;
+            if (reminderCopy) reminderCopy.textContent = copy;
+        }
+
+        function openReminderModal() {
+            const trip = getTrip();
+            if (!trip) return;
+            const input = document.getElementById('reminder-datetime');
+            if (trip.startDate) {
+                const d = new Date(trip.startDate + 'T09:00:00');
+                d.setDate(d.getDate() - 1);
+                input.value = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0,16);
+            } else {
+                const d = new Date(Date.now() + 3600000);
+                input.value = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0,16);
+            }
+            document.getElementById('reminder-title').value = 'Vérifier les passeports, billets et bagages';
+            document.getElementById('reminder-modal').classList.remove('hidden');
+            renderTripReminders();
+            lucide.createIcons();
+        }
+
+        const ALBA_VAPID_PUBLIC_KEY = 'BA_UG-JdOuTw-rwAdn61zK48Omqknz4yCwngFNhmKaXGrM5q6eFGGpgGG-dohyg0xaloR8Rb16xofO_WthTNU6k';
+
+        function albaBase64UrlToUint8Array(value) {
+            const padding = '='.repeat((4 - value.length % 4) % 4);
+            const base64 = (value + padding).replace(/-/g, '+').replace(/_/g, '/');
+            const raw = atob(base64);
+            return Uint8Array.from([...raw].map(char => char.charCodeAt(0)));
+        }
+
+        async function enableAlbaNotifications() {
+            if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+                return showToast('Les notifications push ne sont pas disponibles sur cet appareil');
+            }
+            if (!albaUserId || storageMode !== 'hybrid') return showToast('Connecte-toi à ALBA pour activer les notifications');
+            const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+            const isInstalledIOS = !isIOS || window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+            if (!isInstalledIOS) return showToast("Sur iPhone, ajoute d'abord ALBA à l'écran d'accueil puis ouvre son icône");
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') return showToast('Autorisation de notification refusée');
+                const registration = await navigator.serviceWorker.ready;
+                let subscription = await registration.pushManager.getSubscription();
+                if (!subscription) {
+                    subscription = await registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: albaBase64UrlToUint8Array(ALBA_VAPID_PUBLIC_KEY)
+                    });
+                }
+                const payload = subscription.toJSON();
+                const { error } = await supabaseClient.from('trip_push_subscriptions').upsert({
+                    user_id: albaUserId,
+                    endpoint: payload.endpoint,
+                    p256dh: payload.keys?.p256dh,
+                    auth: payload.keys?.auth,
+                    updated_at: new Date().toISOString()
+                }, { onConflict: 'endpoint' });
+                if (error) throw error;
+                showToast('Notifications push activées, même application fermée');
+            } catch (error) {
+                console.error('Activation push ALBA:', error);
+                showToast(error?.message || "Impossible d'activer les notifications");
+            }
+        }
+
+        async function saveTripReminder() {
+            const trip = getTrip();
+            const value = document.getElementById('reminder-datetime').value;
+            const title = document.getElementById('reminder-title').value.trim() || 'Rappel de voyage';
+            const remindAt = new Date(value);
+            if (!trip || !value || Number.isNaN(remindAt.getTime()) || remindAt <= new Date()) return showToast('Choisis une date future pour ton rappel');
+            if (!albaUserId || storageMode !== 'hybrid') return showToast('Connecte-toi au cloud pour synchroniser tes rappels');
+            const { error } = await supabaseClient.from('trip_reminders').insert({ trip_id: trip.id, user_id: albaUserId, remind_at: remindAt.toISOString(), title });
+            if (error) { console.error('Création rappel:', error); return showToast('Impossible d’enregistrer le rappel'); }
+            document.getElementById('reminder-title').value = '';
+            await renderTripReminders();
+            showToast('Rappel enregistré');
+        }
+
+        async function renderTripReminders() {
+            const trip = getTrip();
+            const target = document.getElementById('trip-reminders-list');
+            if (!trip || !target) return;
+            if (!albaUserId || storageMode !== 'hybrid') { target.innerHTML = '<p class="text-[10px] text-muted">Connecte-toi pour synchroniser tes rappels.</p>'; return; }
+            const { data, error } = await supabaseClient.from('trip_reminders').select('id,title,remind_at,enabled').eq('trip_id', trip.id).eq('user_id', albaUserId).order('remind_at');
+            if (error) { target.innerHTML = '<p class="text-[10px] text-red-500">Impossible de charger les rappels.</p>'; return; }
+            target.innerHTML = (data || []).filter(r => r.enabled).map(r => `<div class="flex items-center justify-between bg-stoneBg rounded-xl p-2.5 gap-2"><div class="min-w-0"><p class="text-[10px] font-semibold text-ink">${escapePrintHtml(r.title)}</p><p class="text-[9px] text-muted">${new Date(r.remind_at).toLocaleString('fr-FR')}</p></div><button onclick="deleteTripReminder('${r.id}')" class="text-[10px] text-red-500">Supprimer</button></div>`).join('') || '<p class="text-[10px] text-muted text-center py-2">Aucun rappel programmé.</p>';
+        }
+
+        async function deleteTripReminder(id) {
+            const { error } = await supabaseClient.from('trip_reminders').delete().eq('id', id);
+            if (error) return showToast('Impossible de supprimer le rappel');
+            renderTripReminders();
+        }
+
+        async function showAlbaNotification(title, body) {
+            if (!('Notification' in window) || Notification.permission !== 'granted') return;
+            const options = { body, icon: './icon-192.png', badge: './icon-192.png', tag: 'alba-' + title };
+            try {
+                if ('serviceWorker' in navigator) {
+                    const registration = await navigator.serviceWorker.ready;
+                    await registration.showNotification(title, options);
+                } else new Notification(title, options);
+            } catch (error) { console.warn('Notification ALBA:', error); }
+        }
+
+        async function checkDueTripReminders() {
+            if (!albaUserId || storageMode !== 'hybrid' || !('Notification' in window) || Notification.permission !== 'granted') return;
+            const now = new Date().toISOString();
+            const { data, error } = await supabaseClient.from('trip_reminders').select('id,title,trip_id').eq('user_id', albaUserId).eq('enabled', true).is('notified_at', null).lte('remind_at', now);
+            if (error || !data?.length) return;
+            for (const reminder of data) {
+                await showAlbaNotification('ALBA · ' + reminder.title, 'Un rappel pour ton voyage est arrivé.');
+                await supabaseClient.from('trip_reminders').update({ notified_at: now, enabled: false }).eq('id', reminder.id).eq('user_id', albaUserId);
+            }
+        }
+
+        if (!window.albaReminderTimerStarted) {
+            window.albaReminderTimerStarted = true;
+            window.setInterval(checkDueTripReminders, 60000);
+            document.addEventListener('visibilitychange', () => { if (!document.hidden) checkDueTripReminders(); });
         }
 
         // --- GESTE iOS : SLIDE VERS LA DROITE POUR RETOUR ---
