@@ -1384,17 +1384,17 @@
                 </div>
             </div>
         </div>
-        <div id="account-modal" class="hidden absolute inset-0 z-[70] bg-zinc-950/60 backdrop-blur-sm flex items-end justify-center">
-            <div class="bg-white w-full rounded-t-3xl p-5 pb-8 space-y-3 shadow-xl max-h-[88%] overflow-y-auto">
-                <div class="w-10 h-1 bg-zinc-200 rounded-full mx-auto"></div>
-                <div class="flex items-center justify-between"><div><h3 class="text-base font-bold text-ink">Ton compte ALBA</h3><p class="text-[11px] text-muted">Retrouve tes voyages sur un autre appareil.</p></div><button onclick="closeModal('account-modal')" class="w-8 h-8 rounded-full bg-stoneBg flex items-center justify-center text-muted"><i data-lucide="x" class="w-4 h-4"></i></button></div>
-                <div id="account-current" class="hidden bg-stoneBg rounded-xl p-3 text-xs text-ink"></div>
-                <div id="account-password-setup" class="hidden space-y-2">
+        <div id="account-modal" class="hidden absolute inset-0 z-[70] bg-stoneBg flex flex-col">
+            <div class="safe-top-pad px-5 py-3 bg-brandBg border-b border-brandBorder flex items-center gap-3 shrink-0"><button onclick="closeModal('account-modal')" aria-label="Retour aux préférences" class="w-9 h-9 rounded-full bg-white/80 border border-brandBorder flex items-center justify-center text-ink"><i data-lucide="chevron-left" class="w-5 h-5"></i></button><div><h3 class="text-base font-bold text-ink">Mon compte ALBA</h3><p class="text-[11px] text-muted">Tes informations et tes sauvegardes</p></div></div>
+            <div class="flex-1 overflow-y-auto no-scrollbar p-5 pb-10 space-y-4">
+                <div class="bg-white rounded-2xl border border-borderSubtle p-4 space-y-3"><div class="flex items-center gap-3"><div class="w-11 h-11 rounded-full bg-sandLight text-sand flex items-center justify-center"><i data-lucide="user-round" class="w-5 h-5"></i></div><div><p class="text-sm font-bold text-ink">Profil ALBA</p><p id="account-status-label" class="text-[10px] text-muted">Vérification du compte…</p></div></div>
+                <div id="account-current" class="hidden bg-stoneBg rounded-xl p-3 text-xs text-ink"></div><div id="account-details" class="space-y-2 text-xs"></div></div>
+                <div id="account-password-setup" class="hidden bg-white rounded-2xl border border-borderSubtle p-4 space-y-2">
                     <label class="block text-[10px] font-semibold text-muted">Définir ton mot de passe</label>
                     <input id="account-new-password" type="password" autocomplete="new-password" placeholder="8 caractères minimum" class="w-full bg-stoneBg text-sm text-ink rounded-xl px-3 py-3 border border-borderSubtle">
                     <button onclick="setAlbaPassword()" class="w-full bg-ink text-white text-xs font-semibold py-3 rounded-xl">Enregistrer mon mot de passe</button>
                 </div>
-                <div id="account-form" class="space-y-2">
+                <div id="account-form" class="bg-white rounded-2xl border border-borderSubtle p-4 space-y-2">
                     <label class="block text-[10px] font-semibold text-muted">Adresse e-mail</label>
                     <input id="account-email" type="email" autocomplete="email" placeholder="toi@exemple.com" class="w-full bg-stoneBg text-sm text-ink rounded-xl px-3 py-3 border border-borderSubtle">
                     <label class="block text-[10px] font-semibold text-muted">Mot de passe (connexion à un compte existant)</label>
@@ -1694,6 +1694,16 @@
                 : hasPendingEmail || (isRegistered && !isEmailConfirmed)
                     ? 'Adresse en attente de confirmation : ' + user.email + '. Ouvre le lien reçu par e-mail sur cet appareil, puis reviens ici pour définir ton mot de passe.'
                     : 'Tu utilises actuellement ALBA en mode invité. Crée ton compte pour conserver tes voyages et les retrouver sur un autre appareil.';
+            const statusLabel = document.getElementById('account-status-label');
+            if (statusLabel) statusLabel.textContent = isRegistered && isEmailConfirmed ? 'Compte personnel connecté' : hasPendingEmail ? 'Confirmation de l’e-mail en attente' : 'Mode invité · compte non créé';
+            const details = document.getElementById('account-details');
+            if (details) {
+                const safe = value => String(value || '—').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+                const tripCount = (state.trips || []).filter(t => !t.deletedAt).length;
+                const created = user?.created_at ? new Date(user.created_at).toLocaleDateString('fr-FR') : 'Session actuelle';
+                const rows = [['Adresse e-mail', user?.email || 'Aucune · mode invité'], ['Type de compte', isRegistered ? 'Compte ALBA' : 'Invité'], ['Voyages sur cet appareil', String(tripCount)], ['Sauvegarde', storageMode === 'hybrid' ? 'Cloud + appareil' : 'Appareil uniquement'], ['Compte créé le', created]];
+                details.innerHTML = rows.map(([label,value]) => '<div class="flex items-start justify-between gap-3 border-t border-borderSubtle pt-2"><span class="text-muted">'+label+'</span><strong class="text-ink text-right font-semibold">'+safe(value)+'</strong></div>').join('');
+            }
             const summary = document.getElementById('account-summary');
             if (summary) summary.textContent = isRegistered && isEmailConfirmed ? 'Compte connecté · voyages synchronisés' : hasAccountFlow ? 'Confirmation de l’e-mail en attente' : 'Créer un compte pour retrouver tes voyages partout';
             document.getElementById('account-email').value = user?.email || '';
@@ -4648,7 +4658,7 @@
                 const deltaY = Math.abs(touch.clientY - touchStartY);
 
                 if (touchStartX <= 45 && deltaX > 75 && deltaY < 60) {
-                    const modals = ['qr-modal', 'item-detail-modal', 'trip-actions-modal', 'edit-trip-header-modal', 'edit-inspo-modal', 'flight-modal', 'luggage-modal', 'transit-modal', 'rental-modal', 'currency-modal', 'create-trip-modal', 'assign-modal', 'step-modal', 'companions-modal', 'templates-modal', 'share-modal', 'doc-modal', 'preferences-modal', 'trash-modal', 'reservation-modal'];
+                    const modals = ['qr-modal', 'item-detail-modal', 'trip-actions-modal', 'edit-trip-header-modal', 'edit-inspo-modal', 'flight-modal', 'luggage-modal', 'transit-modal', 'rental-modal', 'currency-modal', 'create-trip-modal', 'assign-modal', 'step-modal', 'companions-modal', 'templates-modal', 'share-modal', 'doc-modal', 'preferences-modal', 'account-modal', 'trash-modal', 'reservation-modal'];
                     for (const id of modals) {
                         const el = document.getElementById(id);
                         if (el && !el.classList.contains('hidden')) {
