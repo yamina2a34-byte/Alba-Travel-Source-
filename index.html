@@ -1634,7 +1634,7 @@
             current.classList.toggle('hidden', !hasAccountFlow);
             form.classList.toggle('hidden', hasAccountFlow);
             passwordSetup.classList.toggle('hidden', !isRegistered || !isEmailConfirmed);
-            signout.classList.toggle('hidden', !user);
+            signout.classList.toggle('hidden', !isRegistered);
             current.textContent = isRegistered && isEmailConfirmed
                 ? 'Connecté avec ' + user.email + ' · Tes voyages sont liés à ce compte.'
                 : hasPendingEmail || (isRegistered && !isEmailConfirmed)
