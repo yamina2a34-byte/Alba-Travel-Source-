@@ -2143,7 +2143,16 @@
                     if (activeTripId === row.id) refreshTripUI();
                     isApplyingRemoteTrip = false;
                     showToast('Voyage mis à jour par un compagnon');
-                }).subscribe();
+                })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'trip_inspiration_votes', filter: `trip_id=eq.${activeTripId}` }, async () => {
+                    await loadTripVotes();
+                    if (activeTripId) renderInspirations();
+                })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'trip_members', filter: `trip_id=eq.${activeTripId}` }, async () => {
+                    await refreshTripGroupMode();
+                    await loadTripVotes();
+                })
+                .subscribe();
         }
 
         async function initCloudSync(options = {}) {
