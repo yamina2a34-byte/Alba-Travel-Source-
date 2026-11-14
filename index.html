@@ -1396,7 +1396,7 @@
                     <label class="block text-[10px] font-semibold text-muted">Mot de passe (connexion à un compte existant)</label>
                     <input id="account-password" type="password" autocomplete="current-password" placeholder="Uniquement si tu as déjà un compte" class="w-full bg-stoneBg text-sm text-ink rounded-xl px-3 py-3 border border-borderSubtle">
                     <p class="text-[10px] text-muted">À la création, confirme ton e-mail puis définis ton mot de passe. Tes voyages déjà présents sur cet appareil resteront liés à ce compte.</p>
-                    <button id="account-create-button" onclick="createAlbaAccount()" class="w-full bg-ink text-white text-xs font-semibold py-3 rounded-xl disabled:opacity-50" aria-busy="false">Créer mon compte</button>
+                    <button type="button" id="account-create-button" class="w-full bg-ink text-white text-xs font-semibold py-3 rounded-xl disabled:opacity-50" aria-busy="false">Créer mon compte</button>
                     <button onclick="loginAlbaAccount()" class="w-full bg-stoneBg text-ink text-xs font-semibold py-3 rounded-xl border border-borderSubtle">J’ai déjà un compte · Me connecter</button>
                     <button onclick="resetAlbaPassword()" class="w-full text-sand text-[11px] font-semibold py-2">Mot de passe oublié ?</button>
                 </div>
@@ -4640,6 +4640,8 @@
         })();
 
         window.addEventListener('DOMContentLoaded', () => {
+            const createAccountButton = document.getElementById('account-create-button');
+            if (createAccountButton) createAccountButton.addEventListener('click', createAlbaAccount);
             applyTheme();
             refreshStoragePreferenceUI();
             renderHome();
