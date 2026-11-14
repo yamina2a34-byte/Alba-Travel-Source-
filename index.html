@@ -1368,6 +1368,7 @@
                         <button onclick="setStorageMode('hybrid')" data-storage-choice="hybrid" class="storage-choice border border-borderSubtle rounded-2xl p-3 text-left"><span class="text-xs font-bold text-ink">☁️ ALBA Cloud</span><span class="block text-[10px] text-muted mt-1">Recommandé · sauvegarde + partage</span></button>
                     </div>
                     <p id="storage-mode-status" class="text-[10px] text-muted">Mode actuel : synchronisation cloud activée.</p>
+                    <button onclick="saveToCloudNow()" class="w-full mt-2 border border-borderSubtle bg-stoneBg text-ink text-[11px] font-semibold py-2.5 rounded-xl">Sauvegarder maintenant</button>
                 </div>
                 <div class="border-t border-borderSubtle pt-3 flex items-center justify-between">
                     <div><h4 class="text-xs font-bold text-ink">Compte ALBA</h4><p id="account-summary" class="text-[10px] text-muted">Créer un compte pour retrouver tes voyages partout</p></div>
@@ -1832,6 +1833,28 @@
             if (mode === 'hybrid' && previous !== 'hybrid') initCloudSync();
             showToast(mode === 'local' ? 'ALBA Local activé' : 'Synchronisation ALBA activée');
         }
+        async function saveToCloudNow() {
+            const button = document.querySelector('button[onclick="saveToCloudNow()"]');
+            if (button) { button.disabled = true; button.textContent = 'Sauvegarde en cours…'; }
+            try {
+                storageMode = 'hybrid';
+                localStorage.setItem('alba_storage_mode', 'hybrid');
+                await initCloudSync({ throwOnError: true });
+                if (!albaUserId) throw new Error('La session cloud n’est pas prête. Réessaie dans un instant.');
+                await syncTripsToCloud();
+                lastSyncError = '';
+                setCloudSyncStatus('Sauvegarde cloud terminée');
+                showToast('Tous les voyages de cet appareil sont sauvegardés');
+            } catch (error) {
+                lastSyncError = error?.message || 'Sauvegarde impossible';
+                setCloudSyncStatus('Sauvegarde impossible · copie locale conservée');
+                showToast(explainAccountError(error));
+            } finally {
+                if (button) { button.disabled = false; button.textContent = 'Sauvegarder maintenant'; }
+                refreshStoragePreferenceUI();
+            }
+        }
+
         function refreshStoragePreferenceUI() {
             document.querySelectorAll('[data-storage-choice]').forEach(btn => {
                 const active = btn.dataset.storageChoice === storageMode;
