@@ -2000,17 +2000,28 @@
         if (window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => { if (currentThemePreference === 'system') applyTheme(); });
 
         function loadState() {
+            let saved = null;
             try {
                 const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('noma_travel_v4_state');
-                if (raw) return JSON.parse(raw);
+                if (raw) saved = JSON.parse(raw);
             } catch (e) { console.warn('Lecture locale impossible', e); }
-            // Chaque nouvelle installation reçoit ses propres copies des voyages de démonstration.
+
+            // Une installation qui possède un état vide/incomplet ne doit jamais rester sur « 0 voyage ».
+            // On réinjecte les trois voyages de départ localement, même si une ancienne version a déjà
+            // créé une clé de stockage vide. Les voyages personnels existants sont toujours conservés.
+            if (saved && Array.isArray(saved.trips) && saved.trips.length > 0) {
+                if (!Array.isArray(saved.templates)) saved.templates = defaultTemplates;
+                return saved;
+            }
+
             const freshState = {
+                ...(saved && typeof saved === 'object' ? saved : {}),
                 trips: initialTrips.map(trip => ({ ...trip, id: crypto.randomUUID() })),
-                templates: defaultTemplates
+                templates: Array.isArray(saved?.templates) ? saved.templates : defaultTemplates
             };
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(freshState));
+                localStorage.setItem('noma_travel_v4_state', JSON.stringify(freshState));
             } catch (e) {
                 console.warn('Initialisation locale impossible', e);
             }
@@ -2219,17 +2230,20 @@
 
                 // Chaque session anonyme reçoit une seule fois ses copies privées des trois voyages de démarrage.
                 // Le RPC est idempotent : les voyages déjà présents ne sont jamais dupliqués.
+                // Le seed est une amélioration, pas un verrou : son échec ne doit jamais empêcher
+                // le chargement des voyages déjà accessibles au compte.
                 const { data: starterTripsCreated, error: starterSeedError } = await supabaseClient.rpc('seed_alba_starter_trips');
-                if (starterSeedError) throw starterSeedError;
+                if (starterSeedError) console.warn('ALBA seed de démarrage indisponible :', starterSeedError);
                 if (starterTripsCreated) console.info('ALBA :', starterTripsCreated, 'voyage(s) de démarrage ajouté(s).');
 
-                const [{ data: rows, error }, { data: memberships, error: membershipError }] = await Promise.all([
+                const [{ data: rows, error }, membershipResult] = await Promise.all([
                     supabaseClient.from('trips').select('id,owner_id,title,data,updated_at').order('updated_at', { ascending: false }),
                     supabaseClient.from('trip_members').select('trip_id,role').eq('user_id', albaUserId)
                 ]);
                 if (error) throw error;
-                if (membershipError) throw membershipError;
-                const roleByTrip = new Map((memberships || []).map(m => [m.trip_id, m.role]));
+                if (membershipResult.error) console.warn('ALBA memberships indisponibles :', membershipResult.error);
+                const memberships = membershipResult.data || [];
+                const roleByTrip = new Map(memberships.map(m => [m.trip_id, m.role]));
 
                 isHydrating = true;
                 const localById = new Map((state.trips || []).map(t => [t.id, t]));
