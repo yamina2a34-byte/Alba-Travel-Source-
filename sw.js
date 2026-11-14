@@ -36,3 +36,5 @@ self.addEventListener('fetch', event => {
     }));
   }
 });
+
+// Deploy trigger: 2026-11-14T14:24Z
