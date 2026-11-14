@@ -3319,6 +3319,10 @@
 
         function toggleInspirationVote(id) {
             const trip = getTrip();
+            if (trip?._albaRole === 'viewer') {
+                showToast('Le vote nécessite les droits de modification du voyage');
+                return;
+            }
             const item = trip?.inspirations?.find(i => String(i.id) === String(id));
             if (!item) return;
             if (!Array.isArray(item.votes)) item.votes = [];
@@ -4783,7 +4787,7 @@
                 body.innerHTML = `<p class="text-xs text-muted text-center py-4">Aucun justificatif ou QR code enregistré. Ajoute un lien ou une référence à une réservation pour le retrouver ici.</p>`;
             } else {
                 body.innerHTML = items.map(item => {
-                    const safeUrl = item.url && /^https?:\\/\\//i.test(item.url) ? item.url.replace(/&/g, '&amp;').replace(/"/g, '&quot;') : '';
+                    const safeUrl = typeof item.url === 'string' && (item.url.startsWith('https://') || item.url.startsWith('http://')) ? item.url.replace(/&/g, '&amp;').replace(/"/g, '&quot;') : '';
                     return `
                     <div class="bg-stoneBg p-3.5 rounded-2xl border border-borderSubtle flex items-center justify-between gap-3">
                         <div class="min-w-0">
