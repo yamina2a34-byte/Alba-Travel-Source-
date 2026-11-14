@@ -4622,21 +4622,24 @@
             const body = document.getElementById('doc-modal-body');
             const items = [
                 ...trip.flights.filter(f => f.image).map(f => ({ title: `Vol ${f.number}`, sub: `${f.depIata} → ${f.arrIata}`, image: f.image })),
-                ...trip.inspirations.filter(i => i.booked || i.image).map(i => ({ title: i.title, sub: i.address || i.category, image: i.image }))
+                ...trip.inspirations.filter(i => i.booked || i.image).map(i => ({ title: i.title, sub: i.address || i.category, image: i.image })),
+                ...(trip.reservations || []).filter(r => r.url || r.reference).map(r => ({ title: r.name, sub: [r.type, r.date ? new Date(r.date + 'T12:00:00').toLocaleDateString('fr-FR') : '', r.reference ? 'Réf. ' + r.reference : ''].filter(Boolean).join(' • '), url: r.url }))
             ];
 
             if (!items.length) {
-                body.innerHTML = `<p class="text-xs text-muted text-center py-4">Aucun justificatif ou QR code enregistré.</p>`;
+                body.innerHTML = `<p class="text-xs text-muted text-center py-4">Aucun justificatif ou QR code enregistré. Ajoute un lien ou une référence à une réservation pour le retrouver ici.</p>`;
             } else {
-                body.innerHTML = items.map(item => `
-                    <div class="bg-stoneBg p-3.5 rounded-2xl border border-borderSubtle flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-semibold text-ink">${item.title}</p>
-                            <p class="text-[11px] text-muted mt-0.5">${item.sub}</p>
+                body.innerHTML = items.map(item => {
+                    const safeUrl = item.url && /^https?:\\/\\//i.test(item.url) ? item.url.replace(/&/g, '&amp;').replace(/"/g, '&quot;') : '';
+                    return `
+                    <div class="bg-stoneBg p-3.5 rounded-2xl border border-borderSubtle flex items-center justify-between gap-3">
+                        <div class="min-w-0">
+                            <p class="text-xs font-semibold text-ink truncate">${item.title}</p>
+                            <p class="text-[11px] text-muted mt-0.5">${item.sub || 'Document de voyage'}</p>
                         </div>
-                        ${item.image ? `<button onclick="closeModal('doc-modal'); openQrViewer('${item.title.replace(/'/g, "\\'")}', '${item.image}', '${item.sub}')" class="text-[11px] font-semibold bg-white px-2.5 py-1.5 rounded-xl border border-borderSubtle text-sand">Ouvrir QR</button>` : `<span class="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg">Réservé</span>`}
-                    </div>
-                `).join('');
+                        ${item.image ? `<button onclick="closeModal('doc-modal'); openQrViewer('${item.title.replace(/'/g, "\\'")}', '${item.image}', '${item.sub}')" class="shrink-0 text-[11px] font-semibold bg-white px-2.5 py-1.5 rounded-xl border border-borderSubtle text-sand">Ouvrir QR</button>` : safeUrl ? `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="shrink-0 text-[11px] font-semibold bg-white px-2.5 py-1.5 rounded-xl border border-borderSubtle text-sand">Ouvrir le lien</a>` : `<span class="shrink-0 text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg">Référence enregistrée</span>`}
+                    </div>`;
+                }).join('');
             }
             document.getElementById('doc-modal').classList.remove('hidden');
         }
