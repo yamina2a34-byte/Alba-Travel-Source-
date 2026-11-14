@@ -588,6 +588,15 @@
                     <div id="itinerary-conflict-alert" class="hidden rounded-xl border border-amber-300/60 bg-amber-50 text-amber-800 px-3 py-2 text-[10px]"></div>
                     <div id="itinerary-timeline" class="relative pl-4 space-y-2 before:content-[''] before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-[1.5px] before:bg-borderSubtle"></div>
 
+                    <div class="bg-white rounded-2xl p-4 border border-borderSubtle space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-ink flex items-center gap-1.5"><i data-lucide="book-heart" class="w-3.5 h-3.5 text-sand"></i> Carnet du jour</span>
+                            <span class="text-[9px] text-muted">Partagé avec le voyage</span>
+                        </div>
+                        <textarea id="day-journal-input" rows="3" oninput="saveDayJournal(this.value)" placeholder="Les petits détails à retenir, les bonnes adresses, vos impressions..." class="w-full bg-stoneBg text-xs text-ink rounded-xl p-3 border border-borderSubtle focus:outline-none focus:border-sand"></textarea>
+                        <p class="text-[9px] text-muted">Tes notes sont enregistrées avec cette journée et synchronisées avec les compagnons autorisés.</p>
+                    </div>
+
                     <!-- ESPACE BAS ITINÉRAIRE : NOTES & CHECK-LIST -->
                     <div class="bg-white rounded-2xl p-4 border border-borderSubtle space-y-3 mt-4">
                         <span class="text-xs font-bold text-ink flex items-center gap-1.5">
@@ -3905,10 +3914,21 @@
 
         function toMinutes(value) { const m = String(value||'').match(/^(\d{1,2}):(\d{2})$/); return m ? Number(m[1])*60+Number(m[2]) : 0; }
 
+        function saveDayJournal(value) {
+            const trip = getTrip();
+            if (!trip) return;
+            if (!trip.daysMeta) trip.daysMeta = {};
+            if (!trip.daysMeta[selectedDay]) trip.daysMeta[selectedDay] = { title: `Jour ${selectedDay}`, date: '' };
+            trip.daysMeta[selectedDay].journal = String(value || '').slice(0, 5000);
+            saveState();
+        }
+
         function renderItinerary() {
             const trip = getTrip();
             const meta = trip.daysMeta[selectedDay] || { title: `Jour ${selectedDay}`, date: '' };
             document.getElementById('current-day-title').textContent = meta.title;
+            const journalInput = document.getElementById('day-journal-input');
+            if (journalInput) journalInput.value = meta.journal || '';
 
             const steps = trip.itinerary[selectedDay] || [];
             const alertEl = document.getElementById('itinerary-conflict-alert');
