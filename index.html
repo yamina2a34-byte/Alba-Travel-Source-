@@ -5082,7 +5082,21 @@
                 if (noAddress.length) lines.push('• ' + noAddress.length + ' étape(s) sans adresse ou lieu précis.');
                 if (duplicates.length) lines.push('• Doublon(s) possible(s) : ' + [...new Set(duplicates)].join(', ') + '.');
                 if (reservationConflicts.length) lines.push('• Vérifie ces chevauchements possibles avec les réservations : ' + [...new Set(reservationConflicts)].join(' ; ') + '.');
-                if (!untimed.length && !noAddress.length && !duplicates.length && !reservationConflicts.length && steps.length) lines.push('• Rien à signaler dans les informations enregistrées.');
+                const allReservations = trip.reservations || [];
+                const incompleteReservations = allReservations.filter(item => !item.date || !item.time || !item.location || (!item.reference && !item.url));
+                if (incompleteReservations.length) {
+                    const missingDate = incompleteReservations.filter(item => !item.date).length;
+                    const missingTime = incompleteReservations.filter(item => !item.time).length;
+                    const missingLocation = incompleteReservations.filter(item => !item.location).length;
+                    const missingConfirmation = incompleteReservations.filter(item => !item.reference && !item.url).length;
+                    const details = [];
+                    if (missingDate) details.push(missingDate + ' sans date');
+                    if (missingTime) details.push(missingTime + ' sans heure');
+                    if (missingLocation) details.push(missingLocation + ' sans lieu');
+                    if (missingConfirmation) details.push(missingConfirmation + ' sans référence ni lien de confirmation');
+                    lines.push('• Réservations à compléter : ' + incompleteReservations.length + ' (' + details.join(', ') + ').');
+                }
+                if (!untimed.length && !noAddress.length && !duplicates.length && !reservationConflicts.length && !incompleteReservations.length && steps.length) lines.push('• Rien à signaler dans les informations enregistrées.');
                 lines.push('Pense à vérifier les horaires d’ouverture, les temps de trajet et les confirmations de réservation.');
             }
             lines.push('');
