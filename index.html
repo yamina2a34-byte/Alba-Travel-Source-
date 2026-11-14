@@ -260,6 +260,18 @@
                         </div>
                     </header>
 
+                    <div class="bg-white rounded-2xl border border-borderSubtle p-3 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div><p class="text-xs font-bold text-ink">Ton voyage, en un coup d’œil</p><p id="trip-countdown-detail" class="text-[10px] text-muted">Compte à rebours et rappels</p></div>
+                            <button onclick="openReminderModal()" class="text-[10px] font-semibold text-sand px-2.5 py-2 rounded-lg bg-sandLight">Gérer les rappels</button>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="openDocModal()" class="rounded-xl bg-stoneBg p-2.5 text-center"><i data-lucide="shield-check" class="w-4 h-4 mx-auto mb-1 text-sand"></i><span class="text-[10px] font-semibold text-ink">Coffre-fort</span></button>
+                            <button onclick="openAlbumModal()" class="rounded-xl bg-stoneBg p-2.5 text-center"><i data-lucide="images" class="w-4 h-4 mx-auto mb-1 text-sand"></i><span class="text-[10px] font-semibold text-ink">Souvenirs</span></button>
+                            <button onclick="openAiPlannerModal()" class="rounded-xl bg-stoneBg p-2.5 text-center"><i data-lucide="sparkles" class="w-4 h-4 mx-auto mb-1 text-sand"></i><span class="text-[10px] font-semibold text-ink">Assistant IA</span></button>
+                        </div>
+                    </div>
+
                     <!-- 1. SECTION CONVERTISSEUR EN PREMIER -->
                     <div class="bg-white rounded-2xl p-4 border border-borderSubtle shadow-2xs">
                         <div class="flex items-center justify-between mb-3">
@@ -1353,7 +1365,45 @@
                         <i data-lucide="x" class="w-4 h-4"></i>
                     </button>
                 </div>
-                <div id="doc-modal-body" class="space-y-2.5 max-h-72 overflow-y-auto no-scrollbar"></div>
+                <div class="flex gap-2">
+                    <button onclick="document.getElementById('vault-file-input').click()" class="flex-1 bg-ink text-white rounded-xl py-2.5 text-[11px] font-semibold">+ Ajouter un document</button>
+                    <input id="vault-file-input" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.heic,.heif,.doc,.docx,.xls,.xlsx" class="hidden" onchange="handleVaultFileUpload(this,'document')">
+                </div>
+                <div id="vault-files-list" class="space-y-2 max-h-52 overflow-y-auto no-scrollbar"><p class="text-[10px] text-muted text-center py-2">Chargement du coffre-fort…</p></div>
+                <div class="border-t border-borderSubtle pt-3"><p class="text-[10px] font-semibold text-muted uppercase tracking-wide mb-2">Liens et billets déjà enregistrés</p><div id="doc-modal-body" class="space-y-2.5 max-h-52 overflow-y-auto no-scrollbar"></div></div>
+            </div>
+        </div>
+
+        <div id="album-modal" class="hidden absolute inset-0 z-[58] bg-zinc-950/50 backdrop-blur-[2px] flex items-end justify-center">
+            <div class="bg-white w-full rounded-t-3xl p-5 pb-8 space-y-3 max-h-[90%] overflow-y-auto">
+                <div class="flex items-center justify-between"><div><h3 class="text-base font-bold text-ink">Album & souvenirs</h3><p class="text-[10px] text-muted">Les photos restent privées et partagées avec les membres du voyage</p></div><button onclick="closeModal('album-modal')" class="w-8 h-8 rounded-full bg-stoneBg"><i data-lucide="x" class="w-4 h-4 mx-auto"></i></button></div>
+                <button onclick="document.getElementById('album-file-input').click()" class="w-full bg-ink text-white rounded-xl py-3 text-xs font-semibold">+ Ajouter des photos</button>
+                <input id="album-file-input" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple class="hidden" onchange="handleVaultFileUpload(this,'photo')">
+                <div id="album-grid" class="grid grid-cols-2 gap-2"><p class="col-span-2 text-xs text-muted text-center py-5">Chargement de l’album…</p></div>
+            </div>
+        </div>
+
+        <div id="ai-planner-modal" class="hidden absolute inset-0 z-[58] bg-zinc-950/50 backdrop-blur-[2px] flex items-end justify-center">
+            <div class="bg-white w-full rounded-t-3xl p-5 pb-8 space-y-3 max-h-[90%] overflow-y-auto">
+                <div class="flex items-center justify-between"><div><h3 class="text-base font-bold text-ink">ALBA · Assistant de voyage</h3><p class="text-[10px] text-muted">Construis ou optimise ton programme</p></div><button onclick="closeModal('ai-planner-modal')" class="w-8 h-8 rounded-full bg-stoneBg"><i data-lucide="x" class="w-4 h-4 mx-auto"></i></button></div>
+                <label class="text-[10px] font-semibold text-muted">Journée à travailler</label><select id="ai-planner-day" class="w-full bg-stoneBg rounded-xl px-3 py-2.5 text-xs"></select>
+                <div class="grid grid-cols-3 gap-2"><button onclick="runAlbaAssistant('build')" class="bg-stoneBg rounded-xl p-2 text-[10px] font-semibold">Construire</button><button onclick="runAlbaAssistant('optimize')" class="bg-stoneBg rounded-xl p-2 text-[10px] font-semibold">Optimiser</button><button onclick="runAlbaAssistant('check')" class="bg-stoneBg rounded-xl p-2 text-[10px] font-semibold">Vérifier</button></div>
+                <div id="ai-planner-status" class="text-[10px] text-muted"></div>
+                <div id="ai-planner-answer" class="bg-stoneBg rounded-xl p-3 text-xs text-ink whitespace-pre-wrap min-h-20">Choisis une action pour obtenir une proposition adaptée à ton voyage.</div>
+                <p class="text-[9px] text-muted">L’assistant respecte tes réservations et les horaires existants. Vérifie toujours les informations pratiques avant de partir.</p>
+            </div>
+        </div>
+
+        <div id="reminder-modal" class="hidden absolute inset-0 z-[58] bg-zinc-950/50 backdrop-blur-[2px] flex items-end justify-center">
+            <div class="bg-white w-full rounded-t-3xl p-5 pb-8 space-y-3">
+                <div class="flex items-center justify-between"><div><h3 class="text-base font-bold text-ink">Compte à rebours & rappels</h3><p id="reminder-countdown-copy" class="text-[10px] text-muted">Prépare ton départ sans stress</p></div><button onclick="closeModal('reminder-modal')" class="w-8 h-8 rounded-full bg-stoneBg"><i data-lucide="x" class="w-4 h-4 mx-auto"></i></button></div>
+                <button onclick="enableAlbaNotifications()" class="w-full bg-sandLight text-sand rounded-xl py-2.5 text-[11px] font-semibold">Activer les notifications sur cet appareil</button>
+                <label class="text-[10px] font-semibold text-muted">Date et heure du rappel</label>
+                <input id="reminder-datetime" type="datetime-local" class="w-full bg-stoneBg rounded-xl px-3 py-2.5 text-xs">
+                <input id="reminder-title" type="text" maxlength="100" placeholder="Ex. Vérifier les passeports et les billets" class="w-full bg-stoneBg rounded-xl px-3 py-2.5 text-xs">
+                <button onclick="saveTripReminder()" class="w-full bg-ink text-white rounded-xl py-3 text-xs font-semibold">Enregistrer le rappel</button>
+                <div id="trip-reminders-list" class="space-y-2 max-h-48 overflow-y-auto"></div>
+                <p class="text-[9px] text-muted">Les rappels sont synchronisés avec ton compte. Les notifications locales se déclenchent lorsque l’application est ouverte ou revient au premier plan ; les notifications push quand l’application est fermée nécessitent une configuration serveur supplémentaire.</p>
             </div>
         </div>
 
@@ -2444,6 +2494,8 @@
             switchTab('apercu');
             refreshTripUI();
             subscribeToTripChanges();
+            refreshTripGroupMode().then(() => loadTripVotes());
+            checkDueTripReminders();
             const openedTrip = getTrip();
             if (openedTrip && openedTrip._albaRole !== 'owner' && storageMode === 'hybrid' && albaUserId) {
                 supabaseClient.rpc('mark_trip_viewed', { p_trip_id: openedTrip.id })
@@ -2693,7 +2745,7 @@
                 trip.luggages = [{ id: 'bag-1', name: 'Valise Cabine', emptyWeight: 2.2, maxWeight: 10.0 }];
             }
 
-            document.getElementById('trip-countdown-badge').textContent = trip.countdown;
+            updateTripCountdown(trip);
             document.getElementById('trip-duration-label').textContent = pluralize(trip.duration || 1, 'jour');
             document.getElementById('trip-title-display').textContent = trip.title;
             document.getElementById('trip-subtitle-display').textContent = trip.destination;
@@ -3317,26 +3369,47 @@
             showToast('Enregistré');
         }
 
-        function toggleInspirationVote(id) {
+        async function toggleInspirationVote(id, choice) {
             const trip = getTrip();
-            if (trip?._albaRole === 'viewer') {
-                showToast('Le vote nécessite les droits de modification du voyage');
-                return;
-            }
-            const item = trip?.inspirations?.find(i => String(i.id) === String(id));
+            if (!trip || !trip._albaGroupMode) return;
+            if (!albaUserId || storageMode !== 'hybrid') return showToast('Connecte-toi pour voter avec le groupe');
+            const validChoices = ['interested','approve','dislike'];
+            if (!validChoices.includes(choice)) return;
+            const item = trip.inspirations?.find(i => String(i.id) === String(id));
             if (!item) return;
-            if (!Array.isArray(item.votes)) item.votes = [];
-            const voterId = albaUserId || 'local-user';
-            const existingIndex = item.votes.findIndex(v => v.userId === voterId);
-            if (existingIndex >= 0) {
-                item.votes.splice(existingIndex, 1);
-                showToast('Ton vote a été retiré');
-            } else {
-                item.votes.push({ userId: voterId, createdAt: new Date().toISOString() });
-                showToast('Ton avis a été ajouté au voyage');
-            }
-            saveState();
+            const current = (item.votes || []).find(v => v.userId === albaUserId);
+            const query = supabaseClient.from('trip_inspiration_votes');
+            const result = current?.choice === choice
+                ? await query.delete().eq('trip_id', trip.id).eq('inspiration_id', String(id)).eq('user_id', albaUserId)
+                : await query.upsert({ trip_id: trip.id, inspiration_id: String(id), user_id: albaUserId, choice, updated_at: new Date().toISOString() }, { onConflict: 'trip_id,inspiration_id,user_id' });
+            if (result.error) { console.error('Vote ALBA:', result.error); return showToast('Impossible d’enregistrer ton avis'); }
+            await loadTripVotes();
             renderInspirations();
+        }
+
+        async function refreshTripGroupMode() {
+            const trip = getTrip();
+            if (!trip) return;
+            let hasCloudMembers = false;
+            if (storageMode === 'hybrid' && albaUserId) {
+                const { data, error } = await supabaseClient.from('trip_members').select('user_id').eq('trip_id', trip.id).limit(1);
+                if (!error) hasCloudMembers = (data || []).length > 0;
+            }
+            trip._albaGroupMode = (trip.companions || []).length > 0 || hasCloudMembers;
+            renderInspirations();
+        }
+
+        async function loadTripVotes() {
+            const trip = getTrip();
+            if (!trip || !trip._albaGroupMode || storageMode !== 'hybrid' || !albaUserId) return;
+            const { data, error } = await supabaseClient.from('trip_inspiration_votes')
+                .select('inspiration_id,user_id,choice')
+                .eq('trip_id', trip.id);
+            if (error) { console.warn('Chargement des votes:', error); return; }
+            (trip.inspirations || []).forEach(item => {
+                item.votes = (data || []).filter(v => v.inspiration_id === String(item.id))
+                    .map(v => ({ userId: v.user_id, choice: v.choice }));
+            });
         }
 
         function openEditInspoModal(id) {
@@ -3464,15 +3537,17 @@
                         ${(item.price || item.hours || item.duration) ? `<div class="flex flex-wrap gap-2 mt-2">${item.price ? `<span class="text-[10px] text-muted">💶 ${item.price}</span>` : ''}${item.hours ? `<span class="text-[10px] text-muted">🕒 ${item.hours}</span>` : ''}${item.duration ? `<span class="text-[10px] text-muted">⏱ ${item.duration}</span>` : ''}</div>` : ''}
                         ${item.notes ? `<p class="text-[11px] text-muted mt-2 whitespace-pre-line">${item.notes}</p>` : ''}
                     </div>
-                    <div class="flex items-center justify-between gap-2 rounded-xl bg-stoneBg border border-borderSubtle px-3 py-2">
-                        <div class="min-w-0">
-                            <p class="text-[10px] font-semibold text-ink">Décision du groupe</p>
-                            <p class="text-[10px] text-muted">${(item.votes || []).length} ${(item.votes || []).length > 1 ? 'personnes intéressées' : 'personne intéressée'}</p>
+                    ${trip._albaGroupMode ? `
+                    <div class="rounded-xl bg-stoneBg border border-borderSubtle p-3 space-y-2">
+                        <div class="flex items-center justify-between"><p class="text-[10px] font-semibold text-ink">Avis du groupe</p><span class="text-[9px] text-muted">${(item.votes || []).length} avis</span></div>
+                        <div class="grid grid-cols-3 gap-1.5">
+                            ${[['interested','♡ Ça me tente'],['approve','✓ Je valide'],['dislike','✕ Pas pour moi']].map(([choice,label]) => {
+                                const count = (item.votes || []).filter(v => v.choice === choice).length;
+                                const mine = (item.votes || []).some(v => v.userId === albaUserId && v.choice === choice);
+                                return `<button onclick="toggleInspirationVote('${item.id}','${choice}')" class="rounded-lg px-1.5 py-2 text-[9px] font-semibold ${mine ? 'bg-sand text-white' : 'bg-white text-ink border border-borderSubtle'}">${label}<span class="block text-[9px] opacity-75">${count}</span></button>`;
+                            }).join('')}
                         </div>
-                        <button onclick="toggleInspirationVote(${item.id})" class="shrink-0 text-[10px] font-semibold px-3 py-2 rounded-lg transition ${(item.votes || []).some(v => v.userId === (albaUserId || 'local-user')) ? 'bg-sand text-white' : 'bg-white text-ink border border-borderSubtle'}">
-                            ${(item.votes || []).some(v => v.userId === (albaUserId || 'local-user')) ? '✓ Je valide' : '♡ Ça me tente'}
-                        </button>
-                    </div>
+                    </div>` : ''}`
                     ${(item.phone || item.whatsapp || safeExternalUrl(item.website)) ? `<div class="flex flex-wrap gap-2 pt-1">${item.phone ? `<a href="tel:${inspoPhoneHref(item.phone)}" class="text-[10px] font-semibold px-2.5 py-1.5 rounded-lg bg-stoneBg text-ink">☎ Appeler</a>` : ''}${item.whatsapp ? `<a href="https://wa.me/${inspoWhatsAppHref(item.whatsapp)}" target="_blank" rel="noopener" class="text-[10px] font-semibold px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-700">WhatsApp</a>` : ''}${safeExternalUrl(item.website) ? `<a href="${safeExternalUrl(item.website)}" target="_blank" rel="noopener" class="text-[10px] font-semibold px-2.5 py-1.5 rounded-lg bg-stoneBg text-ink">Site / Réservation ↗</a>` : ''}</div>` : ''}
                     <div class="pt-1.5 flex items-center justify-between border-t border-stoneBg">
                         <div class="flex items-center gap-3">
