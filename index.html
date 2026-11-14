@@ -1177,7 +1177,14 @@
                     </div>
                 </div>
                 <div>
-                    <label class="text-[10px] text-muted block mb-1">Appliquer une checklist type</label>
+                    <label class="text-[10px] text-muted block mb-1">Partir d’un voyage modèle complet</label>
+                    <select id="new-trip-journey-template" class="w-full bg-stoneBg text-xs text-ink rounded-xl px-3 py-2 border border-borderSubtle">
+                        <option value="">Voyage vierge</option>
+                    </select>
+                    <p class="text-[10px] text-muted mt-1">Le modèle sera copié dans ton voyage : tu pourras tout personnaliser sans modifier l’original.</p>
+                </div>
+                <div>
+                    <label class="text-[10px] text-muted block mb-1">Appliquer une checklist de bagages</label>
                     <select id="new-trip-template" class="w-full bg-stoneBg text-xs text-ink rounded-xl px-3 py-2 border border-borderSubtle"></select>
                 </div>
                 <button onclick="createNewTrip()" class="w-full bg-ink text-white text-xs font-semibold py-3 rounded-xl">Créer le voyage</button>
@@ -2132,6 +2139,8 @@
         function openCreateTripModal() {
             document.getElementById('new-trip-start').value = '';
             document.getElementById('new-trip-end').value = '';
+            const journeySel = document.getElementById('new-trip-journey-template');
+            if (journeySel) journeySel.innerHTML = `<option value="">Voyage vierge</option>` + initialTrips.map(t => `<option value="${t.id}">${t.title} · ${t.destination}</option>`).join('');
             const sel = document.getElementById('new-trip-template');
             sel.innerHTML = `<option value="">Aucune (Liste vide)</option>` + state.templates.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
             document.getElementById('create-trip-modal').classList.remove('hidden');
@@ -2192,6 +2201,31 @@
                 luggages: [{ id: 'bag-default', name: 'Valise Cabine', emptyWeight: 2.2, maxWeight: 10.0 }],
                 gearList, expenses: []
             };
+
+            const journeyTemplateId = document.getElementById('new-trip-journey-template')?.value || '';
+            const journeyTemplate = initialTrips.find(t => t.id === journeyTemplateId);
+            if (journeyTemplate) {
+                const copiedTemplate = JSON.parse(JSON.stringify(journeyTemplate));
+                Object.assign(newTrip, copiedTemplate, {
+                    id: crypto.randomUUID(),
+                    title,
+                    destination: dest,
+                    startDate,
+                    endDate,
+                    duration,
+                    status: isDraft ? 'draft' : statusChoice,
+                    countdown: statusChoice === 'past' ? 'Terminé' : (isDraft ? 'Brouillon' : 'Planifié'),
+                    currency: copiedTemplate.currency || currency,
+                    rate: copiedTemplate.rate || rate,
+                    totalBudget: totalBudget !== 1000 ? totalBudget : (copiedTemplate.totalBudget || totalBudget),
+                    updated_at: new Date().toISOString()
+                });
+                if (startDate && copiedTemplate.daysMeta) {
+                    Object.keys(newTrip.daysMeta).forEach(key => {
+                        if (newTrip.daysMeta[key]) newTrip.daysMeta[key].date = addDaysToISO(startDate, Number(key) - 1);
+                    });
+                }
+            }
 
             state.trips.unshift(newTrip);
             saveState();
