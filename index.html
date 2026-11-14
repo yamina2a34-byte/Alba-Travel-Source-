@@ -260,6 +260,16 @@
                         </div>
                     </header>
 
+                    <div id="trip-readiness-card" class="bg-white rounded-2xl border border-borderSubtle p-4 space-y-3">
+                        <div class="flex items-start justify-between gap-3">
+                            <div><p class="text-[10px] font-semibold uppercase tracking-[0.14em] text-sand">ALBA · Préparation</p><h2 class="text-sm font-bold text-ink mt-1">Prêt(e) pour le départ ?</h2><p id="trip-readiness-summary" class="text-[10px] text-muted mt-1">Analyse de ton voyage…</p></div>
+                            <div class="text-right shrink-0"><span id="trip-readiness-score" class="text-2xl font-semibold text-ink tabular-nums">—</span><span class="text-[10px] text-muted"> / 100</span></div>
+                        </div>
+                        <div class="h-2 rounded-full bg-stoneBg overflow-hidden"><div id="trip-readiness-progress" class="h-full rounded-full bg-sand transition-all duration-300" style="width:0%"></div></div>
+                        <div id="trip-readiness-items" class="space-y-2"></div>
+                        <p class="text-[9px] text-muted border-t border-borderSubtle pt-2">Le score se met à jour avec les informations enregistrées. Les éléments non concernés par ton voyage ne sont pas pénalisés.</p>
+                    </div>
+
                     <div class="bg-white rounded-2xl border border-borderSubtle p-3 space-y-3">
                         <div class="flex items-center justify-between">
                             <div><p class="text-xs font-bold text-ink">Ton voyage, en un coup d’œil</p><p id="trip-countdown-detail" class="text-[10px] text-muted">Compte à rebours et rappels</p></div>
@@ -2238,6 +2248,48 @@
             return state.trips.find(t => t.id === activeTripId);
         }
 
+        // Tableau de préparation : calcul local, sans API ni modification des données.
+        function renderTripReadiness() {
+            const trip = getTrip();
+            const root = document.getElementById('trip-readiness-card');
+            if (!trip || !root) return;
+            const allSteps = Object.values(trip.itinerary || {}).flat().filter(Boolean);
+            const lists = Object.values(trip.tabChecklists || {}).flat().filter(Boolean);
+            const todoItems = (trip.todos || []).filter(Boolean);
+            const tasks = [...lists, ...todoItems];
+            const doneTasks = tasks.filter(item => item.done).length;
+            const reservations = (trip.reservations || []).filter(Boolean);
+            const incompleteReservations = reservations.filter(item => !item.date || !item.time || !item.location || (!item.reference && !item.url));
+            const hasDates = !!(trip.startDate && (trip.endDate || trip.duration));
+            const hasTransport = (trip.flights || []).length > 0 || (trip.rentals || []).length > 0;
+            const checks = [
+                {label:'Dates du voyage', detail:hasDates ? 'Dates de départ et durée renseignées' : 'Ajoute les dates et la durée du séjour', ready:hasDates, tab:'apercu', weight:20},
+                {label:'Itinéraire', detail:allSteps.length ? allSteps.length + ' étape(s) planifiée(s)' : 'Ajoute au moins une étape à ton programme', ready:allSteps.length>0, tab:'itineraire', weight:25},
+                {label:'Tâches & checklists', detail:tasks.length ? doneTasks + ' / ' + tasks.length + ' tâche(s) terminée(s)' : 'Aucune tâche ajoutée pour le moment', ratio:tasks.length ? doneTasks/tasks.length : 0, tab:'itineraire', weight:25},
+            ];
+            if (reservations.length) checks.push({label:'Réservations',detail:incompleteReservations.length ? incompleteReservations.length+' réservation(s) à compléter' : reservations.length+' réservation(s) avec les informations essentielles',ready:incompleteReservations.length===0,tab:'inspirations',weight:15});
+            if (hasTransport) checks.push({label:'Transport',detail:(trip.flights||[]).length+' vol(s) · '+(trip.rentals||[]).length+' location(s)',ready:true,tab:'apercu',weight:15});
+            const totalWeight = checks.reduce((sum,item)=>sum+item.weight,0);
+            const earned = checks.reduce((sum,item)=>sum+item.weight*(item.ratio !== undefined ? item.ratio : (item.ready ? 1 : 0)),0);
+            const score = totalWeight ? Math.round(earned/totalWeight*100) : 0;
+            const pending = checks.filter(item => item.ratio !== undefined ? item.ratio < 1 : !item.ready).length;
+            const scoreEl=document.getElementById('trip-readiness-score');
+            const progress=document.getElementById('trip-readiness-progress');
+            const summary=document.getElementById('trip-readiness-summary');
+            const itemsEl=document.getElementById('trip-readiness-items');
+            if(scoreEl) scoreEl.textContent=String(score);
+            if(progress) progress.style.width=score+'%';
+            if(summary) summary.textContent=pending ? pending+' point(s) à vérifier avant le départ' : 'Les informations essentielles sont renseignées';
+            if(itemsEl) itemsEl.innerHTML=checks.map(item=>{
+                const complete=item.ratio !== undefined ? item.ratio>=1 : item.ready;
+                const partial=item.ratio !== undefined && item.ratio>0 && item.ratio<1;
+                const icon=complete?'check-circle-2':(partial?'circle-dot':'alert-circle');
+                const color=complete?'text-emerald-600':(partial?'text-sand':'text-muted');
+                return '<button type="button" onclick="switchTab(\''+item.tab+'\')" class="w-full flex items-center gap-2.5 text-left py-1.5 group"><i data-lucide="'+icon+'" class="w-4 h-4 '+color+' shrink-0"></i><span class="flex-1 min-w-0"><span class="block text-[11px] font-semibold text-ink">'+item.label+'</span><span class="block text-[9px] text-muted">'+item.detail+'</span></span><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-muted"></i></button>';
+            }).join('');
+            if(window.lucide) lucide.createIcons();
+        }
+
         function showToast(msg) {
             const toast = document.getElementById('toast');
             document.getElementById('toast-message').textContent = msg;
@@ -2814,6 +2866,7 @@
                 }
             });
             document.getElementById('app-viewport').scrollTop = 0;
+            if (tabName === 'apercu') renderTripReadiness();
             lucide.createIcons();
         }
 
