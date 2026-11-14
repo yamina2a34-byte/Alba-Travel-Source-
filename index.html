@@ -1638,7 +1638,7 @@
         async function createAlbaAccount() {
             const email = document.getElementById('account-email').value.trim();
             const password = document.getElementById('account-password').value;
-            if (!email || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) return setAccountMessage('Entre une adresse e-mail valide.');
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setAccountMessage('Entre une adresse e-mail valide.');
             if (password.length < 8) return setAccountMessage('Choisis un mot de passe de 8 caractères minimum.');
             setAccountMessage('Création du compte…');
             try {
