@@ -4874,6 +4874,251 @@
                 }).join('');
             }
             document.getElementById('doc-modal').classList.remove('hidden');
+            loadTripFiles('document');
+        }
+
+        // --- ALBA PRIVATE VAULT & PHOTO MEMORIES ---
+        window.albaTripFilesCache = [];
+        async function loadTripFiles(category) {
+            const trip = getTrip();
+            const targetId = category === 'photo' ? 'album-grid' : 'vault-files-list';
+            const target = document.getElementById(targetId);
+            if (!trip || !target) return;
+            if (!albaUserId || storageMode !== 'hybrid') {
+                target.innerHTML = '<p class="col-span-2 text-[10px] text-muted text-center py-3">Connecte-toi pour utiliser le coffre-fort et synchroniser tes souvenirs.</p>';
+                return;
+            }
+            target.innerHTML = '<p class="col-span-2 text-[10px] text-muted text-center py-3">Chargement…</p>';
+            const { data, error } = await supabaseClient.from('trip_files').select('id,category,storage_path,file_name,mime_type,size_bytes,created_at,uploaded_by').eq('trip_id', trip.id).eq('category', category).order('created_at', { ascending: false });
+            if (error) {
+                console.error('Chargement des fichiers ALBA:', error);
+                target.innerHTML = '<p class="col-span-2 text-[10px] text-red-500 text-center py-3">Impossible de charger les fichiers.</p>';
+                return;
+            }
+            window.albaTripFilesCache = (window.albaTripFilesCache || []).filter(x => x.category !== category);
+            for (const file of (data || [])) {
+                const { data: signed } = await supabaseClient.storage.from('alba-private-vault').createSignedUrl(file.storage_path, 300);
+                window.albaTripFilesCache.push({ ...file, signedUrl: signed?.signedUrl || '' });
+            }
+            const files = window.albaTripFilesCache.filter(x => x.category === category);
+            if (!files.length) {
+                target.innerHTML = category === 'photo'
+                    ? '<p class="col-span-2 text-[10px] text-muted text-center py-5">Ton album est encore vide. Ajoute les premières photos du voyage.</p>'
+                    : '<p class="text-[10px] text-muted text-center py-3">Aucun document privé pour le moment.</p>';
+                return;
+            }
+            if (category === 'photo') {
+                target.innerHTML = files.map(file => `
+                    <div class="relative rounded-xl overflow-hidden bg-stoneBg aspect-square">
+                        ${file.signedUrl ? `<img src="${file.signedUrl}" alt="${escapePrintHtml(file.file_name)}" class="w-full h-full object-cover" loading="lazy">` : '<div class="p-3 text-[10px]">Aperçu indisponible</div>'}
+                        <div class="absolute inset-x-0 bottom-0 bg-zinc-950/60 p-2 flex items-center justify-between gap-1"><span class="text-[9px] text-white truncate">${escapePrintHtml(file.file_name)}</span><button onclick="deleteTripFile('${file.id}')" class="text-white text-[10px] px-1.5">✕</button></div>
+                    </div>`).join('');
+            } else {
+                target.innerHTML = files.map(file => `
+                    <div class="flex items-center justify-between gap-2 bg-stoneBg border border-borderSubtle rounded-xl p-2.5">
+                        <div class="min-w-0"><p class="text-[10px] font-semibold text-ink truncate">${escapePrintHtml(file.file_name)}</p><p class="text-[9px] text-muted">${(file.size_bytes / 1048576).toFixed(1)} Mo · ${new Date(file.created_at).toLocaleDateString('fr-FR')}</p></div>
+                        <div class="flex items-center gap-2 shrink-0"><button onclick="openTripFile('${file.id}')" class="text-[10px] font-semibold text-sand">Ouvrir</button><button onclick="deleteTripFile('${file.id}')" class="text-[10px] text-red-500">✕</button></div>
+                    </div>`).join('');
+            }
+        }
+
+        async function handleVaultFileUpload(input, category) {
+            const trip = getTrip();
+            const files = Array.from(input.files || []);
+            input.value = '';
+            if (!trip || !files.length) return;
+            if (!albaUserId || storageMode !== 'hybrid') return showToast('Connecte-toi pour enregistrer tes fichiers dans le cloud');
+            const allowed = category === 'photo'
+                ? ['image/jpeg','image/png','image/webp','image/heic','image/heif']
+                : ['application/pdf','image/jpeg','image/png','image/webp','image/heic','image/heif','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.ms-excel','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+            for (const file of files) {
+                if (!allowed.includes(file.type)) { showToast('Format non accepté : ' + file.name); continue; }
+                if (file.size <= 0 || file.size > 20 * 1024 * 1024) { showToast('Fichier trop volumineux (20 Mo maximum)'); continue; }
+                const safeName = file.name.normalize('NFKD').replace(/[^a-zA-Z0-9._-]+/g, '_').slice(-100);
+                const folder = category === 'photo' ? 'photos' : 'documents';
+                const path = `${trip.id}/${folder}/${albaUserId}/${crypto.randomUUID()}-${safeName}`;
+                const { error: uploadError } = await supabaseClient.storage.from('alba-private-vault').upload(path, file, { contentType: file.type, upsert: false });
+                if (uploadError) { console.error('Upload ALBA:', uploadError); showToast('Échec de l’envoi de ' + file.name); continue; }
+                const { error: rowError } = await supabaseClient.from('trip_files').insert({
+                    trip_id: trip.id, uploaded_by: albaUserId, category, storage_path: path,
+                    file_name: file.name.slice(0, 180), mime_type: file.type, size_bytes: file.size
+                });
+                if (rowError) {
+                    await supabaseClient.storage.from('alba-private-vault').remove([path]);
+                    console.error('Index du fichier ALBA:', rowError);
+                    showToast('Le fichier n’a pas pu être ajouté au coffre-fort');
+                }
+            }
+            showToast(category === 'photo' ? 'Photos ajoutées à l’album' : 'Documents ajoutés au coffre-fort');
+            await loadTripFiles(category);
+        }
+
+        async function openTripFile(id) {
+            const file = (window.albaTripFilesCache || []).find(x => x.id === id);
+            if (!file) return;
+            const { data, error } = await supabaseClient.storage.from('alba-private-vault').createSignedUrl(file.storage_path, 60);
+            if (error || !data?.signedUrl) return showToast('Impossible d’ouvrir ce fichier');
+            window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+        }
+
+        async function deleteTripFile(id) {
+            const file = (window.albaTripFilesCache || []).find(x => x.id === id);
+            if (!file || !window.confirm('Supprimer définitivement ce fichier du voyage ?')) return;
+            const { error: storageError } = await supabaseClient.storage.from('alba-private-vault').remove([file.storage_path]);
+            if (storageError) return showToast('Impossible de supprimer le fichier');
+            const { error } = await supabaseClient.from('trip_files').delete().eq('id', id);
+            if (error) return showToast('Fichier supprimé du stockage mais index à vérifier');
+            await loadTripFiles(file.category);
+            showToast('Fichier supprimé');
+        }
+
+        function openAlbumModal() {
+            document.getElementById('album-modal').classList.remove('hidden');
+            loadTripFiles('photo');
+            lucide.createIcons();
+        }
+
+        // --- ALBA AI TRIP PLANNER ---
+        function openAiPlannerModal() {
+            const trip = getTrip();
+            if (!trip) return;
+            const select = document.getElementById('ai-planner-day');
+            select.innerHTML = Object.keys(trip.daysMeta || {}).map(day => `<option value="${day}">Jour ${day} · ${escapePrintHtml(trip.daysMeta[day].title || '')}</option>`).join('');
+            select.value = String(selectedDay || 1);
+            document.getElementById('ai-planner-answer').textContent = 'Choisis une action pour obtenir une proposition adaptée à ton voyage.';
+            document.getElementById('ai-planner-status').textContent = '';
+            document.getElementById('ai-planner-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        async function runAlbaAssistant(task) {
+            const trip = getTrip();
+            if (!trip || !albaUserId || storageMode !== 'hybrid') {
+                document.getElementById('ai-planner-status').textContent = 'Connecte-toi à ton compte ALBA pour utiliser l’assistant.';
+                return;
+            }
+            const day = Number(document.getElementById('ai-planner-day').value || 1);
+            const status = document.getElementById('ai-planner-status');
+            const answer = document.getElementById('ai-planner-answer');
+            status.textContent = 'ALBA analyse ton programme…';
+            answer.textContent = '';
+            const { data, error } = await supabaseClient.functions.invoke('alba-trip-assistant', { body: { tripId: trip.id, day, task } });
+            if (error || data?.error) {
+                status.textContent = 'Assistant indisponible';
+                answer.textContent = data?.error || error?.message || 'Une erreur est survenue.';
+                return;
+            }
+            status.textContent = 'Proposition générée · vérifie les informations pratiques';
+            answer.textContent = data.answer || 'Aucune proposition reçue.';
+        }
+
+        // --- COUNTDOWN & TRIP REMINDERS ---
+        function updateTripCountdown(trip) {
+            const badge = document.getElementById('trip-countdown-badge');
+            const detail = document.getElementById('trip-countdown-detail');
+            const reminderCopy = document.getElementById('reminder-countdown-copy');
+            if (!trip) return;
+            const today = new Date(); today.setHours(0,0,0,0);
+            const start = trip.startDate ? new Date(trip.startDate + 'T00:00:00') : null;
+            const end = trip.endDate ? new Date(trip.endDate + 'T23:59:59') : null;
+            let label = trip.countdown || 'À planifier';
+            let copy = 'Ajoute les dates de ton voyage pour lancer le compte à rebours.';
+            if (start && !Number.isNaN(start.getTime())) {
+                const days = Math.ceil((start - today) / 86400000);
+                if (days > 1) { label = 'J-' + days; copy = 'Départ dans ' + days + ' jours'; }
+                else if (days === 1) { label = 'J-1'; copy = 'Départ demain · dernière ligne droite !'; }
+                else if (days === 0) { label = 'Départ aujourd’hui'; copy = 'C’est le grand départ !'; }
+                else if (end && new Date() <= end) {
+                    const day = Math.floor((today - start) / 86400000) + 1;
+                    label = 'J' + day;
+                    copy = 'Voyage en cours · jour ' + day + (trip.duration ? ' / ' + trip.duration : '');
+                } else { label = 'Terminé'; copy = 'Ce voyage est terminé · garde tes souvenirs.'; }
+            }
+            if (badge) badge.textContent = label;
+            if (detail) detail.textContent = copy;
+            if (reminderCopy) reminderCopy.textContent = copy;
+        }
+
+        function openReminderModal() {
+            const trip = getTrip();
+            if (!trip) return;
+            const input = document.getElementById('reminder-datetime');
+            if (trip.startDate) {
+                const d = new Date(trip.startDate + 'T09:00:00');
+                d.setDate(d.getDate() - 1);
+                input.value = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0,16);
+            } else {
+                const d = new Date(Date.now() + 3600000);
+                input.value = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0,16);
+            }
+            document.getElementById('reminder-title').value = 'Vérifier les passeports, billets et bagages';
+            document.getElementById('reminder-modal').classList.remove('hidden');
+            renderTripReminders();
+            lucide.createIcons();
+        }
+
+        async function enableAlbaNotifications() {
+            if (!('Notification' in window)) return showToast('Les notifications ne sont pas disponibles sur ce navigateur');
+            const permission = await Notification.requestPermission();
+            showToast(permission === 'granted' ? 'Notifications activées sur cet appareil' : 'Autorisation de notification refusée');
+        }
+
+        async function saveTripReminder() {
+            const trip = getTrip();
+            const value = document.getElementById('reminder-datetime').value;
+            const title = document.getElementById('reminder-title').value.trim() || 'Rappel de voyage';
+            const remindAt = new Date(value);
+            if (!trip || !value || Number.isNaN(remindAt.getTime()) || remindAt <= new Date()) return showToast('Choisis une date future pour ton rappel');
+            if (!albaUserId || storageMode !== 'hybrid') return showToast('Connecte-toi au cloud pour synchroniser tes rappels');
+            const { error } = await supabaseClient.from('trip_reminders').insert({ trip_id: trip.id, user_id: albaUserId, remind_at: remindAt.toISOString(), title });
+            if (error) { console.error('Création rappel:', error); return showToast('Impossible d’enregistrer le rappel'); }
+            document.getElementById('reminder-title').value = '';
+            await renderTripReminders();
+            showToast('Rappel enregistré');
+        }
+
+        async function renderTripReminders() {
+            const trip = getTrip();
+            const target = document.getElementById('trip-reminders-list');
+            if (!trip || !target) return;
+            if (!albaUserId || storageMode !== 'hybrid') { target.innerHTML = '<p class="text-[10px] text-muted">Connecte-toi pour synchroniser tes rappels.</p>'; return; }
+            const { data, error } = await supabaseClient.from('trip_reminders').select('id,title,remind_at,enabled').eq('trip_id', trip.id).eq('user_id', albaUserId).order('remind_at');
+            if (error) { target.innerHTML = '<p class="text-[10px] text-red-500">Impossible de charger les rappels.</p>'; return; }
+            target.innerHTML = (data || []).filter(r => r.enabled).map(r => `<div class="flex items-center justify-between bg-stoneBg rounded-xl p-2.5 gap-2"><div class="min-w-0"><p class="text-[10px] font-semibold text-ink">${escapePrintHtml(r.title)}</p><p class="text-[9px] text-muted">${new Date(r.remind_at).toLocaleString('fr-FR')}</p></div><button onclick="deleteTripReminder('${r.id}')" class="text-[10px] text-red-500">Supprimer</button></div>`).join('') || '<p class="text-[10px] text-muted text-center py-2">Aucun rappel programmé.</p>';
+        }
+
+        async function deleteTripReminder(id) {
+            const { error } = await supabaseClient.from('trip_reminders').delete().eq('id', id);
+            if (error) return showToast('Impossible de supprimer le rappel');
+            renderTripReminders();
+        }
+
+        async function showAlbaNotification(title, body) {
+            if (!('Notification' in window) || Notification.permission !== 'granted') return;
+            const options = { body, icon: './icon-192.png', badge: './icon-192.png', tag: 'alba-' + title };
+            try {
+                if ('serviceWorker' in navigator) {
+                    const registration = await navigator.serviceWorker.ready;
+                    await registration.showNotification(title, options);
+                } else new Notification(title, options);
+            } catch (error) { console.warn('Notification ALBA:', error); }
+        }
+
+        async function checkDueTripReminders() {
+            if (!albaUserId || storageMode !== 'hybrid') return;
+            const now = new Date().toISOString();
+            const { data, error } = await supabaseClient.from('trip_reminders').select('id,title,trip_id').eq('user_id', albaUserId).eq('enabled', true).is('notified_at', null).lte('remind_at', now);
+            if (error || !data?.length) return;
+            for (const reminder of data) {
+                await showAlbaNotification('ALBA · ' + reminder.title, 'Un rappel pour ton voyage est arrivé.');
+                await supabaseClient.from('trip_reminders').update({ notified_at: now, enabled: false }).eq('id', reminder.id).eq('user_id', albaUserId);
+            }
+        }
+
+        if (!window.albaReminderTimerStarted) {
+            window.albaReminderTimerStarted = true;
+            window.setInterval(checkDueTripReminders, 60000);
+            document.addEventListener('visibilitychange', () => { if (!document.hidden) checkDueTripReminders(); });
         }
 
         // --- GESTE iOS : SLIDE VERS LA DROITE POUR RETOUR ---
