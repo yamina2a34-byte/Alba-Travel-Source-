@@ -1385,12 +1385,12 @@
 
         <div id="ai-planner-modal" class="hidden absolute inset-0 z-[58] bg-zinc-950/50 backdrop-blur-[2px] flex items-end justify-center">
             <div class="bg-white w-full rounded-t-3xl p-5 pb-8 space-y-3 max-h-[90%] overflow-y-auto">
-                <div class="flex items-center justify-between"><div><h3 class="text-base font-bold text-ink">ALBA · Assistant de voyage</h3><p class="text-[10px] text-muted">Construis ou optimise ton programme</p></div><button onclick="closeModal('ai-planner-modal')" class="w-8 h-8 rounded-full bg-stoneBg"><i data-lucide="x" class="w-4 h-4 mx-auto"></i></button></div>
+                <div class="flex items-center justify-between"><div><h3 class="text-base font-bold text-ink">ALBA · Assistant de voyage</h3><p class="text-[10px] text-muted">Suggestions et vérifications sans frais</p></div><button onclick="closeModal('ai-planner-modal')" class="w-8 h-8 rounded-full bg-stoneBg"><i data-lucide="x" class="w-4 h-4 mx-auto"></i></button></div>
                 <label class="text-[10px] font-semibold text-muted">Journée à travailler</label><select id="ai-planner-day" class="w-full bg-stoneBg rounded-xl px-3 py-2.5 text-xs"></select>
                 <div class="grid grid-cols-3 gap-2"><button onclick="runAlbaAssistant('build')" class="bg-stoneBg rounded-xl p-2 text-[10px] font-semibold">Construire</button><button onclick="runAlbaAssistant('optimize')" class="bg-stoneBg rounded-xl p-2 text-[10px] font-semibold">Optimiser</button><button onclick="runAlbaAssistant('check')" class="bg-stoneBg rounded-xl p-2 text-[10px] font-semibold">Vérifier</button></div>
                 <div id="ai-planner-status" class="text-[10px] text-muted"></div>
-                <div id="ai-planner-answer" class="bg-stoneBg rounded-xl p-3 text-xs text-ink whitespace-pre-wrap min-h-20">Choisis une action pour obtenir une proposition adaptée à ton voyage.</div>
-                <p class="text-[9px] text-muted">L’assistant respecte tes réservations et les horaires existants. Vérifie toujours les informations pratiques avant de partir.</p>
+                <div id="ai-planner-answer" class="bg-stoneBg rounded-xl p-3 text-xs text-ink whitespace-pre-wrap min-h-20">Choisis une action : ALBA analyse les informations déjà enregistrées, sans API payante.</div>
+                <p class="text-[9px] text-muted">Les suggestions sont calculées dans l’application, sans IA externe. Vérifie toujours les informations pratiques avant de partir.</p>
             </div>
         </div>
 
@@ -5003,25 +5003,69 @@
             lucide.createIcons();
         }
 
-        async function runAlbaAssistant(task) {
+        function runAlbaAssistant(task) {
             const trip = getTrip();
-            if (!trip || !albaUserId || storageMode !== 'hybrid') {
-                document.getElementById('ai-planner-status').textContent = 'Connecte-toi à ton compte ALBA pour utiliser l’assistant.';
-                return;
-            }
+            if (!trip) return;
             const day = Number(document.getElementById('ai-planner-day').value || 1);
             const status = document.getElementById('ai-planner-status');
             const answer = document.getElementById('ai-planner-answer');
-            status.textContent = 'ALBA analyse ton programme…';
-            answer.textContent = '';
-            const { data, error } = await supabaseClient.functions.invoke('alba-trip-assistant', { body: { tripId: trip.id, day, task } });
-            if (error || data?.error) {
-                status.textContent = 'Assistant indisponible';
-                answer.textContent = data?.error || error?.message || 'Une erreur est survenue.';
-                return;
+            const steps = [...((trip.itinerary || {})[day] || [])];
+            const ideas = (trip.inspirations || []).filter(item =>
+                item.status !== 'planned' && (item.assignedDay == null || Number(item.assignedDay) === day)
+            );
+            const dayTitle = trip.daysMeta?.[day]?.title || ('Jour ' + day);
+            const fmt = value => value ? String(value) : 'horaire à définir';
+            const lines = [];
+            status.textContent = 'Analyse locale de ton voyage…';
+            if (task === 'build') {
+                lines.push('PROPOSITION POUR ' + dayTitle.toUpperCase());
+                if (steps.length) {
+                    lines.push('Tu as déjà ' + steps.length + ' étape(s) prévue(s). Je les conserve :');
+                    steps.forEach((step, i) => lines.push((i+1) + '. ' + fmt(step.time) + ' — ' + (step.title || 'Étape sans titre')));
+                    lines.push('');
+                    lines.push('Pour compléter cette journée, voici les idées encore disponibles :');
+                } else {
+                    lines.push('Ta journée est encore libre. Voici une trame équilibrée :');
+                    lines.push('09:00 — Petit-déjeuner et départ tranquille');
+                    lines.push('10:00 — Première visite ou activité');
+                    lines.push('12:30 — Pause déjeuner');
+                    lines.push('14:00 — Deuxième visite / découverte');
+                    lines.push('17:00 — Temps libre, photos ou retour au logement');
+                    lines.push('19:30 — Dîner');
+                    lines.push('');
+                    lines.push('Idées enregistrées à intégrer :');
+                }
+                if (ideas.length) ideas.slice(0,8).forEach((item,i) => lines.push('• ' + (item.title || 'Idée sans titre') + (item.address ? ' · ' + item.address : '') + (item.category ? ' · ' + item.category : '')));
+                else lines.push('• Aucune inspiration non programmée pour cette journée. Ajoute des idées dans Inspirations pour obtenir des suggestions adaptées.');
+            } else if (task === 'optimize') {
+                lines.push('ORGANISATION DE ' + dayTitle.toUpperCase());
+                if (!steps.length) lines.push('Aucune étape à réorganiser pour le moment. Ajoute des lieux ou activités à cette journée.');
+                else {
+                    const ordered = [...steps].sort((a,b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
+                    lines.push('Ordre conseillé (les horaires existants sont conservés) :');
+                    ordered.forEach((step,i) => lines.push((i+1) + '. ' + fmt(step.time) + ' — ' + (step.title || 'Étape sans titre') + (step.address ? ' · ' + step.address : '')));
+                    const missing = ordered.filter(step => !step.time).length;
+                    if (missing) lines.push('À compléter : ' + missing + ' étape(s) sans horaire.');
+                    lines.push('Conseil : regroupe les lieux proches dans la même demi-journée et prévois une marge de déplacement entre deux réservations.');
+                }
+            } else {
+                lines.push('VÉRIFICATION DE ' + dayTitle.toUpperCase());
+                if (!steps.length) lines.push('Cette journée ne contient encore aucune étape.');
+                const untimed = steps.filter(step => !step.time);
+                const noAddress = steps.filter(step => !step.address);
+                const names = steps.map(step => (step.title || '').trim().toLowerCase()).filter(Boolean);
+                const duplicates = names.filter((name,index) => names.indexOf(name) !== index);
+                lines.push('• ' + steps.length + ' étape(s) enregistrée(s).');
+                if (untimed.length) lines.push('• ' + untimed.length + ' étape(s) sans horaire.');
+                if (noAddress.length) lines.push('• ' + noAddress.length + ' étape(s) sans adresse ou lieu précis.');
+                if (duplicates.length) lines.push('• Doublon(s) possible(s) : ' + [...new Set(duplicates)].join(', ') + '.');
+                if (!untimed.length && !noAddress.length && !duplicates.length && steps.length) lines.push('• Rien à signaler dans les informations enregistrées.');
+                lines.push('Pense à vérifier les horaires d’ouverture, les temps de trajet et les confirmations de réservation.');
             }
-            status.textContent = 'Proposition générée · vérifie les informations pratiques';
-            answer.textContent = data.answer || 'Aucune proposition reçue.';
+            lines.push('');
+            lines.push('— Analyse effectuée directement dans ALBA, sans service IA externe ni frais d’API. Les suggestions utilisent uniquement les informations déjà enregistrées dans ton voyage.');
+            answer.textContent = lines.join('\n');
+            status.textContent = 'Analyse terminée · aucune donnée modifiée';
         }
 
         // --- COUNTDOWN & TRIP REMINDERS ---
