@@ -1395,7 +1395,7 @@
                     <label class="block text-[10px] font-semibold text-muted">Mot de passe (connexion à un compte existant)</label>
                     <input id="account-password" type="password" autocomplete="current-password" placeholder="Uniquement si tu as déjà un compte" class="w-full bg-stoneBg text-sm text-ink rounded-xl px-3 py-3 border border-borderSubtle">
                     <p class="text-[10px] text-muted">À la création, confirme ton e-mail puis définis ton mot de passe. Tes voyages déjà présents sur cet appareil resteront liés à ce compte.</p>
-                    <button onclick="createAlbaAccount()" class="w-full bg-ink text-white text-xs font-semibold py-3 rounded-xl">Créer mon compte</button>
+                    <button id="account-create-button" onclick="createAlbaAccount()" class="w-full bg-ink text-white text-xs font-semibold py-3 rounded-xl disabled:opacity-50" aria-busy="false">Créer mon compte</button>
                     <button onclick="loginAlbaAccount()" class="w-full bg-stoneBg text-ink text-xs font-semibold py-3 rounded-xl border border-borderSubtle">J’ai déjà un compte · Me connecter</button>
                     <button onclick="resetAlbaPassword()" class="w-full text-sand text-[11px] font-semibold py-2">Mot de passe oublié ?</button>
                 </div>
@@ -1422,6 +1422,8 @@
         let albaUserId = null;
         let syncQueue = Promise.resolve();
         let syncTimer = null;
+        let cloudRetryTimer = null;
+        let cloudRetryDelay = 1500;
         let isHydrating = false;
         let lastSyncError = '';
         let knownCloudTripIds = new Set();
@@ -1649,7 +1651,16 @@
             applyTheme(); refreshStoragePreferenceUI(); document.getElementById('preferences-modal').classList.remove('hidden'); lucide.createIcons();
         }
         async function openAccountModal() {
-            const { data: { user } } = await supabaseClient.auth.getUser();
+            let user = null;
+            try {
+                const { data, error } = await supabaseClient.auth.getUser();
+                if (error) throw error;
+                user = data.user;
+            } catch (error) {
+                setAccountMessage(error.message || 'Impossible de vérifier la session. Vérifie ta connexion puis réessaie.');
+                document.getElementById('account-modal').classList.remove('hidden');
+                return;
+            }
             const hasEmail = !!user?.email;
             const isRegistered = !!(hasEmail && !user.is_anonymous);
             const hasPendingEmail = !!(hasEmail && user.is_anonymous);
@@ -1681,30 +1692,62 @@
             const el = document.getElementById('account-message');
             if (el) el.textContent = message;
         }
+        function explainAccountError(error) {
+            const message = String(error?.message || 'Une erreur inconnue est survenue.');
+            const code = String(error?.code || '');
+            if (/manual.*link|link.*disabled/i.test(message + ' ' + code)) {
+                return 'La liaison des comptes invités n’est pas activée dans Supabase. Active « Allow manual linking » dans Authentication > Sign In / Providers, puis réessaie.';
+            }
+            if (/anonymous.*disabled|anonymous sign.?ins.*disabled/i.test(message + ' ' + code)) {
+                return 'Les sessions invitées sont désactivées dans Supabase. Active « Allow anonymous sign-ins » dans Authentication > Sign In / Providers.';
+            }
+            if (/redirect.*allow|redirect.*not allowed/i.test(message)) {
+                return 'Supabase refuse l’adresse de retour. Ajoute https://abla-travel.netlify.app/** dans Authentication > URL Configuration.';
+            }
+            if (/already registered|already been registered|user already registered|email.*taken/i.test(message)) {
+                return 'Cette adresse possède déjà un compte. Utilise « J’ai déjà un compte · Me connecter ».';
+            }
+            if (/rate limit|too many requests/i.test(message)) {
+                return 'Trop de tentatives rapprochées. Attends quelques minutes avant de réessayer.';
+            }
+            return message;
+        }
+
         async function createAlbaAccount() {
             const email = document.getElementById('account-email').value.trim();
             if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setAccountMessage('Entre une adresse e-mail valide.');
-            setAccountMessage('Création du compte…');
+            const button = document.getElementById('account-create-button');
+            if (button?.disabled) return;
+            if (button) { button.disabled = true; button.textContent = 'Préparation…'; button.setAttribute('aria-busy', 'true'); }
+            setAccountMessage('Préparation de ton compte et sauvegarde de tes voyages…');
             try {
-                let { data: { user }, error: userError } = await supabaseClient.auth.getUser();
-                if (userError) throw userError;
-                if (!user) {
-                    const { data, error } = await supabaseClient.auth.signInAnonymously();
-                    if (error) throw error;
-                    user = data.user;
-                }
-                if (!user?.is_anonymous) return setAccountMessage('Un compte est déjà connecté sur cet appareil. Déconnecte-toi avant de créer un autre compte.');
-                // Lier l’adresse au compte invité existant : ses voyages gardent le même propriétaire.
-                const result = await supabaseClient.auth.updateUser({ email }, { emailRedirectTo: location.origin + location.pathname });
-                if (result.error) throw result.error;
+                // On établit d'abord la session invitée et on pousse les voyages avant toute liaison d'identité.
                 storageMode = 'hybrid';
                 localStorage.setItem('alba_storage_mode', 'hybrid');
-                await initCloudSync();
+                await initCloudSync({ throwOnError: true });
+                if (!albaUserId) throw new Error('La session ALBA n’est pas prête. Vérifie ta connexion puis réessaie.');
+                const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+                if (userError) throw userError;
+                const user = userData.user;
+                if (!user) throw new Error('Aucune session active. Ferme cette fenêtre, attends la connexion cloud puis réessaie.');
+                if (!user.is_anonymous) {
+                    setAccountMessage('Un compte est déjà connecté sur cet appareil. Utilise la connexion ou déconnecte-toi avant de créer un autre compte.');
+                    return;
+                }
+                // Sauvegarde complète avant conversion : l'identifiant propriétaire ne change pas.
+                await syncTripsToCloud();
+                const { error } = await supabaseClient.auth.updateUser(
+                    { email },
+                    { emailRedirectTo: location.origin + location.pathname }
+                );
+                if (error) throw error;
                 await openAccountModal();
-                setAccountMessage('Un e-mail de confirmation a été envoyé. Confirme ton adresse depuis le même appareil, puis reviens ici pour définir ton mot de passe. Tes voyages restent associés à cette session.');
+                setAccountMessage('Demande envoyée. Ouvre le mail de confirmation sur cet appareil. Après validation, reviens ici pour définir ton mot de passe. Tes voyages ont été sauvegardés avant la liaison.');
             } catch (error) {
                 console.error('Création compte ALBA:', error);
-                setAccountMessage(error.message || 'Impossible de créer le compte pour le moment.');
+                setAccountMessage(explainAccountError(error));
+            } finally {
+                if (button) { button.disabled = false; button.textContent = 'Créer mon compte'; button.setAttribute('aria-busy', 'false'); }
             }
         }
         async function setAlbaPassword() {
@@ -1715,7 +1758,10 @@
                 if (!user?.email_confirmed_at || user.is_anonymous) return setAccountMessage('Confirme d’abord ton adresse e-mail.');
                 const { error } = await supabaseClient.auth.updateUser({ password });
                 if (error) throw error;
-                await initCloudSync();
+                storageMode = 'hybrid';
+                localStorage.setItem('alba_storage_mode', 'hybrid');
+                await initCloudSync({ throwOnError: true });
+                await syncTripsToCloud();
                 await openAccountModal();
                 setAccountMessage('Mot de passe enregistré. Ton compte ALBA est prêt à être utilisé sur un autre appareil.');
             } catch (error) {
@@ -1833,13 +1879,36 @@
             if (!isHydrating && albaUserId && storageMode === 'hybrid') scheduleCloudSync();
         }
 
+        function setCloudSyncStatus(message) {
+            const status = document.getElementById('cloud-sync-status');
+            if (status) status.textContent = message;
+            const preferenceStatus = document.getElementById('storage-mode-status');
+            if (preferenceStatus && storageMode === 'hybrid' && message) {
+                preferenceStatus.textContent = message;
+            }
+        }
+
         function scheduleCloudSync() {
+            if (storageMode !== 'hybrid') return;
+            setCloudSyncStatus(navigator.onLine ? 'Modifications en attente de sauvegarde…' : 'Hors ligne · copie locale conservée');
             clearTimeout(syncTimer);
             syncTimer = setTimeout(() => {
-                syncQueue = syncQueue.then(syncTripsToCloud).catch(err => {
-                    lastSyncError = err?.message || 'Erreur de synchronisation';
-                    console.error('ALBA cloud sync:', err);
-                    showToast('Sauvegarde cloud en échec — données gardées sur cet appareil');
+                syncQueue = syncQueue.catch(() => {}).then(async () => {
+                    try {
+                        await syncTripsToCloud();
+                        cloudRetryDelay = 1500;
+                        lastSyncError = '';
+                        setCloudSyncStatus('Synchronisé');
+                    } catch (err) {
+                        lastSyncError = err?.message || 'Erreur de synchronisation';
+                        console.error('ALBA cloud sync:', err);
+                        setCloudSyncStatus('À synchroniser · copie locale conservée');
+                        if (navigator.onLine) {
+                            clearTimeout(cloudRetryTimer);
+                            cloudRetryTimer = setTimeout(() => scheduleCloudSync(), cloudRetryDelay);
+                            cloudRetryDelay = Math.min(cloudRetryDelay * 2, 60000);
+                        }
+                    }
                 });
             }, 450);
         }
@@ -1946,7 +2015,7 @@
                 }).subscribe();
         }
 
-        async function initCloudSync() {
+        async function initCloudSync(options = {}) {
             if (storageMode === 'local') {
                 albaUserId = null;
                 const status = document.getElementById('cloud-sync-status');
@@ -2019,8 +2088,9 @@
                 lastSyncError = err?.message || 'Connexion cloud impossible';
                 console.error('ALBA cloud init:', err);
                 const status = document.getElementById('cloud-sync-status');
-                if (status) status.textContent = 'Hors ligne';
-                showToast('Mode hors ligne — réessai automatique à la prochaine modification');
+                if (status) status.textContent = 'Hors ligne · copie locale conservée';
+                if (options.throwOnError) throw err;
+                showToast('Mode hors ligne — les données restent sur cet appareil');
             }
         }
 
@@ -4552,8 +4622,22 @@
             initCloudSync();
             if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('./sw.js').catch(err => console.warn('ALBA offline worker:', err));
         });
-        window.addEventListener('online', () => { if (storageMode === 'hybrid' && albaUserId) scheduleCloudSync(); });
-    document.addEventListener('visibilitychange', () => { if (!document.hidden && activeTripId && !document.getElementById('tab-itineraire').classList.contains('hidden')) loadDayWeather(false); });
+        window.addEventListener('online', () => {
+            if (storageMode === 'hybrid') {
+                initCloudSync({ throwOnError: true })
+                    .then(() => scheduleCloudSync())
+                    .catch(err => console.warn('ALBA reprise cloud:', err));
+            }
+        });
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) return;
+        if (storageMode === 'hybrid') {
+            initCloudSync({ throwOnError: true })
+                .then(() => scheduleCloudSync())
+                .catch(err => console.warn('ALBA reprise après veille:', err));
+        }
+        if (activeTripId && !document.getElementById('tab-itineraire').classList.contains('hidden')) loadDayWeather(false);
+    });
 </script>
 </body>
 </html>
