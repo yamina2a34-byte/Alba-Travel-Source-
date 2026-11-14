@@ -1632,7 +1632,11 @@
             form.classList.toggle('hidden', isRegistered);
             passwordSetup.classList.toggle('hidden', !isRegistered || !isEmailConfirmed);
             signout.classList.toggle('hidden', !isRegistered);
-            current.textContent = isRegistered ? 'Connecté avec ' + user.email + ' · Tes voyages sont liés à ce compte.' : 'Tu utilises actuellement ALBA en mode invité. Crée ton compte pour conserver tes voyages et les retrouver sur un autre appareil.';
+            current.textContent = isRegistered
+                ? (isEmailConfirmed ? 'Connecté avec ' + user.email + ' · Tes voyages sont liés à ce compte.' : 'Adresse en attente de confirmation : ' + user.email + '. Ouvre le lien reçu par e-mail sur cet appareil, puis reviens ici pour définir ton mot de passe.')
+                : 'Tu utilises actuellement ALBA en mode invité. Crée ton compte pour conserver tes voyages et les retrouver sur un autre appareil.';
+            const summary = document.getElementById('account-summary');
+            if (summary) summary.textContent = isRegistered ? (isEmailConfirmed ? 'Compte connecté · voyages synchronisés' : 'Confirmation de l’e-mail en attente') : 'Créer un compte pour retrouver tes voyages partout';
             document.getElementById('account-email').value = user?.email || '';
             document.getElementById('account-password').value = '';
             document.getElementById('account-new-password').value = '';
@@ -1649,15 +1653,16 @@
             if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setAccountMessage('Entre une adresse e-mail valide.');
             setAccountMessage('Création du compte…');
             try {
-                const { data: { user } } = await supabaseClient.auth.getUser();
-                let result;
-                if (user?.is_anonymous) {
-                    result = await supabaseClient.auth.updateUser({ email }, { emailRedirectTo: location.origin + location.pathname });
-                } else if (!user) {
-                    result = await supabaseClient.auth.signUp({ email, password });
-                } else {
-                    return setAccountMessage('Un compte est déjà connecté sur cet appareil.');
+                let { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+                if (userError) throw userError;
+                if (!user) {
+                    const { data, error } = await supabaseClient.auth.signInAnonymously();
+                    if (error) throw error;
+                    user = data.user;
                 }
+                if (!user?.is_anonymous) return setAccountMessage('Un compte est déjà connecté sur cet appareil. Déconnecte-toi avant de créer un autre compte.');
+                // Lier l’adresse au compte invité existant : ses voyages gardent le même propriétaire.
+                const result = await supabaseClient.auth.updateUser({ email }, { emailRedirectTo: location.origin + location.pathname });
                 if (result.error) throw result.error;
                 storageMode = 'hybrid';
                 localStorage.setItem('alba_storage_mode', 'hybrid');
