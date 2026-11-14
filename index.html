@@ -4958,6 +4958,7 @@
         async function openTripFile(id) {
             const file = (window.albaTripFilesCache || []).find(x => x.id === id);
             if (!file) return;
+            if (file.signedUrl) { window.open(file.signedUrl, '_blank', 'noopener,noreferrer'); return; }
             const { data, error } = await supabaseClient.storage.from('alba-private-vault').createSignedUrl(file.storage_path, 60);
             if (error || !data?.signedUrl) return showToast('Impossible d’ouvrir ce fichier');
             window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
