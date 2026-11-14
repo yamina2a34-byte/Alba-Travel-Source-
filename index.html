@@ -976,6 +976,7 @@
                         <button type="button" onclick="autoFillFlightInfo(false)" class="bg-sand text-white text-xs font-semibold px-3 py-2 rounded-xl flex items-center gap-1 active:scale-95 transition">
                             <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Auto
                         </button>
+                        <button type="button" onclick="searchFlightOnline()" class="bg-white border border-borderSubtle text-ink text-xs font-semibold px-3 py-2 rounded-xl active:scale-95 transition" aria-label="Rechercher le vol sur Internet">Web</button>
                     </div>
                 </div>
 
@@ -2501,31 +2502,24 @@
 
         function autoFillFlightInfo(silent = false) {
             const rawNum = document.getElementById('fl-number').value.trim().toUpperCase();
-            const cleanNum = rawNum.replace(/\s+/g, '');
+            const cleanNum = rawNum.replace(/\\s+/g, '');
             if (!cleanNum) return;
-
-            if (KNOWN_FLIGHTS[cleanNum]) {
-                const f = KNOWN_FLIGHTS[cleanNum];
-                document.getElementById('fl-airline').value = f.airline;
-                document.getElementById('fl-dep-iata').value = f.depIata;
-                document.getElementById('fl-dep-city').value = f.depCity;
-                document.getElementById('fl-dep-time').value = f.depTime;
-                document.getElementById('fl-arr-iata').value = f.arrIata;
-                document.getElementById('fl-arr-city').value = f.arrCity;
-                document.getElementById('fl-arr-time').value = f.arrTime;
-                if (f.terminal) document.getElementById('fl-terminal').value = f.terminal;
-                if (f.gate) document.getElementById('fl-gate').value = f.gate;
-                if (f.seat) document.getElementById('fl-seat').value = f.seat;
-                if (f.baggage) document.getElementById('fl-baggage').value = f.baggage;
-                if (!silent) showToast(`Vol ${rawNum} complété automatiquement`);
-            } else if (cleanNum.length >= 3) {
-                const prefix = cleanNum.match(/^[A-Z0-9]{2}/)?.[0];
-                const detectedAirline = AIRLINE_PREFIXES[prefix];
-                if (detectedAirline) document.getElementById('fl-airline').value = detectedAirline;
-                if (!silent) showToast(detectedAirline
-                    ? `${detectedAirline} identifiée. Confirme les horaires sur ton billet.`
-                    : 'Vol non reconnu : vérifie le numéro ou complète les champs manuellement.');
+            const prefix = cleanNum.match(/^[A-Z0-9]{2}/)?.[0];
+            const detectedAirline = AIRLINE_PREFIXES[prefix];
+            if (detectedAirline) {
+                document.getElementById('fl-airline').value = detectedAirline;
+                if (!silent) showToast(`${detectedAirline} identifiée. Les horaires et aéroports doivent être confirmés avec le billet.`);
+            } else if (!silent) {
+                showToast('Compagnie non reconnue : complète les informations depuis ton billet.');
             }
+        }
+
+        function searchFlightOnline() {
+            const number = document.getElementById('fl-number').value.trim().toUpperCase();
+            if (!number) { showToast('Saisis d’abord un numéro de vol'); return; }
+            const date = document.getElementById('fl-dep-date').value.trim();
+            const query = [number, date, 'flight status schedule'].filter(Boolean).join(' ');
+            window.open('https://www.google.com/search?q=' + encodeURIComponent(query), '_blank', 'noopener,noreferrer');
         }
 
         function handleFlightDocUpload(event) {
