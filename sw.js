@@ -1,4 +1,4 @@
-const CACHE_NAME = 'alba-travel-shell-v6';
+const CACHE_NAME = 'alba-travel-shell-v7';
 const APP_SHELL = ['./index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', event => {
@@ -38,3 +38,11 @@ self.addEventListener('fetch', event => {
 });
 
 // Deploy trigger: 2026-11-14T14:24Z
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  event.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
+    const existing = clients.find(client => 'focus' in client);
+    return existing ? existing.focus() : self.clients.openWindow('./');
+  }));
+});
