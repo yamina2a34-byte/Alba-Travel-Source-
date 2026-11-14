@@ -2213,7 +2213,7 @@
                 .subscribe();
         }
 
-        async function initCloudSync(options = {}) {
+        async function performCloudSyncInit(options = {}) {
             // L'accueil est déjà rendu depuis la copie locale : le cloud ne doit jamais le masquer
             // ni laisser croire que les voyages sont indisponibles pendant une connexion lente.
             if (storageMode === 'hybrid') setCloudSyncStatus('Copie locale chargée · synchronisation…');
@@ -2302,6 +2302,18 @@
                 if (options.throwOnError) throw err;
                 showToast('Mode hors ligne — les données restent sur cet appareil');
             }
+        }
+
+        // Une seule initialisation cloud à la fois : iOS peut déclencher simultanément
+        // DOMContentLoaded, online et visibilitychange, ce qui lançait plusieurs hydrations
+        // et sauvegardes concurrentes des mêmes voyages.
+        let cloudInitPromise = null;
+        function initCloudSync(options = {}) {
+            if (cloudInitPromise) return cloudInitPromise;
+            cloudInitPromise = performCloudSyncInit(options).finally(() => {
+                cloudInitPromise = null;
+            });
+            return cloudInitPromise;
         }
 
         function getTrip() {
