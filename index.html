@@ -2009,7 +2009,7 @@
             // Une installation qui possède un état vide/incomplet ne doit jamais rester sur « 0 voyage ».
             // On réinjecte les trois voyages de départ localement, même si une ancienne version a déjà
             // créé une clé de stockage vide. Les voyages personnels existants sont toujours conservés.
-            if (saved && Array.isArray(saved.trips) && saved.trips.length > 0) {
+            if (saved && Array.isArray(saved.trips) && saved.trips.some(trip => !trip.deletedAt)) {
                 if (!Array.isArray(saved.templates)) saved.templates = defaultTemplates;
                 return saved;
             }
@@ -2211,6 +2211,9 @@
         }
 
         async function initCloudSync(options = {}) {
+            // L'accueil est déjà rendu depuis la copie locale : le cloud ne doit jamais le masquer
+            // ni laisser croire que les voyages sont indisponibles pendant une connexion lente.
+            if (storageMode === 'hybrid') setCloudSyncStatus('Copie locale chargée · synchronisation…');
             if (storageMode === 'local') {
                 albaUserId = null;
                 const status = document.getElementById('cloud-sync-status');
