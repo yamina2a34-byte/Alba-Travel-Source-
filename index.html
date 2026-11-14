@@ -4563,7 +4563,7 @@
             if (!trip) return;
             const cloudList = document.getElementById('cloud-members-list');
             const localList = document.getElementById('companions-list-modal');
-            const isOwner = trip._albaRole === 'owner';
+            const isOwner = !trip._albaRole || trip._albaRole === 'owner';
             if (cloudList) {
                 if (storageMode !== 'hybrid' || !albaUserId) {
                     cloudList.innerHTML = '<p class="text-xs text-muted text-center py-3">Connecte-toi au cloud pour afficher les membres du voyage.</p>';
