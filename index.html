@@ -3327,6 +3327,7 @@
                     if (!alreadyGeocoded) await new Promise(resolve => setTimeout(resolve, 1100));
                 }
                 if (located.length > 1) {
+                    const routeKey = `${group.day}:${located.map(p => String(p.step.id || p.step.title || '')).join('|')}`;
                     try {
                         const route = await fetchDrivingRoute(located.map(p => p.coords));
                         if (token !== mapRefreshToken) return;
@@ -3334,10 +3335,24 @@
                         totalSeconds += route.duration;
                         const routeCoords = route.geometry.coordinates.map(c => [c[1], c[0]]);
                         L.polyline(routeCoords, { color: '#B77A5F', weight: 5, opacity: .9, lineCap: 'round', lineJoin: 'round' }).addTo(leafletLayerGroup);
+                        if (!trip.mapRouteCache) trip.mapRouteCache = {};
+                        const rawGeometry = route.geometry.coordinates;
+                        const stride = Math.max(1, Math.ceil(rawGeometry.length / 300));
+                        const compactGeometry = rawGeometry.filter((point, index) => index === 0 || index === rawGeometry.length - 1 || index % stride === 0);
+                        trip.mapRouteCache[routeKey] = { geometry: compactGeometry, distance: route.distance, duration: route.duration, savedAt: Date.now() };
                         details.insertAdjacentHTML('beforeend', `<div class="rounded-xl border border-borderSubtle p-3"><div class="flex items-center justify-between"><p class="text-[11px] font-bold text-ink">Jour ${group.day}</p><p class="text-[10px] font-semibold text-sand">${(route.distance / 1000).toFixed(1).replace('.', ',')} km · ${formatRouteDuration(route.duration)}</p></div><div class="mt-2 space-y-1">${located.map((p,i)=>`<div class="flex items-center gap-2 text-[10px] text-muted"><span class="w-5 h-5 rounded-full bg-sandLight text-sand font-bold flex items-center justify-center">${i+1}</span><span class="truncate flex-1">${escapeHtml(p.step.title || 'Étape')}</span><span>${escapeHtml(p.step.time || '')}</span></div>`).join('')}</div></div>`);
                     } catch (error) {
                         console.warn('ALBA routing:', error);
-                        details.insertAdjacentHTML('beforeend', `<div class="rounded-xl border border-amber-200 bg-amber-50 p-3"><p class="text-[11px] font-bold text-amber-900">Jour ${group.day} · Route non calculée</p><p class="text-[10px] text-amber-800 mt-1">Le service de calcul routier ne répond pas. Les étapes restent visibles sur la carte.</p></div>`);
+                        const cachedRoute = trip.mapRouteCache?.[routeKey];
+                        if (cachedRoute?.geometry?.length) {
+                            totalMeters += Number(cachedRoute.distance || 0);
+                            totalSeconds += Number(cachedRoute.duration || 0);
+                            const cachedCoords = cachedRoute.geometry.map(c => [c[1], c[0]]);
+                            L.polyline(cachedCoords, { color: '#B77A5F', weight: 5, opacity: .65, dashArray: '7 7', lineCap: 'round', lineJoin: 'round' }).addTo(leafletLayerGroup);
+                            details.insertAdjacentHTML('beforeend', `<div class="rounded-xl border border-borderSubtle p-3"><div class="flex items-center justify-between"><p class="text-[11px] font-bold text-ink">Jour ${group.day} · itinéraire mémorisé</p><p class="text-[10px] font-semibold text-sand">${(Number(cachedRoute.distance || 0) / 1000).toFixed(1).replace('.', ',')} km · ${formatRouteDuration(Number(cachedRoute.duration || 0))}</p></div><p class="text-[10px] text-muted mt-1">Dernier trajet calculé enregistré sur cet appareil ou synchronisé avec le voyage.</p></div>`);
+                        } else {
+                            details.insertAdjacentHTML('beforeend', `<div class="rounded-xl border border-amber-200 bg-amber-50 p-3"><p class="text-[11px] font-bold text-amber-900">Jour ${group.day} · Route non calculée</p><p class="text-[10px] text-amber-800 mt-1">Le service de calcul routier ne répond pas et aucun trajet mémorisé n'est disponible. Les étapes restent visibles sur la carte.</p></div>`);
+                        }
                     }
                 } else if (located.length === 1) {
                     details.insertAdjacentHTML('beforeend', `<div class="rounded-xl border border-borderSubtle p-3"><p class="text-[11px] font-bold text-ink">Jour ${group.day}</p><p class="text-[10px] text-muted mt-1">${escapeHtml(located[0].step.title || 'Étape')} · Une seule étape localisée</p></div>`);
