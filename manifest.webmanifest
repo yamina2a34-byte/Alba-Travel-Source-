@@ -1,0 +1,14 @@
+{
+  "name": "ALBA Travel",
+  "short_name": "ALBA",
+  "description": "Ton espace personnel pour préparer, vivre et garder tes voyages.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FAFAFA",
+  "theme_color": "#EBDEC5",
+  "lang": "fr",
+  "icons": [
+    {"src": "./alba-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable"}
+  ]
+}
