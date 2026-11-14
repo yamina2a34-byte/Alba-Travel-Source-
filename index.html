@@ -1383,8 +1383,8 @@
                     <label class="block text-[10px] font-semibold text-muted">Adresse e-mail</label>
                     <input id="account-email" type="email" autocomplete="email" placeholder="toi@exemple.com" class="w-full bg-stoneBg text-sm text-ink rounded-xl px-3 py-3 border border-borderSubtle">
                     <label class="block text-[10px] font-semibold text-muted">Mot de passe</label>
-                    <input id="account-password" type="password" autocomplete="new-password" placeholder="8 caractères minimum" class="w-full bg-stoneBg text-sm text-ink rounded-xl px-3 py-3 border border-borderSubtle">
-                    <p class="text-[10px] text-muted">À la création, ton compte sera lié à tes voyages déjà présents sur cet appareil.</p>
+                    <input id="account-password" type="password" autocomplete="current-password" placeholder="Ton mot de passe" class="w-full bg-stoneBg text-sm text-ink rounded-xl px-3 py-3 border border-borderSubtle">
+                    <p class="text-[10px] text-muted">À la création, confirme ton e-mail puis définis ton mot de passe. Tes voyages déjà présents sur cet appareil resteront liés à ce compte.</p>
                     <button onclick="createAlbaAccount()" class="w-full bg-ink text-white text-xs font-semibold py-3 rounded-xl">Créer mon compte</button>
                     <button onclick="loginAlbaAccount()" class="w-full bg-stoneBg text-ink text-xs font-semibold py-3 rounded-xl border border-borderSubtle">J’ai déjà un compte · Me connecter</button>
                     <button onclick="resetAlbaPassword()" class="w-full text-sand text-[11px] font-semibold py-2">Mot de passe oublié ?</button>
@@ -1646,9 +1646,7 @@
         }
         async function createAlbaAccount() {
             const email = document.getElementById('account-email').value.trim();
-            const password = document.getElementById('account-password').value;
             if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setAccountMessage('Entre une adresse e-mail valide.');
-            if (password.length < 8) return setAccountMessage('Choisis un mot de passe de 8 caractères minimum.');
             setAccountMessage('Création du compte…');
             try {
                 const { data: { user } } = await supabaseClient.auth.getUser();
