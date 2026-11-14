@@ -1352,10 +1352,10 @@
                 </div>
                 <p class="text-[10px] text-muted">Le choix est enregistré sur cet appareil. « Système » suit automatiquement l’apparence de ton iPhone.</p>
                 <div class="border-t border-borderSubtle pt-4 space-y-2.5">
-                    <div><h4 class="text-sm font-bold text-ink">Stockage des voyages</h4><p class="text-[10px] text-muted">Tes données restent toujours enregistrées sur cet appareil.</p></div>
+                    <div><h4 class="text-sm font-bold text-ink">Stockage des voyages</h4><p class="text-[10px] text-muted">Par défaut, tes voyages sont enregistrés sur cet appareil et synchronisés dans ton espace ALBA pour les retrouver sur tes autres appareils.</p></div>
                     <div class="grid grid-cols-2 gap-2">
                         <button onclick="setStorageMode('local')" data-storage-choice="local" class="storage-choice border border-borderSubtle rounded-2xl p-3 text-left"><span class="text-xs font-bold text-ink">🔒 ALBA Local</span><span class="block text-[10px] text-muted mt-1">Sans compte, sans synchronisation</span></button>
-                        <button onclick="setStorageMode('hybrid')" data-storage-choice="hybrid" class="storage-choice border border-borderSubtle rounded-2xl p-3 text-left"><span class="text-xs font-bold text-ink">☁️ ALBA Cloud</span><span class="block text-[10px] text-muted mt-1">Sauvegarde + multi-appareils</span></button>
+                        <button onclick="setStorageMode('hybrid')" data-storage-choice="hybrid" class="storage-choice border border-borderSubtle rounded-2xl p-3 text-left"><span class="text-xs font-bold text-ink">☁️ ALBA Cloud</span><span class="block text-[10px] text-muted mt-1">Recommandé · sauvegarde + partage</span></button>
                     </div>
                     <p id="storage-mode-status" class="text-[10px] text-muted">Mode actuel : synchronisation cloud activée.</p>
                 </div>
@@ -1570,8 +1570,8 @@
         let leafletMap = null;
         let leafletLayerGroup = null;
         let currentThemePreference = localStorage.getItem('alba_theme_preference') || 'system';
-        // Les anciennes installations restent en mode cloud pour préserver leur synchronisation.
-        let storageMode = localStorage.getItem('alba_storage_mode') || (localStorage.getItem(STORAGE_KEY) ? 'hybrid' : 'local');
+        // Le cloud est le choix par défaut pour toute nouvelle installation ; un choix explicite reste mémorisé.
+        let storageMode = localStorage.getItem('alba_storage_mode') || 'hybrid';
 
         function applyTheme() {
             const frame = document.getElementById('iphone-frame');
