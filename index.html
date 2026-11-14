@@ -278,11 +278,6 @@
                         </div>
                     </header>
 
-                    <button onclick="openDepartureMode()" class="w-full rounded-2xl bg-ink text-white p-4 flex items-center justify-between shadow-sm active:scale-[0.99] transition">
-                        <span class="flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center"><i data-lucide="navigation" class="w-5 h-5 text-sand"></i></span><span class="text-left"><span class="block text-xs font-bold">Mode départ</span><span class="block text-[10px] text-white/65 mt-0.5">Tous tes essentiels au même endroit</span></span></span>
-                        <i data-lucide="arrow-up-right" class="w-4 h-4 text-sand"></i>
-                    </button>
-
                     <div id="trip-readiness-card" class="bg-white rounded-2xl border border-borderSubtle p-4 space-y-3">
                         <div class="flex items-start justify-between gap-3">
                             <div><p class="text-[10px] font-semibold uppercase tracking-[0.14em] text-sand">ALBA · Préparation</p><h2 class="text-sm font-bold text-ink mt-1">Prêt(e) pour le départ ?</h2><p id="trip-readiness-summary" class="text-[10px] text-muted mt-1">Analyse de ton voyage…</p></div>
@@ -294,15 +289,13 @@
                         <p class="text-[9px] text-muted border-t border-borderSubtle pt-2">Le score se met à jour avec les informations enregistrées. Les éléments non concernés par ton voyage ne sont pas pénalisés.</p>
                     </div>
 
+                    <!-- Résumé global tout en bas de l'aperçu -->
                     <div class="bg-white rounded-2xl border border-borderSubtle p-3 space-y-3">
-                        <div class="flex items-center justify-between">
-                            <div><p class="text-xs font-bold text-ink">Ton voyage, en un coup d’œil</p><p id="trip-countdown-detail" class="text-[10px] text-muted">Compte à rebours et rappels</p></div>
-                            <button onclick="openReminderModal()" class="text-[10px] font-semibold text-sand px-2.5 py-2 rounded-lg bg-sandLight">Gérer les rappels</button>
-                        </div>
+                        <div class="flex items-center justify-between"><div><p class="text-xs font-bold text-ink">Ton voyage, en un coup d’œil</p><p id="trip-countdown-detail" class="text-[10px] text-muted">Compte à rebours et rappels</p></div><button onclick="openReminderModal()" class="text-[10px] font-semibold text-sand px-2.5 py-2 rounded-lg bg-sandLight">Gérer les rappels</button></div>
                         <div class="grid grid-cols-3 gap-2">
                             <button onclick="openDocModal()" class="rounded-xl bg-stoneBg p-2.5 text-center"><i data-lucide="shield-check" class="w-4 h-4 mx-auto mb-1 text-sand"></i><span class="text-[10px] font-semibold text-ink">Coffre-fort</span></button>
                             <button onclick="openAlbumModal()" class="rounded-xl bg-stoneBg p-2.5 text-center"><i data-lucide="images" class="w-4 h-4 mx-auto mb-1 text-sand"></i><span class="text-[10px] font-semibold text-ink">Souvenirs</span></button>
-                            <button onclick="openAiPlannerModal()" class="rounded-xl bg-stoneBg p-2.5 text-center"><i data-lucide="sparkles" class="w-4 h-4 mx-auto mb-1 text-sand"></i><span class="text-[10px] font-semibold text-ink">Assistant IA</span></button>
+                            <button onclick="openAiPlannerModal()" class="rounded-xl bg-stoneBg p-2.5 text-center"><i data-lucide="sparkles" class="w-4 h-4 mx-auto mb-1 text-sand"></i><span class="text-[10px] font-semibold text-ink">Assistant</span></button>
                         </div>
                     </div>
 
@@ -481,6 +474,15 @@
                     <div class="bg-white rounded-2xl p-4 border border-borderSubtle space-y-3">
                         <div class="flex items-center justify-between"><div><p class="text-xs font-bold text-ink">Autres réservations</p><p class="text-[10px] text-muted">Hébergements, trains, ferries, activités, restaurants…</p></div><button onclick="openReservationModal()" class="bg-ink text-white text-[10px] font-semibold px-3 py-2 rounded-xl">+ Ajouter</button></div>
                         <div id="reservations-list" class="space-y-2"></div>
+                    </div>
+                    <!-- Résumé global tout en bas de l'aperçu -->
+                    <div class="bg-white rounded-2xl border border-borderSubtle p-3 space-y-3">
+                        <div class="flex items-center justify-between"><div><p class="text-xs font-bold text-ink">Ton voyage, en un coup d’œil</p><p id="trip-countdown-detail" class="text-[10px] text-muted">Compte à rebours et rappels</p></div><button onclick="openReminderModal()" class="text-[10px] font-semibold text-sand px-2.5 py-2 rounded-lg bg-sandLight">Gérer les rappels</button></div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="openDocModal()" class="rounded-xl bg-stoneBg p-2.5 text-center"><i data-lucide="shield-check" class="w-4 h-4 mx-auto mb-1 text-sand"></i><span class="text-[10px] font-semibold text-ink">Coffre-fort</span></button>
+                            <button onclick="openAlbumModal()" class="rounded-xl bg-stoneBg p-2.5 text-center"><i data-lucide="images" class="w-4 h-4 mx-auto mb-1 text-sand"></i><span class="text-[10px] font-semibold text-ink">Souvenirs</span></button>
+                            <button onclick="openAiPlannerModal()" class="rounded-xl bg-stoneBg p-2.5 text-center"><i data-lucide="sparkles" class="w-4 h-4 mx-auto mb-1 text-sand"></i><span class="text-[10px] font-semibold text-ink">Assistant</span></button>
+                        </div>
                     </div>
                 </section>
                 <!-- ====================================== -->
@@ -2290,12 +2292,12 @@
             const rentals = (trip.rentals || []).filter(Boolean);
             const hasTransport = flights.length > 0 || rentals.length > 0;
             const checks = [
-                {label:'Dates du voyage', detail:hasDates ? 'Départ et retour renseignés' : 'Ajoute les dates de départ et de retour', ready:hasDates, tab:'apercu', weight:20},
-                {label:'Itinéraire', detail:allSteps.length ? allSteps.length + ' étape(s) planifiée(s)' : 'Ajoute au moins une étape à ton programme', ready:allSteps.length>0, tab:'itineraire', weight:25},
-                {label:'Tâches & checklists', detail:tasks.length ? doneTasks + ' / ' + tasks.length + ' tâche(s) terminée(s)' : 'Aucune tâche ajoutée pour le moment', ratio:tasks.length ? doneTasks/tasks.length : 0, tab:'itineraire', weight:25},
+                {label:'Dates du voyage', detail:hasDates ? 'Départ et retour renseignés' : 'Ajoute les dates de départ et de retour', ready:hasDates, tab:'apercu', target:'trip-header-editable', weight:20},
+                {label:'Itinéraire', detail:allSteps.length ? allSteps.length + ' étape(s) planifiée(s)' : 'Ajoute au moins une étape à ton programme', ready:allSteps.length>0, tab:'itineraire', target:'day-selector', weight:25},
+                {label:'Tâches & checklists', detail:tasks.length ? doneTasks + ' / ' + tasks.length + ' tâche(s) terminée(s)' : 'Aucune tâche ajoutée pour le moment', ratio:tasks.length ? doneTasks/tasks.length : 0, tab:'itineraire', target:'itinerary-checklist-items', weight:25},
             ];
-            if (reservations.length) checks.push({label:'Réservations',detail:incompleteReservations.length ? incompleteReservations.length+' réservation(s) à compléter' : reservations.length+' réservation(s) avec les informations essentielles',ready:incompleteReservations.length===0,tab:'inspirations',weight:15});
-            if (hasTransport) checks.push({label:'Transport',detail:flights.length+' vol(s) · '+rentals.length+' location(s)',ready:true,tab:'apercu',weight:15});
+            if (reservations.length) checks.push({label:'Réservations',detail:incompleteReservations.length ? incompleteReservations.length+' réservation(s) à compléter' : reservations.length+' réservation(s) avec les informations essentielles',ready:incompleteReservations.length===0,tab:'apercu',target:'reservations-list',weight:15});
+            if (hasTransport) checks.push({label:'Transport',detail:flights.length+' vol(s) · '+rentals.length+' location(s)',ready:true,tab:'apercu',target:'flights-accordion',accordion:'flights-accordion',weight:15});
 
             // Lecture des seuls métadonnées des documents privés, jamais du contenu des fichiers.
             let documentCount = null;
@@ -2306,6 +2308,7 @@
                 } catch (err) { console.warn('Vérification des documents ALBA:',err); }
             }
             if (getTrip()?.id !== tripId) return;
+            if (documentCount !== null) checks.push({label:'Documents de voyage',detail:documentCount ? documentCount+' document(s) dans le coffre-fort' : 'Ajoute passeport, assurance et confirmations utiles',ready:documentCount>0,tab:'apercu',target:'vault',weight:10});
 
             const totalWeight = checks.reduce((sum,item)=>sum+item.weight,0);
             const earned = checks.reduce((sum,item)=>sum+item.weight*(item.ratio !== undefined ? item.ratio : (item.ready ? 1 : 0)),0);
@@ -2323,7 +2326,7 @@
                 const partial=item.ratio !== undefined && item.ratio>0 && item.ratio<1;
                 const icon=complete?'check-circle-2':(partial?'circle-dot':'alert-circle');
                 const color=complete?'text-emerald-600':(partial?'text-sand':'text-muted');
-                return '<button type="button" onclick="switchTab(\''+item.tab+'\')" class="w-full flex items-center gap-2.5 text-left py-1.5 group"><i data-lucide="'+icon+'" class="w-4 h-4 '+color+' shrink-0"></i><span class="flex-1 min-w-0"><span class="block text-[11px] font-semibold text-ink">'+item.label+'</span><span class="block text-[9px] text-muted">'+item.detail+'</span></span><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-muted"></i></button>';
+                return '<button type="button" onclick="navigatePreparation(\''+item.tab+'\',\''+(item.target||'')+'\',\''+(item.accordion||'')+'\')" class="w-full flex items-center gap-2.5 text-left py-1.5 group"><i data-lucide="'+icon+'" class="w-4 h-4 '+color+' shrink-0"></i><span class="flex-1 min-w-0"><span class="block text-[11px] font-semibold text-ink">'+item.label+'</span><span class="block text-[9px] text-muted">'+item.detail+'</span></span><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-muted"></i></button>';
             }).join('');
 
             const alerts=[];
@@ -2334,29 +2337,46 @@
                     const days=Math.round((departure-today)/86400000);
                     if (days>=0 && days<=30) {
                         const urgency=days<=3?'urgent':(days<=7?'soon':'normal');
-                        alerts.push({title:days===0?'Départ aujourd’hui':(days===1?'Départ demain':'Départ dans '+days+' jours'),detail:'Vérifie les documents, les horaires et les confirmations avant de partir.',tab:'apercu',urgency});
+                        alerts.push({title:days===0?'Départ aujourd’hui':(days===1?'Départ demain':'Départ dans '+days+' jours'),detail:'Vérifie les documents, les horaires et les confirmations avant de partir.',tab:'apercu',target:'trip-header-editable',urgency});
                     }
                 }
             }
             if (flights.length) {
                 const missing=flights.filter(f=>!f.number||!f.depDate||!f.depTime||!f.depCity||!f.arrCity);
                 const noBoardingPass=flights.filter(f=>!f.image);
-                if(missing.length) alerts.push({title:'Informations de vol incomplètes',detail:missing.length+' vol(s) sans toutes les informations essentielles.',tab:'apercu',urgency:'soon'});
-                if(noBoardingPass.length) alerts.push({title:'Billet ou carte d’embarquement à joindre',detail:noBoardingPass.length+' vol(s) sans document attaché dans la fiche du vol.',tab:'apercu',urgency:'normal'});
-                if(trip.startDate && flights.some(f=>f.depDate && f.depDate<trip.startDate)) alerts.push({title:'Vérifie les dates des vols',detail:'Au moins un vol est daté avant le début du séjour.',tab:'apercu',urgency:'soon'});
+                if(missing.length) alerts.push({title:'Informations de vol incomplètes',detail:missing.length+' vol(s) sans toutes les informations essentielles.',tab:'apercu',target:'flights-accordion',accordion:'flights-accordion',urgency:'soon'});
+                if(noBoardingPass.length) alerts.push({title:'Billet ou carte d’embarquement à joindre',detail:noBoardingPass.length+' vol(s) sans document attaché dans la fiche du vol.',tab:'apercu',target:'flights-accordion',accordion:'flights-accordion',urgency:'normal'});
+                if(trip.startDate && flights.some(f=>f.depDate && f.depDate<trip.startDate)) alerts.push({title:'Vérifie les dates des vols',detail:'Au moins un vol est daté avant le début du séjour.',tab:'apercu',target:'flights-accordion',accordion:'flights-accordion',urgency:'soon'});
             }
-            if(reservations.length && incompleteReservations.length) alerts.push({title:'Réservations à compléter',detail:'Ajoute les horaires, adresses et références manquantes.',tab:'inspirations',urgency:'soon'});
-            if(documentCount===0) alerts.push({title:'Coffre-fort encore vide',detail:'Pense à y déposer passeport ou pièce d’identité, assurance et confirmations utiles.',tab:'apercu',urgency:'normal'});
-            else if(documentCount>0) alerts.push({title:'Documents enregistrés',detail:documentCount+' fichier(s) dans le coffre-fort. Vérifie que les documents de voyage indispensables y figurent.',tab:'apercu',urgency:'normal'});
+            if(reservations.length && incompleteReservations.length) alerts.push({title:'Réservations à compléter',detail:'Ajoute les horaires, adresses et références manquantes.',tab:'apercu',target:'reservations-list',urgency:'soon'});
+            if(documentCount===0) alerts.push({title:'Coffre-fort encore vide',detail:'Pense à y déposer passeport ou pièce d’identité, assurance et confirmations utiles.',tab:'apercu',target:'vault',urgency:'normal'});
+            else if(documentCount>0) alerts.push({title:'Documents enregistrés',detail:documentCount+' fichier(s) dans le coffre-fort. Vérifie que les documents de voyage indispensables y figurent.',tab:'apercu',target:'vault',urgency:'normal'});
+            alerts.sort((a,b)=>({urgent:0,soon:1,normal:2}[a.urgency]??3)-({urgent:0,soon:1,normal:2}[b.urgency]??3));
             const alertEl=document.getElementById('trip-readiness-alerts');
             if(alertEl) {
                 alertEl.innerHTML=alerts.length ? '<p class="text-[10px] font-semibold uppercase tracking-wider text-muted mb-1">À ne pas oublier</p>'+alerts.map(a=>{
                     const icon=a.urgency==='urgent'?'alert-triangle':(a.urgency==='soon'?'clock-3':'info');
                     const tone=a.urgency==='urgent'?'text-red-600':(a.urgency==='soon'?'text-amber-600':'text-sand');
-                    return '<button type="button" onclick="switchTab(\''+a.tab+'\')" class="w-full flex items-start gap-2 rounded-xl bg-stoneBg p-2.5 text-left"><i data-lucide="'+icon+'" class="w-4 h-4 '+tone+' shrink-0 mt-0.5"></i><span class="min-w-0"><span class="block text-[10px] font-semibold text-ink">'+a.title+'</span><span class="block text-[9px] text-muted">'+a.detail+'</span></span></button>';
+                    return '<button type="button" onclick="navigatePreparation(\''+a.tab+'\',\''+(a.target||'')+'\',\''+(a.accordion||'')+'\')" class="w-full flex items-start gap-2 rounded-xl bg-stoneBg p-2.5 text-left"><i data-lucide="'+icon+'" class="w-4 h-4 '+tone+' shrink-0 mt-0.5"></i><span class="min-w-0"><span class="block text-[10px] font-semibold text-ink">'+a.title+'</span><span class="block text-[9px] text-muted">'+a.detail+'</span></span></button>';
                 }).join('') : '<p class="text-[10px] text-emerald-700">Aucune alerte particulière pour le moment.</p>';
             }
             if(window.lucide) lucide.createIcons();
+        }
+
+        function navigatePreparation(tabName,targetId,accordionId) {
+            switchTab(tabName);
+            if(accordionId) document.getElementById(accordionId)?.classList.remove('hidden');
+            if(targetId==='vault'){window.setTimeout(()=>openDocModal(),180);return;}
+            if(targetId) window.setTimeout(()=>document.getElementById(targetId)?.scrollIntoView({behavior:'smooth',block:'center'}),180);
+        }
+
+        function toggleDepartureStepDone(dayKey,stepId,done) {
+            const trip=getTrip();
+            const step=(trip?.itinerary?.[dayKey]||[]).find(item=>String(item.id)===String(stepId));
+            if(!step)return;
+            step.done=!!done;
+            saveState();
+            openDepartureMode();
         }
 
         function closeDepartureMode() {
@@ -2408,14 +2428,23 @@
             }).join(''):'<div class="rounded-xl bg-white border border-borderSubtle p-3 text-[10px] text-muted">Aucune réservation enregistrée pour le moment.</div>';
 
             const itinerary=document.getElementById('departure-itinerary');
-            const steps=Object.entries(trip.itinerary||{}).flatMap(([day,items])=>(items||[]).map(step=>({day,step})));
-            itinerary.innerHTML=steps.length?steps.map(({day,step})=>{
+            const today=new Date();
+            const todayISO=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-');
+            let currentDay=Object.entries(trip.daysMeta||{}).find(([key,meta])=>meta?.date===todayISO)?.[0]||null;
+            const endDate=trip.endDate||(trip.startDate&&trip.duration?addDaysToISO(trip.startDate,Math.max(0,Number(trip.duration)-1)):'');
+            if(!currentDay&&trip.startDate&&endDate&&todayISO>=trip.startDate&&todayISO<=endDate) currentDay=String(Math.floor((new Date(todayISO+'T00:00:00')-new Date(trip.startDate+'T00:00:00'))/86400000)+1);
+            if(!currentDay&&!trip.startDate) currentDay=String(selectedDay||1);
+            const daySteps=(trip.itinerary?.[currentDay]||[]).filter(Boolean);
+            const remaining=daySteps.filter(step=>!step.done);
+            const completed=daySteps.length-remaining.length;
+            const dayLabel=trip.daysMeta?.[currentDay]?.title||('Jour '+currentDay);
+            itinerary.innerHTML=currentDay?(remaining.length?'<p class="text-[10px] text-muted mb-2">'+safe(dayLabel)+' · '+remaining.length+' étape(s) restante(s)'+(completed?' · '+completed+' terminée(s)':'')+'</p>'+remaining.map(step=>{
                 const name=step.title||step.name||step.activity||'Étape';
                 const time=step.time||step.startTime||'Horaire non défini';
                 const place=step.address||step.location||step.place||'';
                 const link=place?'<a target="_blank" rel="noopener" class="text-[10px] text-sand underline" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(place)+'">Itinéraire / carte</a>':'';
-                return '<article class="rounded-xl bg-white border border-borderSubtle p-3 flex items-start justify-between gap-2"><div class="min-w-0"><p class="text-[9px] uppercase tracking-wider text-sand font-semibold">Jour '+safe(day)+'</p><p class="text-[11px] font-bold text-ink mt-1">'+safe(name)+'</p><p class="text-[10px] text-muted">'+safe(time)+'</p>'+(place?'<p class="text-[10px] text-muted">'+safe(place)+'</p>':'')+link+'</div></article>';
-            }).join(''):'<div class="rounded-xl bg-white border border-borderSubtle p-3 text-[10px] text-muted">Ton programme apparaîtra ici dès que tu ajouteras des étapes.</div>';
+                return '<article class="rounded-xl bg-white border border-borderSubtle p-3 flex items-start gap-2"><input type="checkbox" aria-label="Marquer comme terminé" onchange="toggleDepartureStepDone(\''+safe(currentDay)+'\',\''+safe(step.id)+'\',this.checked)" class="mt-1 w-4 h-4 accent-zinc-900 shrink-0"><div class="min-w-0 flex-1"><p class="text-[11px] font-bold text-ink">'+safe(name)+'</p><p class="text-[10px] text-muted">'+safe(time)+'</p>'+(place?'<p class="text-[10px] text-muted">'+safe(place)+'</p>':'')+link+'</div></article>';
+            }).join(''):'<div class="rounded-xl bg-white border border-borderSubtle p-3 text-[10px] text-muted">'+(daySteps.length?'Toutes les étapes du jour sont terminées ✓':'Aucune étape prévue pour '+safe(dayLabel)+'.')+'</div>'):'<div class="rounded-xl bg-white border border-borderSubtle p-3 text-[10px] text-muted">Le programme du jour s’affichera pendant les dates du séjour.</div>';
             if(window.lucide)lucide.createIcons();
         }
 
@@ -2470,7 +2499,7 @@
         // --- HOME HUB (PROCHAIN DÉPART, BADGE BROUILLON, MENU •••) ---
         function renderHome() {
             const visibleTrips = state.trips.filter(t => !t.deletedAt);
-            const activeTrip = visibleTrips.find(t => t.status === 'active') || visibleTrips.find(t => t.status !== 'past');
+            const activeTrip = visibleTrips.find(t => t.status === 'active') || visibleTrips.filter(t => t.status === 'upcoming').sort((a,b)=>(a.startDate||'9999').localeCompare(b.startDate||'9999'))[0];
             const upcomingTrips = visibleTrips.filter(t => t.status !== 'past' && t.id !== activeTrip?.id);
             const pastTrips = visibleTrips.filter(t => t.status === 'past');
 
@@ -2502,6 +2531,7 @@
                             <span class="text-zinc-300">${pluralize(flightsCount, 'vol')} • ${pluralize(spotsCount, 'spot')}</span>
                             <span class="font-semibold text-sand flex items-center gap-1">Ouvrir <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></span>
                         </div>
+                        <button type="button" onclick="event.stopPropagation();openTrip('${activeTrip.id}');openDepartureMode()" class="w-full rounded-xl bg-white/10 border border-white/10 text-white px-3 py-2.5 flex items-center justify-between text-xs font-semibold"><span class="flex items-center gap-2"><i data-lucide="navigation" class="w-4 h-4 text-sand"></i> Mode départ</span><i data-lucide="arrow-up-right" class="w-4 h-4 text-sand"></i></button>
                     </div>
                 `;
             } else {
@@ -2887,6 +2917,7 @@
             if (item) item.done = !item.done;
             saveState();
             renderTabChecklists();
+            renderTripReadiness();
         }
 
         function deleteTabChecklistItem(tabKey, itemId) {
@@ -3401,6 +3432,7 @@
             if (t) t.done = !t.done;
             saveState();
             renderTodos();
+            renderTripReadiness();
         }
 
         function deleteTodo(id) {
