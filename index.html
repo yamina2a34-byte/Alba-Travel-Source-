@@ -2302,6 +2302,7 @@
                 } catch (err) { console.warn('Vérification des documents ALBA:',err); }
             }
             if (getTrip()?.id !== tripId) return;
+            if (documentCount !== null) checks.push({label:'Documents de voyage',detail:documentCount ? documentCount+' document(s) dans le coffre-fort' : 'Ajoute passeport, assurance et confirmations utiles',ready:documentCount>0,tab:'apercu',target:'vault',weight:10});
 
             const totalWeight = checks.reduce((sum,item)=>sum+item.weight,0);
             const earned = checks.reduce((sum,item)=>sum+item.weight*(item.ratio !== undefined ? item.ratio : (item.ready ? 1 : 0)),0);
@@ -2346,7 +2347,8 @@
             else if(documentCount>0) alerts.push({title:'Documents enregistrés',detail:documentCount+' fichier(s) dans le coffre-fort. Vérifie que les documents de voyage indispensables y figurent.',tab:'apercu',target:'vault',urgency:'normal'});
             const alertEl=document.getElementById('trip-readiness-alerts');
             if(alertEl) {
-                alertEl.innerHTML=alerts.length ? '<p class="text-[10px] font-semibold uppercase tracking-wider text-muted mb-1">À ne pas oublier</p>'+alerts.map(a=>{
+                alerts.sort((a,b)=>({urgent:0,soon:1,normal:2}[a.urgency]??3)-({urgent:0,soon:1,normal:2}[b.urgency]??3));
+                alertEl.innerHTML=alerts.length ? '<p class="text-[10px] font-semibold uppercase tracking-wider text-muted mb-1">Priorités avant le départ</p>'+alerts.map(a=>{
                     const icon=a.urgency==='urgent'?'alert-triangle':(a.urgency==='soon'?'clock-3':'info');
                     const tone=a.urgency==='urgent'?'text-red-600':(a.urgency==='soon'?'text-amber-600':'text-sand');
                     return '<button type="button" onclick="navigatePreparation(\''+a.tab+'\',\''+(a.target||'')+'\',\''+(a.accordion||'')+'\')" class="w-full flex items-start gap-2 rounded-xl bg-stoneBg p-2.5 text-left"><i data-lucide="'+icon+'" class="w-4 h-4 '+tone+' shrink-0 mt-0.5"></i><span class="min-w-0"><span class="block text-[10px] font-semibold text-ink">'+a.title+'</span><span class="block text-[9px] text-muted">'+a.detail+'</span></span></button>';
@@ -2433,7 +2435,8 @@
             const todayISO=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-');
             const dayEntries=Object.entries(trip.daysMeta||{});
             let currentDay=dayEntries.find(([key,meta])=>meta?.date===todayISO)?.[0] || null;
-            if (!currentDay && trip.startDate && trip.endDate && todayISO>=trip.startDate && todayISO<=trip.endDate) {
+            const computedEndDate=trip.endDate || (trip.startDate && trip.duration ? addDaysToISO(trip.startDate,Math.max(0,Number(trip.duration)-1)) : '');
+            if (!currentDay && trip.startDate && computedEndDate && todayISO>=trip.startDate && todayISO<=computedEndDate) {
                 const dayNumber=Math.floor((new Date(todayISO+'T00:00:00')-new Date(trip.startDate+'T00:00:00'))/86400000)+1;
                 currentDay=String(dayNumber);
             }
@@ -2922,6 +2925,7 @@
             if (item) item.done = !item.done;
             saveState();
             renderTabChecklists();
+            renderTripReadiness();
         }
 
         function deleteTabChecklistItem(tabKey, itemId) {
