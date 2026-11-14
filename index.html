@@ -1622,21 +1622,26 @@
         }
         async function openAccountModal() {
             const { data: { user } } = await supabaseClient.auth.getUser();
-            const isRegistered = !!(user && user.email && !user.is_anonymous);
+            const hasEmail = !!user?.email;
+            const isRegistered = !!(hasEmail && !user.is_anonymous);
+            const hasPendingEmail = !!(hasEmail && user.is_anonymous);
             const isEmailConfirmed = !!user?.email_confirmed_at;
+            const hasAccountFlow = isRegistered || hasPendingEmail;
             const current = document.getElementById('account-current');
             const form = document.getElementById('account-form');
             const passwordSetup = document.getElementById('account-password-setup');
             const signout = document.getElementById('account-signout');
-            current.classList.toggle('hidden', !isRegistered);
-            form.classList.toggle('hidden', isRegistered);
+            current.classList.toggle('hidden', !hasAccountFlow);
+            form.classList.toggle('hidden', hasAccountFlow);
             passwordSetup.classList.toggle('hidden', !isRegistered || !isEmailConfirmed);
-            signout.classList.toggle('hidden', !isRegistered);
-            current.textContent = isRegistered
-                ? (isEmailConfirmed ? 'Connecté avec ' + user.email + ' · Tes voyages sont liés à ce compte.' : 'Adresse en attente de confirmation : ' + user.email + '. Ouvre le lien reçu par e-mail sur cet appareil, puis reviens ici pour définir ton mot de passe.')
-                : 'Tu utilises actuellement ALBA en mode invité. Crée ton compte pour conserver tes voyages et les retrouver sur un autre appareil.';
+            signout.classList.toggle('hidden', !user);
+            current.textContent = isRegistered && isEmailConfirmed
+                ? 'Connecté avec ' + user.email + ' · Tes voyages sont liés à ce compte.'
+                : hasPendingEmail || (isRegistered && !isEmailConfirmed)
+                    ? 'Adresse en attente de confirmation : ' + user.email + '. Ouvre le lien reçu par e-mail sur cet appareil, puis reviens ici pour définir ton mot de passe.'
+                    : 'Tu utilises actuellement ALBA en mode invité. Crée ton compte pour conserver tes voyages et les retrouver sur un autre appareil.';
             const summary = document.getElementById('account-summary');
-            if (summary) summary.textContent = isRegistered ? (isEmailConfirmed ? 'Compte connecté · voyages synchronisés' : 'Confirmation de l’e-mail en attente') : 'Créer un compte pour retrouver tes voyages partout';
+            if (summary) summary.textContent = isRegistered && isEmailConfirmed ? 'Compte connecté · voyages synchronisés' : hasAccountFlow ? 'Confirmation de l’e-mail en attente' : 'Créer un compte pour retrouver tes voyages partout';
             document.getElementById('account-email').value = user?.email || '';
             document.getElementById('account-password').value = '';
             document.getElementById('account-new-password').value = '';
