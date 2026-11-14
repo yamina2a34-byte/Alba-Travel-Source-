@@ -111,6 +111,24 @@
 
     <div id="iphone-frame" class="relative w-full sm:w-[393px] h-[100dvh] sm:h-[852px] bg-stoneBg sm:rounded-[52px] sm:border-[10px] sm:border-zinc-900 sm:shadow-2xl overflow-hidden flex flex-col">
         
+        <!-- MODE DÉPART : vue compagnon de voyage -->
+        <div id="departure-mode" class="hidden fixed inset-0 z-[80] bg-stoneBg flex flex-col">
+            <header class="safe-top-pad bg-ink text-white px-5 pb-4 pt-3 flex items-center justify-between shrink-0">
+                <button onclick="closeDepartureMode()" class="flex items-center gap-1 text-xs text-white/80"><i data-lucide="chevron-left" class="w-4 h-4"></i> Retour</button>
+                <span class="font-alba text-xs tracking-widest">ALBA <span class="text-sand">TRAVEL</span></span>
+                <button onclick="openDocModal()" class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center" aria-label="Ouvrir le coffre-fort"><i data-lucide="shield-check" class="w-4 h-4 text-sand"></i></button>
+            </header>
+            <main class="flex-1 overflow-y-auto no-scrollbar px-5 py-5 space-y-4 pb-10">
+                <div><p class="text-[10px] uppercase tracking-[0.18em] text-sand font-semibold">Compagnon de voyage</p><h1 id="departure-title" class="text-2xl font-bold text-ink mt-1">Mode départ</h1><p id="departure-subtitle" class="text-xs text-muted mt-1">Tes informations essentielles, même en déplacement.</p></div>
+                <div id="departure-countdown" class="rounded-2xl bg-white border border-borderSubtle p-4"></div>
+                <section class="space-y-2"><div class="flex items-center justify-between"><h2 class="text-sm font-bold text-ink">Transport</h2><span class="text-[9px] text-muted">Vols & locations</span></div><div id="departure-transport" class="space-y-2"></div></section>
+                <section class="space-y-2"><div class="flex items-center justify-between"><h2 class="text-sm font-bold text-ink">Réservations</h2><span class="text-[9px] text-muted">Hébergements & activités</span></div><div id="departure-reservations" class="space-y-2"></div></section>
+                <section class="space-y-2"><div class="flex items-center justify-between"><h2 class="text-sm font-bold text-ink">Programme du séjour</h2><button onclick="closeDepartureMode();switchTab('itineraire')" class="text-[10px] font-semibold text-sand">Ouvrir l’itinéraire</button></div><div id="departure-itinerary" class="space-y-2"></div></section>
+                <section class="rounded-2xl bg-white border border-borderSubtle p-4 space-y-2"><h2 class="text-sm font-bold text-ink">Accès rapides</h2><div class="grid grid-cols-2 gap-2"><button onclick="openDocModal()" class="rounded-xl bg-stoneBg p-3 text-left"><i data-lucide="shield-check" class="w-4 h-4 text-sand mb-1"></i><span class="block text-[10px] font-semibold">Coffre-fort</span><span class="block text-[9px] text-muted">Documents privés</span></button><button onclick="closeDepartureMode();switchTab('budget')" class="rounded-xl bg-stoneBg p-3 text-left"><i data-lucide="wallet" class="w-4 h-4 text-sand mb-1"></i><span class="block text-[10px] font-semibold">Budget</span><span class="block text-[9px] text-muted">Dépenses du voyage</span></button></div></section>
+                <p class="text-[9px] text-muted text-center">Garde une copie hors ligne de tes documents importants. Les liens externes nécessitent une connexion internet.</p>
+            </main>
+        </div>
+
         <!-- Toast -->
         <div id="toast" class="fixed sm:absolute top-14 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-all duration-300 transform -translate-y-2">
             <div class="bg-zinc-900 text-white text-xs font-medium px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 whitespace-nowrap">
@@ -259,6 +277,11 @@
                             </button>
                         </div>
                     </header>
+
+                    <button onclick="openDepartureMode()" class="w-full rounded-2xl bg-ink text-white p-4 flex items-center justify-between shadow-sm active:scale-[0.99] transition">
+                        <span class="flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center"><i data-lucide="navigation" class="w-5 h-5 text-sand"></i></span><span class="text-left"><span class="block text-xs font-bold">Mode départ</span><span class="block text-[10px] text-white/65 mt-0.5">Tous tes essentiels au même endroit</span></span></span>
+                        <i data-lucide="arrow-up-right" class="w-4 h-4 text-sand"></i>
+                    </button>
 
                     <div id="trip-readiness-card" class="bg-white rounded-2xl border border-borderSubtle p-4 space-y-3">
                         <div class="flex items-start justify-between gap-3">
@@ -2334,6 +2357,66 @@
                 }).join('') : '<p class="text-[10px] text-emerald-700">Aucune alerte particulière pour le moment.</p>';
             }
             if(window.lucide) lucide.createIcons();
+        }
+
+        function closeDepartureMode() {
+            document.getElementById('departure-mode')?.classList.add('hidden');
+        }
+
+        function openDepartureMode() {
+            const trip=getTrip();
+            if(!trip) return;
+            const panel=document.getElementById('departure-mode');
+            panel.classList.remove('hidden');
+            const safe=v=>escapePrintHtml(String(v ?? ''));
+            const title=document.getElementById('departure-title');
+            const subtitle=document.getElementById('departure-subtitle');
+            if(title) title.textContent=trip.title || 'Mode départ';
+            if(subtitle) subtitle.textContent=trip.destination || 'Tes informations essentielles, au même endroit';
+            const countdown=document.getElementById('departure-countdown');
+            if(trip.startDate) {
+                const today=new Date();today.setHours(0,0,0,0);
+                const start=new Date(trip.startDate+'T00:00:00');
+                const days=Math.round((start-today)/86400000);
+                const label=days>0?'Départ dans '+days+' jour(s)':days===0?'Départ aujourd’hui': 'Voyage commencé il y a '+Math.abs(days)+' jour(s)';
+                countdown.innerHTML='<p class="text-[10px] uppercase tracking-wider text-muted">Calendrier</p><p class="text-lg font-bold text-ink mt-1">'+safe(label)+'</p><p class="text-[10px] text-muted mt-1">'+safe(new Date(trip.startDate+'T12:00:00').toLocaleDateString('fr-FR'))+(trip.endDate?' — '+safe(new Date(trip.endDate+'T12:00:00').toLocaleDateString('fr-FR')):'')+'</p>';
+            } else countdown.innerHTML='<p class="text-xs text-muted">Ajoute les dates du voyage pour afficher le compte à rebours.</p>';
+
+            const transport=document.getElementById('departure-transport');
+            const flights=(trip.flights||[]).filter(Boolean);
+            const rentals=(trip.rentals||[]).filter(Boolean);
+            const transportCards=[];
+            flights.forEach(f=>{
+                const route=[f.depCity,f.arrCity].filter(Boolean).map(safe).join(' → ');
+                const when=[f.depDate,f.depTime].filter(Boolean).map(safe).join(' · ');
+                const info=[f.airline,f.number].filter(Boolean).map(safe).join(' · ');
+                transportCards.push('<article class="rounded-2xl bg-white border border-borderSubtle p-3 space-y-2"><div class="flex items-center justify-between gap-2"><p class="text-[11px] font-bold text-ink">'+(info||'Vol')+'</p><span class="text-[9px] text-sand font-semibold">VOL</span></div><p class="text-xs font-semibold text-ink">'+(route||'Trajet à compléter')+'</p><p class="text-[10px] text-muted">'+(when||'Date et heure à renseigner')+'</p><div class="flex flex-wrap gap-2 text-[10px] text-muted">'+(f.depIata?'<span>Départ '+safe(f.depIata)+'</span>':'')+(f.arrIata?'<span>Arrivée '+safe(f.arrIata)+'</span>':'')+(f.terminal?'<span>Terminal '+safe(f.terminal)+'</span>':'')+(f.gate?'<span>Porte '+safe(f.gate)+'</span>':'')+(f.seat?'<span>Siège '+safe(f.seat)+'</span>':'')+'</div>'+(f.pnr?'<p class="text-[10px] bg-stoneBg rounded-lg p-2">Référence : <strong>'+safe(f.pnr)+'</strong></p>':'<p class="text-[9px] text-amber-700">Référence de réservation manquante</p>')+(f.image?'<p class="text-[9px] text-emerald-700">Billet / carte d’embarquement joint(e) à la fiche du vol</p>':'<p class="text-[9px] text-muted">Aucun billet joint à la fiche</p>')+'</article>');
+            });
+            rentals.forEach(r=>{
+                const details=[r.vehicle,r.agency].filter(Boolean).map(safe).join(' · ');
+                transportCards.push('<article class="rounded-2xl bg-white border border-borderSubtle p-3 space-y-1.5"><p class="text-[11px] font-bold text-ink">'+(details||'Location')+'</p>'+(r.pickup?'<p class="text-[10px] text-muted">Prise en charge : '+safe(r.pickup)+'</p>':'')+(r.pnr?'<p class="text-[10px] text-muted">Référence : '+safe(r.pnr)+'</p>':'')+(r.contact?'<p class="text-[10px] text-muted">Contact : '+safe(r.contact)+'</p>':'')+'</article>');
+            });
+            transport.innerHTML=transportCards.length?transportCards.join(''):'<div class="rounded-xl bg-white border border-borderSubtle p-3 text-[10px] text-muted">Aucun vol ou véhicule enregistré. Tu peux les ajouter dans l’aperçu.</div>';
+
+            const reservations=(trip.reservations||[]).filter(Boolean).slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')||(a.time||'').localeCompare(b.time||''));
+            const reservationEl=document.getElementById('departure-reservations');
+            reservationEl.innerHTML=reservations.length?reservations.map(r=>{
+                const mapQuery=r.location?encodeURIComponent(r.location):'';
+                const maps=mapQuery?'<a class="text-[10px] font-semibold text-sand underline" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='+mapQuery+'">Ouvrir l’adresse</a>':'';
+                const booking=r.url?'<a class="text-[10px] font-semibold text-sand underline" target="_blank" rel="noopener" href="'+safe(r.url)+'">Confirmation</a>':'';
+                return '<article class="rounded-2xl bg-white border border-borderSubtle p-3 space-y-1.5"><div class="flex items-center justify-between gap-2"><p class="text-[11px] font-bold text-ink">'+safe(r.name||'Réservation')+'</p><span class="text-[9px] text-sand">'+safe(r.type||'')+'</span></div><p class="text-[10px] text-muted">'+[r.date?new Date(r.date+'T12:00:00').toLocaleDateString('fr-FR'):'',r.time||''].filter(Boolean).map(safe).join(' · ')+'</p>'+(r.location?'<p class="text-[10px] text-muted">'+safe(r.location)+'</p>':'')+(r.reference?'<p class="text-[10px] bg-stoneBg rounded-lg p-2">Référence : <strong>'+safe(r.reference)+'</strong></p>':'')+'<div class="flex gap-3 pt-1">'+maps+booking+'</div></article>';
+            }).join(''):'<div class="rounded-xl bg-white border border-borderSubtle p-3 text-[10px] text-muted">Aucune réservation enregistrée pour le moment.</div>';
+
+            const itinerary=document.getElementById('departure-itinerary');
+            const steps=Object.entries(trip.itinerary||{}).flatMap(([day,items])=>(items||[]).map(step=>({day,step})));
+            itinerary.innerHTML=steps.length?steps.map(({day,step})=>{
+                const name=step.title||step.name||step.activity||'Étape';
+                const time=step.time||step.startTime||'Horaire non défini';
+                const place=step.address||step.location||step.place||'';
+                const link=place?'<a target="_blank" rel="noopener" class="text-[10px] text-sand underline" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(place)+'">Itinéraire / carte</a>':'';
+                return '<article class="rounded-xl bg-white border border-borderSubtle p-3 flex items-start justify-between gap-2"><div class="min-w-0"><p class="text-[9px] uppercase tracking-wider text-sand font-semibold">Jour '+safe(day)+'</p><p class="text-[11px] font-bold text-ink mt-1">'+safe(name)+'</p><p class="text-[10px] text-muted">'+safe(time)+'</p>'+(place?'<p class="text-[10px] text-muted">'+safe(place)+'</p>':'')+link+'</div></article>';
+            }).join(''):'<div class="rounded-xl bg-white border border-borderSubtle p-3 text-[10px] text-muted">Ton programme apparaîtra ici dès que tu ajouteras des étapes.</div>';
+            if(window.lucide)lucide.createIcons();
         }
 
         function showToast(msg) {
