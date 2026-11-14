@@ -21,7 +21,9 @@ self.addEventListener('fetch', event => {
     }).catch(() => caches.match('./index.html')));
     return;
   }
-  if (url.origin === self.location.origin || ['cdn.jsdelivr.net','unpkg.com','fonts.googleapis.com','fonts.gstatic.com','tile.openstreetmap.org'].some(host => url.hostname === host || url.hostname.endsWith('.'+host))) {
+  // Les tuiles cartographiques restent gérées par le cache HTTP natif du navigateur.
+  // Ne pas créer de cache hors-ligne dédié sur le serveur public tile.openstreetmap.org.
+  if (url.origin === self.location.origin || ['cdn.jsdelivr.net','unpkg.com','fonts.googleapis.com','fonts.gstatic.com'].some(host => url.hostname === host || url.hostname.endsWith('.'+host))) {
     event.respondWith(caches.match(request).then(cached => {
       const network = fetch(request).then(response => {
         if (response && (response.ok || response.type === 'opaque')) {

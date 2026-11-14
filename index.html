@@ -976,8 +976,11 @@
                         <button type="button" onclick="autoFillFlightInfo(false)" class="bg-sand text-white text-xs font-semibold px-3 py-2 rounded-xl flex items-center gap-1 active:scale-95 transition">
                             <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Auto
                         </button>
+                        <button type="button" onclick="searchFlightOnline()" class="bg-white border border-borderSubtle text-ink text-xs font-semibold px-3 py-2 rounded-xl active:scale-95 transition" aria-label="Rechercher le vol sur Internet">Web</button>
                     </div>
                 </div>
+
+                <datalist id="alba-airport-codes"><option value="AMS" label="Amsterdam Schiphol"></option><option value="MCT" label="Muscat International"></option><option value="ORY" label="Paris-Orly"></option><option value="CDG" label="Paris-Charles-de-Gaulle"></option><option value="RAK" label="Marrakech-Ménara"></option><option value="CMN" label="Casablanca Mohammed V"></option><option value="OUD" label="Oujda Angads"></option><option value="NDR" label="Nador El Aroui"></option><option value="FSC" label="Figari Sud-Corse"></option><option value="BIA" label="Bastia Poretta"></option><option value="MRS" label="Marseille Provence"></option><option value="NCE" label="Nice Côte d’Azur"></option><option value="ALG" label="Alger Houari Boumédiène"></option><option value="ORN" label="Oran Ahmed Ben Bella"></option><option value="CZL" label="Constantine Mohamed Boudiaf"></option><option value="DXB" label="Dubai International"></option><option value="DOH" label="Doha Hamad"></option><option value="IST" label="Istanbul Airport"></option><option value="JMK" label="Mykonos"></option><option value="JTR" label="Santorin"></option><option value="ATH" label="Athènes"></option><option value="LHR" label="Londres Heathrow"></option><option value="LGW" label="Londres Gatwick"></option><option value="STN" label="Londres Stansted"></option><option value="LTN" label="Londres Luton"></option><option value="MAN" label="Manchester"></option><option value="EDI" label="Édimbourg"></option><option value="DUB" label="Dublin"></option><option value="SNN" label="Shannon"></option><option value="BRU" label="Bruxelles"></option><option value="CRL" label="Bruxelles-Charleroi"></option><option value="FRA" label="Francfort"></option><option value="MUC" label="Munich"></option><option value="BER" label="Berlin Brandenburg"></option><option value="HAM" label="Hambourg"></option><option value="DUS" label="Düsseldorf"></option><option value="ZRH" label="Zurich"></option><option value="GVA" label="Genève"></option><option value="BSL" label="Bâle-Mulhouse"></option><option value="VIE" label="Vienne"></option><option value="PRG" label="Prague"></option><option value="BUD" label="Budapest"></option><option value="WAW" label="Varsovie Chopin"></option><option value="KRK" label="Cracovie"></option><option value="CPH" label="Copenhague"></option><option value="ARN" label="Stockholm Arlanda"></option><option value="OSL" label="Oslo Gardermoen"></option><option value="HEL" label="Helsinki"></option><option value="RIX" label="Riga"></option><option value="TLL" label="Tallinn"></option><option value="VNO" label="Vilnius"></option><option value="LIS" label="Lisbonne"></option><option value="OPO" label="Porto"></option><option value="MAD" label="Madrid-Barajas"></option><option value="BCN" label="Barcelone-El Prat"></option><option value="AGP" label="Malaga"></option><option value="ALC" label="Alicante"></option><option value="VLC" label="Valence"></option><option value="SVQ" label="Séville"></option><option value="PMI" label="Palma de Majorque"></option><option value="IBZ" label="Ibiza"></option><option value="FCO" label="Rome-Fiumicino"></option><option value="CIA" label="Rome-Ciampino"></option><option value="MXP" label="Milan-Malpensa"></option><option value="LIN" label="Milan-Linate"></option><option value="BGY" label="Milan-Bergame"></option><option value="VCE" label="Venise Marco Polo"></option><option value="NAP" label="Naples"></option><option value="BLQ" label="Bologne"></option><option value="FLR" label="Florence"></option><option value="PSA" label="Pise"></option><option value="CTA" label="Catane"></option><option value="PMO" label="Palerme"></option><option value="LUX" label="Luxembourg"></option><option value="LJU" label="Ljubljana"></option><option value="ZAG" label="Zagreb"></option><option value="SPU" label="Split"></option><option value="DBV" label="Dubrovnik"></option><option value="BEG" label="Belgrade"></option><option value="SKG" label="Thessalonique"></option><option value="HER" label="Héraklion"></option><option value="RHO" label="Rhodes"></option><option value="LCA" label="Larnaca"></option><option value="PFO" label="Paphos"></option><option value="TUN" label="Tunis-Carthage"></option><option value="DJE" label="Djerba"></option><option value="SFA" label="Sfax"></option><option value="CAI" label="Le Caire"></option><option value="HRG" label="Hurghada"></option><option value="JED" label="Djeddah"></option><option value="RUH" label="Riyad"></option><option value="AMM" label="Amman Queen Alia"></option><option value="AQJ" label="Aqaba"></option><option value="TLV" label="Tel Aviv"></option><option value="BKK" label="Bangkok Suvarnabhumi"></option><option value="HKT" label="Phuket"></option><option value="KUL" label="Kuala Lumpur"></option><option value="SIN" label="Singapour Changi"></option><option value="CGK" label="Jakarta Soekarno-Hatta"></option><option value="DPS" label="Bali Denpasar"></option><option value="CMB" label="Colombo"></option><option value="DEL" label="New Delhi"></option><option value="BOM" label="Mumbai"></option><option value="NRT" label="Tokyo Narita"></option><option value="HND" label="Tokyo Haneda"></option><option value="KIX" label="Osaka Kansai"></option><option value="ICN" label="Séoul Incheon"></option><option value="JFK" label="New York JFK"></option><option value="EWR" label="Newark"></option><option value="LAX" label="Los Angeles"></option><option value="SFO" label="San Francisco"></option><option value="YUL" label="Montréal-Trudeau"></option><option value="YYZ" label="Toronto Pearson"></option><option value="GRU" label="São Paulo Guarulhos"></option><option value="MEX" label="Mexico City"></option><option value="DSS" label="Dakar"></option><option value="ABJ" label="Abidjan"></option></datalist>
 
                 <input id="fl-airline" type="text" placeholder="Compagnie aérienne" class="w-full bg-stoneBg text-xs text-ink rounded-xl px-3 py-2.5 border border-borderSubtle">
 
@@ -989,7 +992,7 @@
                             <input id="fl-dep-time" type="time" value="20:00" class="bg-white text-xs text-ink rounded-lg px-2 py-1.5 border border-borderSubtle">
                         </div>
                         <div class="grid grid-cols-[58px_1fr] gap-1.5">
-                            <input id="fl-dep-iata" type="text" oninput="autoFillAirportName('dep')" placeholder="AMS" class="bg-white text-xs font-bold text-ink rounded-lg px-2 py-1.5 border border-borderSubtle uppercase">
+                            <input id="fl-dep-iata" list="alba-airport-codes" type="text" oninput="autoFillAirportName('dep')" placeholder="AMS" class="bg-white text-xs font-bold text-ink rounded-lg px-2 py-1.5 border border-borderSubtle uppercase">
                             <input id="fl-dep-city" type="text" placeholder="Aéroport départ" class="bg-white text-xs text-ink rounded-lg px-2 py-1.5 border border-borderSubtle">
                         </div>
                     </div>
@@ -1001,7 +1004,7 @@
                             <input id="fl-arr-time" type="time" value="05:55" class="bg-white text-xs text-ink rounded-lg px-2 py-1.5 border border-borderSubtle">
                         </div>
                         <div class="grid grid-cols-[58px_1fr] gap-1.5">
-                            <input id="fl-arr-iata" type="text" oninput="autoFillAirportName('arr')" placeholder="MCT" class="bg-white text-xs font-bold text-ink rounded-lg px-2 py-1.5 border border-borderSubtle uppercase">
+                            <input id="fl-arr-iata" list="alba-airport-codes" type="text" oninput="autoFillAirportName('arr')" placeholder="MCT" class="bg-white text-xs font-bold text-ink rounded-lg px-2 py-1.5 border border-borderSubtle uppercase">
                             <input id="fl-arr-city" type="text" placeholder="Aéroport arrivée" class="bg-white text-xs text-ink rounded-lg px-2 py-1.5 border border-borderSubtle">
                         </div>
                     </div>
@@ -1410,14 +1413,32 @@
             'Activités', 'Tourisme', 'Boissons', 'Autre'
         ];
 
+        // Base locale d'aéroports courants (codes IATA) : fonctionne sans service externe.
         const AIRPORTS_DB = {
-            'AMS': 'Amsterdam Schiphol', 'MCT': 'Muscat International', 'ORY': 'Paris Orly',
-            'CDG': 'Paris Charles de Gaulle', 'RAK': 'Marrakech-Ménara', 'CMN': 'Casablanca Mohammed V',
-            'OUD': 'Oujda Angads', 'NDR': 'Nador Al Aroui', 'FSC': 'Figari Sud-Corse',
-            'BIA': 'Bastia Poretta', 'MRS': 'Marseille Provence', 'NCE': 'Nice Côte d’Azur',
-            'ALG': 'Alger Houari Boumédiène', 'ORN': 'Oran Ahmed Ben Bella', 'CZL': 'Constantine',
-            'DXB': 'Dubai International', 'DOH': 'Doha Hamad', 'IST': 'Istanbul Airport',
-            'JMK': 'Mykonos Airport', 'JTR': 'Santorini Thira', 'ATH': 'Athènes Eleftherios'
+            'AMS':'Amsterdam Schiphol','MCT':'Muscat International','ORY':'Paris-Orly','CDG':'Paris-Charles-de-Gaulle',
+            'RAK':'Marrakech-Ménara','CMN':'Casablanca Mohammed V','OUD':'Oujda Angads','NDR':'Nador El Aroui',
+            'FSC':'Figari Sud-Corse','BIA':'Bastia Poretta','MRS':'Marseille Provence','NCE':'Nice Côte d’Azur',
+            'ALG':'Alger Houari Boumédiène','ORN':'Oran Ahmed Ben Bella','CZL':'Constantine Mohamed Boudiaf',
+            'DXB':'Dubai International','DOH':'Doha Hamad','IST':'Istanbul Airport','JMK':'Mykonos','JTR':'Santorin','ATH':'Athènes',
+            'LHR':'Londres Heathrow','LGW':'Londres Gatwick','STN':'Londres Stansted','LTN':'Londres Luton',
+            'MAN':'Manchester','EDI':'Édimbourg','DUB':'Dublin','SNN':'Shannon','BRU':'Bruxelles','CRL':'Bruxelles-Charleroi',
+            'FRA':'Francfort','MUC':'Munich','BER':'Berlin Brandenburg','HAM':'Hambourg','DUS':'Düsseldorf',
+            'ZRH':'Zurich','GVA':'Genève','BSL':'Bâle-Mulhouse','VIE':'Vienne','PRG':'Prague','BUD':'Budapest',
+            'WAW':'Varsovie Chopin','KRK':'Cracovie','CPH':'Copenhague','ARN':'Stockholm Arlanda','OSL':'Oslo Gardermoen',
+            'HEL':'Helsinki','RIX':'Riga','TLL':'Tallinn','VNO':'Vilnius','LIS':'Lisbonne','OPO':'Porto',
+            'MAD':'Madrid-Barajas','BCN':'Barcelone-El Prat','AGP':'Malaga','ALC':'Alicante','VLC':'Valence',
+            'SVQ':'Séville','PMI':'Palma de Majorque','IBZ':'Ibiza','FCO':'Rome-Fiumicino','CIA':'Rome-Ciampino',
+            'MXP':'Milan-Malpensa','LIN':'Milan-Linate','BGY':'Milan-Bergame','VCE':'Venise Marco Polo',
+            'NAP':'Naples','BLQ':'Bologne','FLR':'Florence','PSA':'Pise','CTA':'Catane','PMO':'Palerme',
+            'LUX':'Luxembourg','LJU':'Ljubljana','ZAG':'Zagreb','SPU':'Split','DBV':'Dubrovnik','BEG':'Belgrade',
+            'SKG':'Thessalonique','HER':'Héraklion','RHO':'Rhodes','LCA':'Larnaca','PFO':'Paphos',
+            'TUN':'Tunis-Carthage','DJE':'Djerba','SFA':'Sfax','CAI':'Le Caire','HRG':'Hurghada',
+            'JED':'Djeddah','RUH':'Riyad','AMM':'Amman Queen Alia','AQJ':'Aqaba','TLV':'Tel Aviv',
+            'BKK':'Bangkok Suvarnabhumi','HKT':'Phuket','KUL':'Kuala Lumpur','SIN':'Singapour Changi',
+            'CGK':'Jakarta Soekarno-Hatta','DPS':'Bali Denpasar','CMB':'Colombo','DEL':'New Delhi','BOM':'Mumbai',
+            'NRT':'Tokyo Narita','HND':'Tokyo Haneda','KIX':'Osaka Kansai','ICN':'Séoul Incheon',
+            'JFK':'New York JFK','EWR':'Newark','LAX':'Los Angeles','SFO':'San Francisco','YUL':'Montréal-Trudeau',
+            'YYZ':'Toronto Pearson','GRU':'São Paulo Guarulhos','MEX':'Mexico City','DSS':'Dakar','ABJ':'Abidjan'
         };
 
         const KNOWN_FLIGHTS = {
@@ -2483,34 +2504,22 @@
             const rawNum = document.getElementById('fl-number').value.trim().toUpperCase();
             const cleanNum = rawNum.replace(/\s+/g, '');
             if (!cleanNum) return;
-
-            if (KNOWN_FLIGHTS[cleanNum]) {
-                const f = KNOWN_FLIGHTS[cleanNum];
-                document.getElementById('fl-airline').value = f.airline;
-                document.getElementById('fl-dep-iata').value = f.depIata;
-                document.getElementById('fl-dep-city').value = f.depCity;
-                document.getElementById('fl-dep-time').value = f.depTime;
-                document.getElementById('fl-arr-iata').value = f.arrIata;
-                document.getElementById('fl-arr-city').value = f.arrCity;
-                document.getElementById('fl-arr-time').value = f.arrTime;
-                if (f.terminal) document.getElementById('fl-terminal').value = f.terminal;
-                if (f.gate) document.getElementById('fl-gate').value = f.gate;
-                if (f.seat) document.getElementById('fl-seat').value = f.seat;
-                if (f.baggage) document.getElementById('fl-baggage').value = f.baggage;
-                if (!silent) showToast(`Vol ${rawNum} complété automatiquement`);
-            } else if (cleanNum.length >= 4) {
-                const prefix = cleanNum.slice(0, 2);
-                const detectedAirline = AIRLINE_PREFIXES[prefix];
-                if (detectedAirline) {
-                    document.getElementById('fl-airline').value = detectedAirline;
-                    const numDigits = parseInt(cleanNum.slice(2)) || 100;
-                    const depH = String(7 + (numDigits % 13)).padStart(2, '0');
-                    const arrH = String((parseInt(depH) + 3) % 24).padStart(2, '0');
-                    document.getElementById('fl-dep-time').value = `${depH}:15`;
-                    document.getElementById('fl-arr-time').value = `${arrH}:45`;
-                    if (!silent) showToast(`Compagnie ${detectedAirline} & horaires pré-remplis`);
-                }
+            const prefix = cleanNum.match(/^[A-Z0-9]{2}/)?.[0];
+            const detectedAirline = AIRLINE_PREFIXES[prefix];
+            if (detectedAirline) {
+                document.getElementById('fl-airline').value = detectedAirline;
+                if (!silent) showToast(`${detectedAirline} identifiée. Les horaires et aéroports doivent être confirmés avec le billet.`);
+            } else if (!silent) {
+                showToast('Compagnie non reconnue : complète les informations depuis ton billet.');
             }
+        }
+
+        function searchFlightOnline() {
+            const number = document.getElementById('fl-number').value.trim().toUpperCase();
+            if (!number) { showToast('Saisis d’abord un numéro de vol'); return; }
+            const date = document.getElementById('fl-dep-date').value.trim();
+            const query = [number, date, 'flight status schedule'].filter(Boolean).join(' ');
+            window.open('https://www.google.com/search?q=' + encodeURIComponent(query), '_blank', 'noopener,noreferrer');
         }
 
         function handleFlightDocUpload(event) {
@@ -3318,6 +3327,7 @@
                     if (!alreadyGeocoded) await new Promise(resolve => setTimeout(resolve, 1100));
                 }
                 if (located.length > 1) {
+                    const routeKey = `${group.day}:${located.map(p => String(p.step.id || p.step.title || '')).join('|')}`;
                     try {
                         const route = await fetchDrivingRoute(located.map(p => p.coords));
                         if (token !== mapRefreshToken) return;
@@ -3325,10 +3335,24 @@
                         totalSeconds += route.duration;
                         const routeCoords = route.geometry.coordinates.map(c => [c[1], c[0]]);
                         L.polyline(routeCoords, { color: '#B77A5F', weight: 5, opacity: .9, lineCap: 'round', lineJoin: 'round' }).addTo(leafletLayerGroup);
+                        if (!trip.mapRouteCache) trip.mapRouteCache = {};
+                        const rawGeometry = route.geometry.coordinates;
+                        const stride = Math.max(1, Math.ceil(rawGeometry.length / 300));
+                        const compactGeometry = rawGeometry.filter((point, index) => index === 0 || index === rawGeometry.length - 1 || index % stride === 0);
+                        trip.mapRouteCache[routeKey] = { geometry: compactGeometry, distance: route.distance, duration: route.duration, savedAt: Date.now() };
                         details.insertAdjacentHTML('beforeend', `<div class="rounded-xl border border-borderSubtle p-3"><div class="flex items-center justify-between"><p class="text-[11px] font-bold text-ink">Jour ${group.day}</p><p class="text-[10px] font-semibold text-sand">${(route.distance / 1000).toFixed(1).replace('.', ',')} km · ${formatRouteDuration(route.duration)}</p></div><div class="mt-2 space-y-1">${located.map((p,i)=>`<div class="flex items-center gap-2 text-[10px] text-muted"><span class="w-5 h-5 rounded-full bg-sandLight text-sand font-bold flex items-center justify-center">${i+1}</span><span class="truncate flex-1">${escapeHtml(p.step.title || 'Étape')}</span><span>${escapeHtml(p.step.time || '')}</span></div>`).join('')}</div></div>`);
                     } catch (error) {
                         console.warn('ALBA routing:', error);
-                        details.insertAdjacentHTML('beforeend', `<div class="rounded-xl border border-amber-200 bg-amber-50 p-3"><p class="text-[11px] font-bold text-amber-900">Jour ${group.day} · Route non calculée</p><p class="text-[10px] text-amber-800 mt-1">Le service de calcul routier ne répond pas. Les étapes restent visibles sur la carte.</p></div>`);
+                        const cachedRoute = trip.mapRouteCache?.[routeKey];
+                        if (cachedRoute?.geometry?.length) {
+                            totalMeters += Number(cachedRoute.distance || 0);
+                            totalSeconds += Number(cachedRoute.duration || 0);
+                            const cachedCoords = cachedRoute.geometry.map(c => [c[1], c[0]]);
+                            L.polyline(cachedCoords, { color: '#B77A5F', weight: 5, opacity: .65, dashArray: '7 7', lineCap: 'round', lineJoin: 'round' }).addTo(leafletLayerGroup);
+                            details.insertAdjacentHTML('beforeend', `<div class="rounded-xl border border-borderSubtle p-3"><div class="flex items-center justify-between"><p class="text-[11px] font-bold text-ink">Jour ${group.day} · itinéraire mémorisé</p><p class="text-[10px] font-semibold text-sand">${(Number(cachedRoute.distance || 0) / 1000).toFixed(1).replace('.', ',')} km · ${formatRouteDuration(Number(cachedRoute.duration || 0))}</p></div><p class="text-[10px] text-muted mt-1">Dernier trajet calculé enregistré sur cet appareil ou synchronisé avec le voyage.</p></div>`);
+                        } else {
+                            details.insertAdjacentHTML('beforeend', `<div class="rounded-xl border border-amber-200 bg-amber-50 p-3"><p class="text-[11px] font-bold text-amber-900">Jour ${group.day} · Route non calculée</p><p class="text-[10px] text-amber-800 mt-1">Le service de calcul routier ne répond pas et aucun trajet mémorisé n'est disponible. Les étapes restent visibles sur la carte.</p></div>`);
+                        }
                     }
                 } else if (located.length === 1) {
                     details.insertAdjacentHTML('beforeend', `<div class="rounded-xl border border-borderSubtle p-3"><p class="text-[11px] font-bold text-ink">Jour ${group.day}</p><p class="text-[10px] text-muted mt-1">${escapeHtml(located[0].step.title || 'Étape')} · Une seule étape localisée</p></div>`);
