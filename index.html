@@ -267,6 +267,7 @@
                         </div>
                         <div class="h-2 rounded-full bg-stoneBg overflow-hidden"><div id="trip-readiness-progress" class="h-full rounded-full bg-sand transition-all duration-300" style="width:0%"></div></div>
                         <div id="trip-readiness-items" class="space-y-2"></div>
+                        <div id="trip-readiness-alerts" class="space-y-2 border-t border-borderSubtle pt-3"></div>
                         <p class="text-[9px] text-muted border-t border-borderSubtle pt-2">Le score se met à jour avec les informations enregistrées. Les éléments non concernés par ton voyage ne sont pas pénalisés.</p>
                     </div>
 
@@ -2249,10 +2250,11 @@
         }
 
         // Tableau de préparation : calcul local, sans API ni modification des données.
-        function renderTripReadiness() {
+        async function renderTripReadiness() {
             const trip = getTrip();
             const root = document.getElementById('trip-readiness-card');
             if (!trip || !root) return;
+            const tripId = trip.id;
             const allSteps = Object.values(trip.itinerary || {}).flat().filter(Boolean);
             const lists = Object.values(trip.tabChecklists || {}).flat().filter(Boolean);
             const todoItems = (trip.todos || []).filter(Boolean);
@@ -2260,19 +2262,32 @@
             const doneTasks = tasks.filter(item => item.done).length;
             const reservations = (trip.reservations || []).filter(Boolean);
             const incompleteReservations = reservations.filter(item => !item.date || !item.time || !item.location || (!item.reference && !item.url));
-            const hasDates = !!(trip.startDate && (trip.endDate || trip.duration));
-            const hasTransport = (trip.flights || []).length > 0 || (trip.rentals || []).length > 0;
+            const hasDates = !!(trip.startDate && trip.endDate);
+            const flights = (trip.flights || []).filter(Boolean);
+            const rentals = (trip.rentals || []).filter(Boolean);
+            const hasTransport = flights.length > 0 || rentals.length > 0;
             const checks = [
-                {label:'Dates du voyage', detail:hasDates ? 'Dates de départ et durée renseignées' : 'Ajoute les dates et la durée du séjour', ready:hasDates, tab:'apercu', weight:20},
+                {label:'Dates du voyage', detail:hasDates ? 'Départ et retour renseignés' : 'Ajoute les dates de départ et de retour', ready:hasDates, tab:'apercu', weight:20},
                 {label:'Itinéraire', detail:allSteps.length ? allSteps.length + ' étape(s) planifiée(s)' : 'Ajoute au moins une étape à ton programme', ready:allSteps.length>0, tab:'itineraire', weight:25},
                 {label:'Tâches & checklists', detail:tasks.length ? doneTasks + ' / ' + tasks.length + ' tâche(s) terminée(s)' : 'Aucune tâche ajoutée pour le moment', ratio:tasks.length ? doneTasks/tasks.length : 0, tab:'itineraire', weight:25},
             ];
             if (reservations.length) checks.push({label:'Réservations',detail:incompleteReservations.length ? incompleteReservations.length+' réservation(s) à compléter' : reservations.length+' réservation(s) avec les informations essentielles',ready:incompleteReservations.length===0,tab:'inspirations',weight:15});
-            if (hasTransport) checks.push({label:'Transport',detail:(trip.flights||[]).length+' vol(s) · '+(trip.rentals||[]).length+' location(s)',ready:true,tab:'apercu',weight:15});
+            if (hasTransport) checks.push({label:'Transport',detail:flights.length+' vol(s) · '+rentals.length+' location(s)',ready:true,tab:'apercu',weight:15});
+
+            // Lecture des seuls métadonnées des documents privés, jamais du contenu des fichiers.
+            let documentCount = null;
+            if (albaUserId && storageMode === 'hybrid' && supabaseClient) {
+                try {
+                    const {data,error} = await supabaseClient.from('trip_files').select('id').eq('trip_id',tripId).eq('category','document');
+                    if (!error && getTrip()?.id === tripId) documentCount = (data || []).length;
+                } catch (err) { console.warn('Vérification des documents ALBA:',err); }
+            }
+            if (getTrip()?.id !== tripId) return;
+
             const totalWeight = checks.reduce((sum,item)=>sum+item.weight,0);
             const earned = checks.reduce((sum,item)=>sum+item.weight*(item.ratio !== undefined ? item.ratio : (item.ready ? 1 : 0)),0);
             const score = totalWeight ? Math.round(earned/totalWeight*100) : 0;
-            const pending = checks.filter(item => item.ratio !== undefined ? item.ratio < 1 : !item.ready).length;
+            const pending = checks.filter(item=>item.ratio !== undefined ? item.ratio<1 : !item.ready).length;
             const scoreEl=document.getElementById('trip-readiness-score');
             const progress=document.getElementById('trip-readiness-progress');
             const summary=document.getElementById('trip-readiness-summary');
@@ -2287,6 +2302,37 @@
                 const color=complete?'text-emerald-600':(partial?'text-sand':'text-muted');
                 return '<button type="button" onclick="switchTab(\''+item.tab+'\')" class="w-full flex items-center gap-2.5 text-left py-1.5 group"><i data-lucide="'+icon+'" class="w-4 h-4 '+color+' shrink-0"></i><span class="flex-1 min-w-0"><span class="block text-[11px] font-semibold text-ink">'+item.label+'</span><span class="block text-[9px] text-muted">'+item.detail+'</span></span><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-muted"></i></button>';
             }).join('');
+
+            const alerts=[];
+            if (trip.startDate) {
+                const today=new Date(); today.setHours(0,0,0,0);
+                const departure=new Date(trip.startDate+'T00:00:00');
+                if (!Number.isNaN(departure.getTime())) {
+                    const days=Math.round((departure-today)/86400000);
+                    if (days>=0 && days<=30) {
+                        const urgency=days<=3?'urgent':(days<=7?'soon':'normal');
+                        alerts.push({title:days===0?'Départ aujourd’hui':(days===1?'Départ demain':'Départ dans '+days+' jours'),detail:'Vérifie les documents, les horaires et les confirmations avant de partir.',tab:'apercu',urgency});
+                    }
+                }
+            }
+            if (flights.length) {
+                const missing=flights.filter(f=>!f.number||!f.depDate||!f.depTime||!f.depCity||!f.arrCity);
+                const noBoardingPass=flights.filter(f=>!f.image);
+                if(missing.length) alerts.push({title:'Informations de vol incomplètes',detail:missing.length+' vol(s) sans toutes les informations essentielles.',tab:'apercu',urgency:'soon'});
+                if(noBoardingPass.length) alerts.push({title:'Billet ou carte d’embarquement à joindre',detail:noBoardingPass.length+' vol(s) sans document attaché dans la fiche du vol.',tab:'apercu',urgency:'normal'});
+                if(trip.startDate && flights.some(f=>f.depDate && f.depDate<trip.startDate)) alerts.push({title:'Vérifie les dates des vols',detail:'Au moins un vol est daté avant le début du séjour.',tab:'apercu',urgency:'soon'});
+            }
+            if(reservations.length && incompleteReservations.length) alerts.push({title:'Réservations à compléter',detail:'Ajoute les horaires, adresses et références manquantes.',tab:'inspirations',urgency:'soon'});
+            if(documentCount===0) alerts.push({title:'Coffre-fort encore vide',detail:'Pense à y déposer passeport ou pièce d’identité, assurance et confirmations utiles.',tab:'apercu',urgency:'normal'});
+            else if(documentCount>0) alerts.push({title:'Documents enregistrés',detail:documentCount+' fichier(s) dans le coffre-fort. Vérifie que les documents de voyage indispensables y figurent.',tab:'apercu',urgency:'normal'});
+            const alertEl=document.getElementById('trip-readiness-alerts');
+            if(alertEl) {
+                alertEl.innerHTML=alerts.length ? '<p class="text-[10px] font-semibold uppercase tracking-wider text-muted mb-1">À ne pas oublier</p>'+alerts.map(a=>{
+                    const icon=a.urgency==='urgent'?'alert-triangle':(a.urgency==='soon'?'clock-3':'info');
+                    const tone=a.urgency==='urgent'?'text-red-600':(a.urgency==='soon'?'text-amber-600':'text-sand');
+                    return '<button type="button" onclick="switchTab(\''+a.tab+'\')" class="w-full flex items-start gap-2 rounded-xl bg-stoneBg p-2.5 text-left"><i data-lucide="'+icon+'" class="w-4 h-4 '+tone+' shrink-0 mt-0.5"></i><span class="min-w-0"><span class="block text-[10px] font-semibold text-ink">'+a.title+'</span><span class="block text-[9px] text-muted">'+a.detail+'</span></span></button>';
+                }).join('') : '<p class="text-[10px] text-emerald-700">Aucune alerte particulière pour le moment.</p>';
+            }
             if(window.lucide) lucide.createIcons();
         }
 
