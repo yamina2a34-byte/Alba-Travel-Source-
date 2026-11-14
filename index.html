@@ -2349,8 +2349,8 @@
                 if(trip.startDate && flights.some(f=>f.depDate && f.depDate<trip.startDate)) alerts.push({title:'Vérifie les dates des vols',detail:'Au moins un vol est daté avant le début du séjour.',tab:'apercu',target:'flights-accordion',accordion:'flights-accordion',urgency:'soon'});
             }
             if(reservations.length && incompleteReservations.length) alerts.push({title:'Réservations à compléter',detail:'Ajoute les horaires, adresses et références manquantes.',tab:'apercu',target:'reservations-list',urgency:'soon'});
-            if(documentCount===0) alerts.push({title:'Coffre-fort encore vide',detail:'Pense à y déposer passeport ou pièce d’identité, assurance et confirmations utiles.',tab:'apercu',target:'flights-accordion',accordion:'flights-accordion',urgency:'normal'});
-            else if(documentCount>0) alerts.push({title:'Documents enregistrés',detail:documentCount+' fichier(s) dans le coffre-fort. Vérifie que les documents de voyage indispensables y figurent.',tab:'apercu',target:'flights-accordion',accordion:'flights-accordion',urgency:'normal'});
+            if(documentCount===0) alerts.push({title:'Coffre-fort encore vide',detail:'Pense à y déposer passeport ou pièce d’identité, assurance et confirmations utiles.',tab:'apercu',target:'vault',urgency:'normal'});
+            else if(documentCount>0) alerts.push({title:'Documents enregistrés',detail:documentCount+' fichier(s) dans le coffre-fort. Vérifie que les documents de voyage indispensables y figurent.',tab:'apercu',target:'vault',urgency:'normal'});
             const alertEl=document.getElementById('trip-readiness-alerts');
             if(alertEl) {
                 alertEl.innerHTML=alerts.length ? '<p class="text-[10px] font-semibold uppercase tracking-wider text-muted mb-1">À ne pas oublier</p>'+alerts.map(a=>{
