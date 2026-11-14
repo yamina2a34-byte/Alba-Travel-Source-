@@ -1897,6 +1897,8 @@
                     try {
                         await syncTripsToCloud();
                         cloudRetryDelay = 1500;
+                        clearTimeout(cloudRetryTimer);
+                        cloudRetryTimer = null;
                         lastSyncError = '';
                         setCloudSyncStatus('Synchronisé');
                     } catch (err) {
@@ -4630,7 +4632,16 @@
             }
         });
     document.addEventListener('visibilitychange', () => {
-        if (document.hidden) return;
+        if (document.hidden) {
+            // Dernière tentative immédiate avant mise en veille ; la copie locale reste toujours disponible.
+            if (storageMode === 'hybrid' && albaUserId) {
+                syncQueue = syncQueue.catch(() => {}).then(() => syncTripsToCloud()).catch(err => {
+                    lastSyncError = err?.message || 'Erreur de synchronisation';
+                    console.warn('ALBA sauvegarde avant veille:', err);
+                });
+            }
+            return;
+        }
         if (storageMode === 'hybrid') {
             initCloudSync({ throwOnError: true })
                 .then(() => scheduleCloudSync())
