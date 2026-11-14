@@ -4622,7 +4622,7 @@
 
         async function changeTripMemberRole(userId, role) {
             const trip = getTrip();
-            if (!trip || trip._albaRole !== 'owner' || !['editor', 'viewer'].includes(role)) return;
+            if (!trip || (trip._albaRole && trip._albaRole !== 'owner') || !['editor', 'viewer'].includes(role)) return;
             const { error } = await supabaseClient.rpc('set_trip_member_role', {
                 p_trip_id: trip.id, p_user_id: userId, p_role: role
             });
@@ -4638,7 +4638,7 @@
 
         async function removeTripMember(userId) {
             const trip = getTrip();
-            if (!trip || trip._albaRole !== 'owner') return;
+            if (!trip || (trip._albaRole && trip._albaRole !== 'owner')) return;
             if (!window.confirm('Retirer cette personne du voyage ?')) return;
             const { error } = await supabaseClient.from('trip_members').delete()
                 .eq('trip_id', trip.id).eq('user_id', userId);
