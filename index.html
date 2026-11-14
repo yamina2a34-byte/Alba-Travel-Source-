@@ -1639,51 +1639,61 @@
 
         const initialTrips = [
             {
-                id: 'starter-sahara',
-                title: 'Sur les pistes du Sahara',
-                destination: 'Algérie • Djanet, Tassili n’Ajjer & désert',
+                id: 'starter-algerian',
+                title: 'Algerian Escape 🏜️',
+                destination: 'Alger, Oran, Bejaïa & more',
                 countdown: 'Planifié',
-                duration: 8,
+                duration: 30,
                 status: 'active',
                 currency: 'DZD',
-                rate: 147,
-                totalBudget: 1200,
+                rate: 274.5,
+                totalBudget: 2000,
                 companions: [],
-                overviewOrder: ['flights', 'rentals', 'todos'],
-                overviewNotes: '',
-                itineraryNotes: 'Prévoir les temps de trajet dans le désert et vérifier les conditions locales avant le départ.',
-                bagageNotes: '',
-                budgetNotes: '',
-                tabChecklists: {
-                    itinerary: [{ id: 1, text: 'Repérer les étapes et les temps de trajet', done: false }],
-                    bagage: [{ id: 2, text: 'Préparer une protection solaire et des vêtements adaptés', done: false }],
-                    budget: [{ id: 3, text: 'Estimer le budget transport et hébergement', done: false }]
-                },
                 flights: [],
                 rentals: [],
-                todos: [
-                    { id: 1, type: 'todo', text: 'Comparer les vols vers Djanet', done: false },
-                    { id: 2, type: 'todo', text: 'Se renseigner sur les excursions dans le Tassili', done: false },
-                    { id: 3, type: 'todo', text: 'Préparer les documents de voyage', done: false }
-                ],
+                todos: [],
                 inspirations: [
-                    { id: 1, url: '', platform: 'ALBA', title: 'Tassili n’Ajjer', address: 'Djanet, Algérie', category: 'Lieu à visiter', booked: false, status: 'unorganized', assignedDay: null, image: null },
-                    { id: 2, url: '', platform: 'ALBA', title: 'Dunes du Sahara', address: 'Sahara algérien', category: 'Spot photo', booked: false, status: 'unorganized', assignedDay: null, image: null }
+                    { id: 1, url: 'https://maps.app.goo.gl/3YAX8FTa12kB9UWG7?g_st=ic', platform: 'Maps', title: 'Djamaâ El Djazaïr 🕌', address: 'Alger', category: 'Lieu à visiter', booked: false, status: 'unorganized', assignedDay: null, image: null },
+                    { id: 2, url: 'https://vm.tiktok.com/ZN85kju9c/', platform: 'TikTok', title: 'Horseback riding 🐎', address: 'Tipaza', category: 'Drone', booked: false, status: 'unorganized', assignedDay: null, image: null }
                 ],
-                daysMeta: {
-                    1: { title: 'Jour 1 • Arrivée', date: 'Jour 1' },
-                    2: { title: 'Jour 2 • Découverte du désert', date: 'Jour 2' },
-                    3: { title: 'Jour 3 • Tassili n’Ajjer', date: 'Jour 3' }
-                },
-                itinerary: {
-                    1: [],
-                    2: [{ id: 201, time: '', title: 'Découverte des paysages du Sahara', address: 'Djanet, Algérie', transit: '', booked: false, tag: 'Lieu à visiter' }],
-                    3: [{ id: 301, time: '', title: 'Explorer le Tassili n’Ajjer', address: 'Parc culturel du Tassili n’Ajjer, Algérie', transit: '', booked: false, tag: 'Lieu à visiter' }]
-                },
+                daysMeta: { 1: { title: 'Jour 1 • Arrivée', date: 'Jour 1' } },
+                itinerary: { 1: [] },
                 luggages: [{ id: 'bag-default', name: 'Valise cabine', emptyWeight: 2.2, maxWeight: 10 }],
                 gearList: [],
+                expenses: [],
                 settlements: [],
-                expenses: []
+                tabChecklists: { itinerary: [], bagage: [], budget: [] },
+                overviewOrder: ['flights', 'rentals', 'todos'],
+                overviewNotes: '',
+                itineraryNotes: ''
+            },
+            {
+                id: 'starter-omani',
+                title: 'Omani Dreams',
+                destination: 'Oman • Mascate, Nizwa & Wadi Shab',
+                countdown: 'Planifié',
+                duration: 11,
+                status: 'active',
+                startDate: '2026-11-20',
+                endDate: '2026-11-30',
+                currency: 'OMR',
+                rate: 0.41,
+                totalBudget: 1800,
+                companions: [],
+                flights: [],
+                rentals: [],
+                todos: [],
+                inspirations: [],
+                daysMeta: { 1: { title: 'Jour 1 • Arrivée Mascate', date: '2026-11-20' } },
+                itinerary: { 1: [] },
+                luggages: [{ id: 'bag-default', name: 'Valise cabine', emptyWeight: 2.2, maxWeight: 10 }],
+                gearList: [],
+                expenses: [],
+                settlements: [],
+                tabChecklists: { itinerary: [], bagage: [], budget: [] },
+                overviewOrder: ['flights', 'rentals', 'todos'],
+                overviewNotes: '',
+                itineraryNotes: ''
             },
             {
                 id: 'starter-dubai',
@@ -1696,12 +1706,6 @@
                 rate: 4,
                 totalBudget: 1000,
                 companions: [],
-                overviewOrder: ['flights', 'rentals', 'todos'],
-                overviewNotes: '',
-                itineraryNotes: '',
-                bagageNotes: '',
-                budgetNotes: '',
-                tabChecklists: { itinerary: [], bagage: [], budget: [] },
                 flights: [],
                 rentals: [],
                 todos: [
@@ -1717,8 +1721,12 @@
                 itinerary: { 1: [] },
                 luggages: [{ id: 'bag-default', name: 'Valise cabine', emptyWeight: 2.2, maxWeight: 10 }],
                 gearList: [],
+                expenses: [],
                 settlements: [],
-                expenses: []
+                tabChecklists: { itinerary: [], bagage: [], budget: [] },
+                overviewOrder: ['flights', 'rentals', 'todos'],
+                overviewNotes: '',
+                itineraryNotes: ''
             }
         ];
 
@@ -2208,6 +2216,12 @@
                 }
                 albaUserId = session?.user?.id;
                 if (!albaUserId) throw new Error('Session utilisateur absente');
+
+                // Chaque session anonyme reçoit une seule fois ses copies privées des trois voyages de démarrage.
+                // Le RPC est idempotent : les voyages déjà présents ne sont jamais dupliqués.
+                const { data: starterTripsCreated, error: starterSeedError } = await supabaseClient.rpc('seed_alba_starter_trips');
+                if (starterSeedError) throw starterSeedError;
+                if (starterTripsCreated) console.info('ALBA :', starterTripsCreated, 'voyage(s) de démarrage ajouté(s).');
 
                 const [{ data: rows, error }, { data: memberships, error: membershipError }] = await Promise.all([
                     supabaseClient.from('trips').select('id,owner_id,title,data,updated_at').order('updated_at', { ascending: false }),
