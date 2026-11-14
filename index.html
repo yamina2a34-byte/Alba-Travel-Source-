@@ -4786,6 +4786,7 @@
             saveState();
             renderCompanionsList();
             refreshTripUI();
+            refreshTripGroupMode().then(() => loadTripVotes());
         }
 
         function removeCompanion(name) {
@@ -4794,6 +4795,7 @@
             saveState();
             renderCompanionsList();
             refreshTripUI();
+            refreshTripGroupMode().then(() => loadTripVotes());
         }
 
         function openShareTripModal() {
@@ -5020,7 +5022,8 @@
             if (!trip) return;
             const today = new Date(); today.setHours(0,0,0,0);
             const start = trip.startDate ? new Date(trip.startDate + 'T00:00:00') : null;
-            const end = trip.endDate ? new Date(trip.endDate + 'T23:59:59') : null;
+            const fallbackEnd = trip.startDate && trip.duration ? addDaysToISO(trip.startDate, Math.max(0, Number(trip.duration) - 1)) : '';
+            const end = (trip.endDate || fallbackEnd) ? new Date((trip.endDate || fallbackEnd) + 'T23:59:59') : null;
             let label = trip.countdown || 'À planifier';
             let copy = 'Ajoute les dates de ton voyage pour lancer le compte à rebours.';
             if (start && !Number.isNaN(start.getTime())) {
@@ -5105,7 +5108,7 @@
         }
 
         async function checkDueTripReminders() {
-            if (!albaUserId || storageMode !== 'hybrid') return;
+            if (!albaUserId || storageMode !== 'hybrid' || !('Notification' in window) || Notification.permission !== 'granted') return;
             const now = new Date().toISOString();
             const { data, error } = await supabaseClient.from('trip_reminders').select('id,title,trip_id').eq('user_id', albaUserId).eq('enabled', true).is('notified_at', null).lte('remind_at', now);
             if (error || !data?.length) return;
