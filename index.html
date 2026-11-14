@@ -588,6 +588,15 @@
                     <div id="itinerary-conflict-alert" class="hidden rounded-xl border border-amber-300/60 bg-amber-50 text-amber-800 px-3 py-2 text-[10px]"></div>
                     <div id="itinerary-timeline" class="relative pl-4 space-y-2 before:content-[''] before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-[1.5px] before:bg-borderSubtle"></div>
 
+                    <div class="bg-white rounded-2xl p-4 border border-borderSubtle space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-ink flex items-center gap-1.5"><i data-lucide="book-heart" class="w-3.5 h-3.5 text-sand"></i> Carnet du jour</span>
+                            <span class="text-[9px] text-muted">Partagé avec le voyage</span>
+                        </div>
+                        <textarea id="day-journal-input" rows="3" oninput="saveDayJournal(this.value)" placeholder="Les petits détails à retenir, les bonnes adresses, vos impressions..." class="w-full bg-stoneBg text-xs text-ink rounded-xl p-3 border border-borderSubtle focus:outline-none focus:border-sand"></textarea>
+                        <p class="text-[9px] text-muted">Tes notes sont enregistrées avec cette journée et synchronisées avec les compagnons autorisés.</p>
+                    </div>
+
                     <!-- ESPACE BAS ITINÉRAIRE : NOTES & CHECK-LIST -->
                     <div class="bg-white rounded-2xl p-4 border border-borderSubtle space-y-3 mt-4">
                         <span class="text-xs font-bold text-ink flex items-center gap-1.5">
@@ -1286,11 +1295,18 @@
                         <i data-lucide="x" class="w-4 h-4"></i>
                     </button>
                 </div>
-                <div class="flex items-center gap-2">
-                    <input id="new-companion-name" type="text" placeholder="Prénom (ex: Alex, Camélia...)" class="flex-1 bg-stoneBg text-xs text-ink rounded-xl px-3 py-2.5 border border-borderSubtle">
-                    <button onclick="addCompanion()" class="bg-ink text-white text-xs font-semibold px-4 py-2.5 rounded-xl">Ajouter</button>
+                <p class="text-[10px] text-muted">Personnes ayant rejoint ce voyage via ton lien privé. Tu peux gérer leurs accès ici.</p>
+                <div id="cloud-members-list" class="space-y-2">
+                    <p class="text-xs text-muted text-center py-3">Chargement des participants…</p>
                 </div>
-                <div id="companions-list-modal" class="space-y-2"></div>
+                <div class="border-t border-borderSubtle pt-3 space-y-2">
+                    <p class="text-[10px] font-semibold uppercase tracking-wide text-muted">Compagnons ajoutés manuellement</p>
+                    <div class="flex items-center gap-2">
+                        <input id="new-companion-name" type="text" placeholder="Prénom (ex: Alex, Camélia...)" class="flex-1 bg-stoneBg text-xs text-ink rounded-xl px-3 py-2.5 border border-borderSubtle">
+                        <button onclick="addCompanion()" class="bg-ink text-white text-xs font-semibold px-4 py-2.5 rounded-xl">Ajouter</button>
+                    </div>
+                    <div id="companions-list-modal" class="space-y-2"></div>
+                </div>
             </div>
         </div>
 
@@ -2038,6 +2054,16 @@
                 const { data, error } = await supabaseClient.rpc('accept_trip_invite', { p_token_hash: tokenHash });
                 if (error) throw error;
                 showToast('Invitation acceptée ! Le voyage est ajouté.');
+                const displayName = window.prompt('Comment afficher ton prénom aux autres participants ?');
+                if (displayName && displayName.trim()) {
+                    const tripId = typeof data === 'string' ? data : data?.trip_id || data?.id;
+                    if (tripId) {
+                        const { error: nameError } = await supabaseClient.rpc('set_trip_member_name', {
+                            p_trip_id: tripId, p_display_name: displayName.trim().slice(0, 50)
+                        });
+                        if (nameError) console.warn('Enregistrement du nom du participant:', nameError);
+                    }
+                }
                 return data;
             } catch (error) {
                 console.error('Acceptation invitation:', error);
@@ -2418,6 +2444,12 @@
             switchTab('apercu');
             refreshTripUI();
             subscribeToTripChanges();
+            const openedTrip = getTrip();
+            if (openedTrip && openedTrip._albaRole !== 'owner' && storageMode === 'hybrid' && albaUserId) {
+                supabaseClient.rpc('mark_trip_viewed', { p_trip_id: openedTrip.id })
+                    .then(({ error }) => { if (error) console.warn('Suivi de consultation ALBA:', error); })
+                    .catch(error => console.warn('Suivi de consultation ALBA:', error));
+            }
         }
 
         function exitTripToHome() {
@@ -3285,6 +3317,24 @@
             showToast('Enregistré');
         }
 
+        function toggleInspirationVote(id) {
+            const trip = getTrip();
+            const item = trip?.inspirations?.find(i => String(i.id) === String(id));
+            if (!item) return;
+            if (!Array.isArray(item.votes)) item.votes = [];
+            const voterId = albaUserId || 'local-user';
+            const existingIndex = item.votes.findIndex(v => v.userId === voterId);
+            if (existingIndex >= 0) {
+                item.votes.splice(existingIndex, 1);
+                showToast('Ton vote a été retiré');
+            } else {
+                item.votes.push({ userId: voterId, createdAt: new Date().toISOString() });
+                showToast('Ton avis a été ajouté au voyage');
+            }
+            saveState();
+            renderInspirations();
+        }
+
         function openEditInspoModal(id) {
             const trip = getTrip();
             const item = trip.inspirations.find(i => i.id === id);
@@ -3409,6 +3459,15 @@
                         ${item.address ? `<a href="https://maps.google.com/?q=${encodeURIComponent(item.address)}" target="_blank" rel="noopener" class="text-[11px] text-sand flex items-center gap-1 mt-0.5"><i data-lucide="map-pin" class="w-3 h-3"></i> ${item.address}</a>` : ''}
                         ${(item.price || item.hours || item.duration) ? `<div class="flex flex-wrap gap-2 mt-2">${item.price ? `<span class="text-[10px] text-muted">💶 ${item.price}</span>` : ''}${item.hours ? `<span class="text-[10px] text-muted">🕒 ${item.hours}</span>` : ''}${item.duration ? `<span class="text-[10px] text-muted">⏱ ${item.duration}</span>` : ''}</div>` : ''}
                         ${item.notes ? `<p class="text-[11px] text-muted mt-2 whitespace-pre-line">${item.notes}</p>` : ''}
+                    </div>
+                    <div class="flex items-center justify-between gap-2 rounded-xl bg-stoneBg border border-borderSubtle px-3 py-2">
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-semibold text-ink">Décision du groupe</p>
+                            <p class="text-[10px] text-muted">${(item.votes || []).length} ${(item.votes || []).length > 1 ? 'personnes intéressées' : 'personne intéressée'}</p>
+                        </div>
+                        <button onclick="toggleInspirationVote(${item.id})" class="shrink-0 text-[10px] font-semibold px-3 py-2 rounded-lg transition ${(item.votes || []).some(v => v.userId === (albaUserId || 'local-user')) ? 'bg-sand text-white' : 'bg-white text-ink border border-borderSubtle'}">
+                            ${(item.votes || []).some(v => v.userId === (albaUserId || 'local-user')) ? '✓ Je valide' : '♡ Ça me tente'}
+                        </button>
                     </div>
                     ${(item.phone || item.whatsapp || safeExternalUrl(item.website)) ? `<div class="flex flex-wrap gap-2 pt-1">${item.phone ? `<a href="tel:${inspoPhoneHref(item.phone)}" class="text-[10px] font-semibold px-2.5 py-1.5 rounded-lg bg-stoneBg text-ink">☎ Appeler</a>` : ''}${item.whatsapp ? `<a href="https://wa.me/${inspoWhatsAppHref(item.whatsapp)}" target="_blank" rel="noopener" class="text-[10px] font-semibold px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-700">WhatsApp</a>` : ''}${safeExternalUrl(item.website) ? `<a href="${safeExternalUrl(item.website)}" target="_blank" rel="noopener" class="text-[10px] font-semibold px-2.5 py-1.5 rounded-lg bg-stoneBg text-ink">Site / Réservation ↗</a>` : ''}</div>` : ''}
                     <div class="pt-1.5 flex items-center justify-between border-t border-stoneBg">
@@ -3905,10 +3964,21 @@
 
         function toMinutes(value) { const m = String(value||'').match(/^(\d{1,2}):(\d{2})$/); return m ? Number(m[1])*60+Number(m[2]) : 0; }
 
+        function saveDayJournal(value) {
+            const trip = getTrip();
+            if (!trip) return;
+            if (!trip.daysMeta) trip.daysMeta = {};
+            if (!trip.daysMeta[selectedDay]) trip.daysMeta[selectedDay] = { title: `Jour ${selectedDay}`, date: '' };
+            trip.daysMeta[selectedDay].journal = String(value || '').slice(0, 5000);
+            saveState();
+        }
+
         function renderItinerary() {
             const trip = getTrip();
             const meta = trip.daysMeta[selectedDay] || { title: `Jour ${selectedDay}`, date: '' };
             document.getElementById('current-day-title').textContent = meta.title;
+            const journalInput = document.getElementById('day-journal-input');
+            if (journalInput) journalInput.value = meta.journal || '';
 
             const steps = trip.itinerary[selectedDay] || [];
             const alertEl = document.getElementById('itinerary-conflict-alert');
@@ -4529,20 +4599,103 @@
         }
 
         // --- COMPANIONS & SHARE/IMPORT ---
-        function openCompanionsModal() {
-            renderCompanionsList();
+        async function openCompanionsModal() {
             document.getElementById('companions-modal').classList.remove('hidden');
+            await renderCompanionsList();
+            lucide.createIcons();
         }
 
-        function renderCompanionsList() {
+        async function renderCompanionsList() {
             const trip = getTrip();
-            const list = document.getElementById('companions-list-modal');
-            list.innerHTML = trip.companions.length ? trip.companions.map(c => `
-                <div class="flex items-center justify-between bg-stoneBg px-3.5 py-2.5 rounded-xl border border-borderSubtle">
-                    <span class="text-xs font-semibold text-ink">${c}</span>
-                    <button onclick="removeCompanion('${c}')" class="text-[11px] text-red-500">Retirer</button>
-                </div>
-            `).join('') : `<p class="text-xs text-muted text-center py-2">Voyage en solo pour le moment.</p>`;
+            if (!trip) return;
+            const cloudList = document.getElementById('cloud-members-list');
+            const localList = document.getElementById('companions-list-modal');
+            const isOwner = !trip._albaRole || trip._albaRole === 'owner';
+            if (cloudList) {
+                if (storageMode !== 'hybrid' || !albaUserId) {
+                    cloudList.innerHTML = '<p class="text-xs text-muted text-center py-3">Connecte-toi au cloud pour afficher les membres du voyage.</p>';
+                } else {
+                    cloudList.innerHTML = '<p class="text-xs text-muted text-center py-3">Chargement…</p>';
+                    const { data: members, error } = await supabaseClient
+                        .from('trip_members')
+                        .select('user_id, role, display_name, last_seen_at, joined_at')
+                        .eq('trip_id', trip.id)
+                        .order('joined_at', { ascending: true });
+                    if (error) {
+                        console.error('Chargement des participants:', error);
+                        cloudList.innerHTML = '<p class="text-xs text-red-500 py-2">Impossible de charger les participants. Réessaie.</p>';
+                    } else {
+                        const ownerRow = isOwner ? `
+                            <div class="flex items-center justify-between bg-sandLight px-3.5 py-3 rounded-xl border border-sand/20">
+                                <div><p class="text-xs font-semibold text-ink">Toi</p><p class="text-[10px] text-muted">Propriétaire du voyage</p></div>
+                                <span class="text-[10px] font-semibold text-sand">Tous les droits</span>
+                            </div>` : '';
+                        const memberRows = (members || []).map(member => {
+                            const name = escapePrintHtml(member.display_name || 'Participant');
+                            const roleLabel = member.role === 'editor' ? 'Peut modifier' : 'Consultation uniquement';
+                            const seen = member.last_seen_at
+                                ? 'Vu le ' + new Date(member.last_seen_at).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })
+                                : 'N’a pas encore ouvert le voyage';
+                            const controls = isOwner ? `
+                                <div class="flex items-center gap-2 mt-2">
+                                    <select aria-label="Droits de ${name}" onchange="changeTripMemberRole('${member.user_id}', this.value)" class="flex-1 bg-white text-[10px] text-ink rounded-lg px-2 py-2 border border-borderSubtle">
+                                        <option value="editor" ${member.role === 'editor' ? 'selected' : ''}>Peut consulter et modifier</option>
+                                        <option value="viewer" ${member.role === 'viewer' ? 'selected' : ''}>Consultation uniquement</option>
+                                    </select>
+                                    <button onclick="removeTripMember('${member.user_id}')" class="text-[10px] text-red-500 px-2 py-2">Retirer</button>
+                                </div>` : `<p class="text-[10px] text-muted mt-1">${roleLabel}</p>`;
+                            return `
+                                <div class="bg-stoneBg px-3.5 py-3 rounded-xl border border-borderSubtle">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <div class="min-w-0"><p class="text-xs font-semibold text-ink truncate">${name}</p><p class="text-[10px] text-muted">${escapePrintHtml(seen)}</p></div>
+                                        <span class="shrink-0 text-[9px] font-semibold uppercase tracking-wide ${member.role === 'editor' ? 'text-emerald-700' : 'text-muted'}">${member.role === 'editor' ? 'Éditeur' : 'Lecteur'}</span>
+                                    </div>
+                                    ${controls}
+                                </div>`;
+                        }).join('');
+                        cloudList.innerHTML = ownerRow + (memberRows || '<p class="text-xs text-muted text-center py-3">Aucun participant n’a encore rejoint ce voyage.</p>');
+                    }
+                }
+            }
+            if (localList) {
+                localList.innerHTML = (trip.companions || []).length ? trip.companions.map(c => `
+                    <div class="flex items-center justify-between bg-stoneBg px-3.5 py-2.5 rounded-xl border border-borderSubtle">
+                        <span class="text-xs font-semibold text-ink">${escapePrintHtml(c)}</span>
+                        <button onclick="removeCompanion('${String(c).replace(/\\/g, '\\\\').replace(/'/g, "\\\\'")}')" class="text-[11px] text-red-500">Retirer</button>
+                    </div>
+                `).join('') : '<p class="text-xs text-muted text-center py-2">Aucun compagnon manuel.</p>';
+            }
+        }
+
+        async function changeTripMemberRole(userId, role) {
+            const trip = getTrip();
+            if (!trip || (trip._albaRole && trip._albaRole !== 'owner') || !['editor', 'viewer'].includes(role)) return;
+            const { error } = await supabaseClient.rpc('set_trip_member_role', {
+                p_trip_id: trip.id, p_user_id: userId, p_role: role
+            });
+            if (error) {
+                console.error('Modification des droits:', error);
+                showToast('Impossible de modifier les droits');
+                await renderCompanionsList();
+                return;
+            }
+            showToast(role === 'editor' ? 'Droits de modification accordés' : 'Accès limité à la consultation');
+            await renderCompanionsList();
+        }
+
+        async function removeTripMember(userId) {
+            const trip = getTrip();
+            if (!trip || (trip._albaRole && trip._albaRole !== 'owner')) return;
+            if (!window.confirm('Retirer cette personne du voyage ?')) return;
+            const { error } = await supabaseClient.from('trip_members').delete()
+                .eq('trip_id', trip.id).eq('user_id', userId);
+            if (error) {
+                console.error('Suppression du participant:', error);
+                showToast('Impossible de retirer ce participant');
+                return;
+            }
+            showToast('Participant retiré');
+            await renderCompanionsList();
         }
 
         function addCompanion() {
@@ -4622,21 +4775,24 @@
             const body = document.getElementById('doc-modal-body');
             const items = [
                 ...trip.flights.filter(f => f.image).map(f => ({ title: `Vol ${f.number}`, sub: `${f.depIata} → ${f.arrIata}`, image: f.image })),
-                ...trip.inspirations.filter(i => i.booked || i.image).map(i => ({ title: i.title, sub: i.address || i.category, image: i.image }))
+                ...trip.inspirations.filter(i => i.booked || i.image).map(i => ({ title: i.title, sub: i.address || i.category, image: i.image })),
+                ...(trip.reservations || []).filter(r => r.url || r.reference).map(r => ({ title: r.name, sub: [r.type, r.date ? new Date(r.date + 'T12:00:00').toLocaleDateString('fr-FR') : '', r.reference ? 'Réf. ' + r.reference : ''].filter(Boolean).join(' • '), url: r.url }))
             ];
 
             if (!items.length) {
-                body.innerHTML = `<p class="text-xs text-muted text-center py-4">Aucun justificatif ou QR code enregistré.</p>`;
+                body.innerHTML = `<p class="text-xs text-muted text-center py-4">Aucun justificatif ou QR code enregistré. Ajoute un lien ou une référence à une réservation pour le retrouver ici.</p>`;
             } else {
-                body.innerHTML = items.map(item => `
-                    <div class="bg-stoneBg p-3.5 rounded-2xl border border-borderSubtle flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-semibold text-ink">${item.title}</p>
-                            <p class="text-[11px] text-muted mt-0.5">${item.sub}</p>
+                body.innerHTML = items.map(item => {
+                    const safeUrl = item.url && /^https?:\\/\\//i.test(item.url) ? item.url.replace(/&/g, '&amp;').replace(/"/g, '&quot;') : '';
+                    return `
+                    <div class="bg-stoneBg p-3.5 rounded-2xl border border-borderSubtle flex items-center justify-between gap-3">
+                        <div class="min-w-0">
+                            <p class="text-xs font-semibold text-ink truncate">${item.title}</p>
+                            <p class="text-[11px] text-muted mt-0.5">${item.sub || 'Document de voyage'}</p>
                         </div>
-                        ${item.image ? `<button onclick="closeModal('doc-modal'); openQrViewer('${item.title.replace(/'/g, "\\'")}', '${item.image}', '${item.sub}')" class="text-[11px] font-semibold bg-white px-2.5 py-1.5 rounded-xl border border-borderSubtle text-sand">Ouvrir QR</button>` : `<span class="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg">Réservé</span>`}
-                    </div>
-                `).join('');
+                        ${item.image ? `<button onclick="closeModal('doc-modal'); openQrViewer('${item.title.replace(/'/g, "\\'")}', '${item.image}', '${item.sub}')" class="shrink-0 text-[11px] font-semibold bg-white px-2.5 py-1.5 rounded-xl border border-borderSubtle text-sand">Ouvrir QR</button>` : safeUrl ? `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="shrink-0 text-[11px] font-semibold bg-white px-2.5 py-1.5 rounded-xl border border-borderSubtle text-sand">Ouvrir le lien</a>` : `<span class="shrink-0 text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg">Référence enregistrée</span>`}
+                    </div>`;
+                }).join('');
             }
             document.getElementById('doc-modal').classList.remove('hidden');
         }
