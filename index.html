@@ -1374,6 +1374,11 @@
                 <div class="w-10 h-1 bg-zinc-200 rounded-full mx-auto"></div>
                 <div class="flex items-center justify-between"><div><h3 class="text-base font-bold text-ink">Ton compte ALBA</h3><p class="text-[11px] text-muted">Retrouve tes voyages sur un autre appareil.</p></div><button onclick="closeModal('account-modal')" class="w-8 h-8 rounded-full bg-stoneBg flex items-center justify-center text-muted"><i data-lucide="x" class="w-4 h-4"></i></button></div>
                 <div id="account-current" class="hidden bg-stoneBg rounded-xl p-3 text-xs text-ink"></div>
+                <div id="account-password-setup" class="hidden space-y-2">
+                    <label class="block text-[10px] font-semibold text-muted">Définir ton mot de passe</label>
+                    <input id="account-new-password" type="password" autocomplete="new-password" placeholder="8 caractères minimum" class="w-full bg-stoneBg text-sm text-ink rounded-xl px-3 py-3 border border-borderSubtle">
+                    <button onclick="setAlbaPassword()" class="w-full bg-ink text-white text-xs font-semibold py-3 rounded-xl">Enregistrer mon mot de passe</button>
+                </div>
                 <div id="account-form" class="space-y-2">
                     <label class="block text-[10px] font-semibold text-muted">Adresse e-mail</label>
                     <input id="account-email" type="email" autocomplete="email" placeholder="toi@exemple.com" class="w-full bg-stoneBg text-sm text-ink rounded-xl px-3 py-3 border border-borderSubtle">
@@ -1618,15 +1623,19 @@
         async function openAccountModal() {
             const { data: { user } } = await supabaseClient.auth.getUser();
             const isRegistered = !!(user && user.email && !user.is_anonymous);
+            const isEmailConfirmed = !!user?.email_confirmed_at;
             const current = document.getElementById('account-current');
             const form = document.getElementById('account-form');
+            const passwordSetup = document.getElementById('account-password-setup');
             const signout = document.getElementById('account-signout');
             current.classList.toggle('hidden', !isRegistered);
             form.classList.toggle('hidden', isRegistered);
+            passwordSetup.classList.toggle('hidden', !isRegistered || !isEmailConfirmed);
             signout.classList.toggle('hidden', !isRegistered);
             current.textContent = isRegistered ? 'Connecté avec ' + user.email + ' · Tes voyages sont liés à ce compte.' : 'Tu utilises actuellement ALBA en mode invité. Crée ton compte pour conserver tes voyages et les retrouver sur un autre appareil.';
             document.getElementById('account-email').value = user?.email || '';
             document.getElementById('account-password').value = '';
+            document.getElementById('account-new-password').value = '';
             document.getElementById('account-message').textContent = '';
             document.getElementById('account-modal').classList.remove('hidden');
             lucide.createIcons();
@@ -1645,7 +1654,7 @@
                 const { data: { user } } = await supabaseClient.auth.getUser();
                 let result;
                 if (user?.is_anonymous) {
-                    result = await supabaseClient.auth.updateUser({ email, password });
+                    result = await supabaseClient.auth.updateUser({ email }, { emailRedirectTo: location.origin + location.pathname });
                 } else if (!user) {
                     result = await supabaseClient.auth.signUp({ email, password });
                 } else {
@@ -1655,12 +1664,26 @@
                 storageMode = 'hybrid';
                 localStorage.setItem('alba_storage_mode', 'hybrid');
                 await initCloudSync();
-                setAccountMessage('Demande envoyée. Vérifie ta boîte mail pour confirmer ton adresse. Tes voyages restent associés à cette session.');
                 await openAccountModal();
-                setAccountMessage('Vérifie ta boîte mail pour confirmer ton adresse. Tes voyages restent sur cette session et seront liés au compte après confirmation.');
+                setAccountMessage('Un e-mail de confirmation a été envoyé. Confirme ton adresse depuis le même appareil, puis reviens ici pour définir ton mot de passe. Tes voyages restent associés à cette session.');
             } catch (error) {
                 console.error('Création compte ALBA:', error);
                 setAccountMessage(error.message || 'Impossible de créer le compte pour le moment.');
+            }
+        }
+        async function setAlbaPassword() {
+            const password = document.getElementById('account-new-password').value;
+            if (password.length < 8) return setAccountMessage('Choisis un mot de passe de 8 caractères minimum.');
+            try {
+                const { data: { user } } = await supabaseClient.auth.getUser();
+                if (!user?.email_confirmed_at || user.is_anonymous) return setAccountMessage('Confirme d’abord ton adresse e-mail.');
+                const { error } = await supabaseClient.auth.updateUser({ password });
+                if (error) throw error;
+                await initCloudSync();
+                await openAccountModal();
+                setAccountMessage('Mot de passe enregistré. Ton compte ALBA est prêt à être utilisé sur un autre appareil.');
+            } catch (error) {
+                setAccountMessage(error.message || 'Impossible d’enregistrer le mot de passe.');
             }
         }
         async function loginAlbaAccount() {
