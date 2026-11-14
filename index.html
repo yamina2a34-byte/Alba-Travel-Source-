@@ -2403,7 +2403,7 @@
             reservationEl.innerHTML=reservations.length?reservations.map(r=>{
                 const mapQuery=r.location?encodeURIComponent(r.location):'';
                 const maps=mapQuery?'<a class="text-[10px] font-semibold text-sand underline" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='+mapQuery+'">Ouvrir l’adresse</a>':'';
-                const booking=r.url?'<a class="text-[10px] font-semibold text-sand underline" target="_blank" rel="noopener" href="'+safe(r.url)+'">Confirmation</a>':'';
+                const booking=r.url && /^https?:\/\//i.test(r.url)?'<a class="text-[10px] font-semibold text-sand underline" target="_blank" rel="noopener noreferrer" href="'+safe(r.url)+'">Confirmation</a>':'';
                 return '<article class="rounded-2xl bg-white border border-borderSubtle p-3 space-y-1.5"><div class="flex items-center justify-between gap-2"><p class="text-[11px] font-bold text-ink">'+safe(r.name||'Réservation')+'</p><span class="text-[9px] text-sand">'+safe(r.type||'')+'</span></div><p class="text-[10px] text-muted">'+[r.date?new Date(r.date+'T12:00:00').toLocaleDateString('fr-FR'):'',r.time||''].filter(Boolean).map(safe).join(' · ')+'</p>'+(r.location?'<p class="text-[10px] text-muted">'+safe(r.location)+'</p>':'')+(r.reference?'<p class="text-[10px] bg-stoneBg rounded-lg p-2">Référence : <strong>'+safe(r.reference)+'</strong></p>':'')+'<div class="flex gap-3 pt-1">'+maps+booking+'</div></article>';
             }).join(''):'<div class="rounded-xl bg-white border border-borderSubtle p-3 text-[10px] text-muted">Aucune réservation enregistrée pour le moment.</div>';
 
