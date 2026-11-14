@@ -2009,23 +2009,26 @@
             // Une installation qui possède un état vide/incomplet ne doit jamais rester sur « 0 voyage ».
             // On réinjecte les trois voyages de départ localement, même si une ancienne version a déjà
             // créé une clé de stockage vide. Les voyages personnels existants sont toujours conservés.
-            if (saved && Array.isArray(saved.trips) && saved.trips.some(trip => !trip.deletedAt)) {
-                if (!Array.isArray(saved.templates)) saved.templates = defaultTemplates;
-                return saved;
-            }
-
-            const freshState = {
-                ...(saved && typeof saved === 'object' ? saved : {}),
-                trips: initialTrips.map(trip => ({ ...trip, id: crypto.randomUUID() })),
-                templates: Array.isArray(saved?.templates) ? saved.templates : defaultTemplates
+            const restoredState = saved && typeof saved === 'object' ? saved : {};
+            const restoredTrips = Array.isArray(restoredState.trips) ? restoredState.trips : [];
+            const activeTitles = new Set(restoredTrips.filter(trip => !trip.deletedAt).map(trip => (trip.title || '').trim().toLocaleLowerCase()));
+            // Les trois voyages de départ sont garantis localement, même si l'ancien stockage
+            // contient déjà d'autres voyages ou une liste vide. Les voyages personnels et la corbeille restent conservés.
+            const missingStarters = initialTrips
+                .filter(trip => !activeTitles.has(trip.title.trim().toLocaleLowerCase()))
+                .map(trip => ({ ...trip, id: crypto.randomUUID() }));
+            const restored = {
+                ...restoredState,
+                trips: [...restoredTrips, ...missingStarters],
+                templates: Array.isArray(restoredState.templates) ? restoredState.templates : defaultTemplates
             };
             try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(freshState));
-                localStorage.setItem('noma_travel_v4_state', JSON.stringify(freshState));
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(restored));
+                localStorage.setItem('noma_travel_v4_state', JSON.stringify(restored));
             } catch (e) {
                 console.warn('Initialisation locale impossible', e);
             }
-            return freshState;
+            return restored;
         }
 
         function ensureUuid(value) {
