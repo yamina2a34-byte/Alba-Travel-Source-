@@ -2351,6 +2351,7 @@
             if(reservations.length && incompleteReservations.length) alerts.push({title:'Réservations à compléter',detail:'Ajoute les horaires, adresses et références manquantes.',tab:'apercu',target:'reservations-list',urgency:'soon'});
             if(documentCount===0) alerts.push({title:'Coffre-fort encore vide',detail:'Pense à y déposer passeport ou pièce d’identité, assurance et confirmations utiles.',tab:'apercu',target:'vault',urgency:'normal'});
             else if(documentCount>0) alerts.push({title:'Documents enregistrés',detail:documentCount+' fichier(s) dans le coffre-fort. Vérifie que les documents de voyage indispensables y figurent.',tab:'apercu',target:'vault',urgency:'normal'});
+            alerts.sort((a,b)=>({urgent:0,soon:1,normal:2}[a.urgency]??3)-({urgent:0,soon:1,normal:2}[b.urgency]??3));
             const alertEl=document.getElementById('trip-readiness-alerts');
             if(alertEl) {
                 alertEl.innerHTML=alerts.length ? '<p class="text-[10px] font-semibold uppercase tracking-wider text-muted mb-1">À ne pas oublier</p>'+alerts.map(a=>{
@@ -2916,6 +2917,7 @@
             if (item) item.done = !item.done;
             saveState();
             renderTabChecklists();
+            renderTripReadiness();
         }
 
         function deleteTabChecklistItem(tabKey, itemId) {
@@ -3430,6 +3432,7 @@
             if (t) t.done = !t.done;
             saveState();
             renderTodos();
+            renderTripReadiness();
         }
 
         function deleteTodo(id) {
