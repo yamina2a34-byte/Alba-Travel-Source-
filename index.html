@@ -1727,7 +1727,7 @@
                 return 'Les sessions invitées sont désactivées dans Supabase. Active « Allow anonymous sign-ins » dans Authentication > Sign In / Providers.';
             }
             if (/redirect.*allow|redirect.*not allowed/i.test(message)) {
-                return 'Supabase refuse l’adresse de retour. Ajoute https://abla-travel.netlify.app/** dans Authentication > URL Configuration.';
+                return 'Supabase refuse l’adresse de retour. Dans Authentication > URL Configuration, définis https://alba-travel-three.vercel.app comme Site URL et ajoute https://alba-travel-three.vercel.app/** aux Redirect URLs. Tu peux conserver aussi l’adresse Netlify si tu l’utilises encore.';
             }
             if (/already registered|already been registered|user already registered|email.*taken/i.test(message)) {
                 return 'Cette adresse possède déjà un compte. Utilise « J’ai déjà un compte · Me connecter ».';
