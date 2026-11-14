@@ -3285,6 +3285,24 @@
             showToast('Enregistré');
         }
 
+        function toggleInspirationVote(id) {
+            const trip = getTrip();
+            const item = trip?.inspirations?.find(i => String(i.id) === String(id));
+            if (!item) return;
+            if (!Array.isArray(item.votes)) item.votes = [];
+            const voterId = albaUserId || 'local-user';
+            const existingIndex = item.votes.findIndex(v => v.userId === voterId);
+            if (existingIndex >= 0) {
+                item.votes.splice(existingIndex, 1);
+                showToast('Ton vote a été retiré');
+            } else {
+                item.votes.push({ userId: voterId, createdAt: new Date().toISOString() });
+                showToast('Ton avis a été ajouté au voyage');
+            }
+            saveState();
+            renderInspirations();
+        }
+
         function openEditInspoModal(id) {
             const trip = getTrip();
             const item = trip.inspirations.find(i => i.id === id);
@@ -3409,6 +3427,15 @@
                         ${item.address ? `<a href="https://maps.google.com/?q=${encodeURIComponent(item.address)}" target="_blank" rel="noopener" class="text-[11px] text-sand flex items-center gap-1 mt-0.5"><i data-lucide="map-pin" class="w-3 h-3"></i> ${item.address}</a>` : ''}
                         ${(item.price || item.hours || item.duration) ? `<div class="flex flex-wrap gap-2 mt-2">${item.price ? `<span class="text-[10px] text-muted">💶 ${item.price}</span>` : ''}${item.hours ? `<span class="text-[10px] text-muted">🕒 ${item.hours}</span>` : ''}${item.duration ? `<span class="text-[10px] text-muted">⏱ ${item.duration}</span>` : ''}</div>` : ''}
                         ${item.notes ? `<p class="text-[11px] text-muted mt-2 whitespace-pre-line">${item.notes}</p>` : ''}
+                    </div>
+                    <div class="flex items-center justify-between gap-2 rounded-xl bg-stoneBg border border-borderSubtle px-3 py-2">
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-semibold text-ink">Décision du groupe</p>
+                            <p class="text-[10px] text-muted">${(item.votes || []).length} ${(item.votes || []).length > 1 ? 'personnes intéressées' : 'personne intéressée'}</p>
+                        </div>
+                        <button onclick="toggleInspirationVote(${item.id})" class="shrink-0 text-[10px] font-semibold px-3 py-2 rounded-lg transition ${(item.votes || []).some(v => v.userId === (albaUserId || 'local-user')) ? 'bg-sand text-white' : 'bg-white text-ink border border-borderSubtle'}">
+                            ${(item.votes || []).some(v => v.userId === (albaUserId || 'local-user')) ? '✓ Je valide' : '♡ Ça me tente'}
+                        </button>
                     </div>
                     ${(item.phone || item.whatsapp || safeExternalUrl(item.website)) ? `<div class="flex flex-wrap gap-2 pt-1">${item.phone ? `<a href="tel:${inspoPhoneHref(item.phone)}" class="text-[10px] font-semibold px-2.5 py-1.5 rounded-lg bg-stoneBg text-ink">☎ Appeler</a>` : ''}${item.whatsapp ? `<a href="https://wa.me/${inspoWhatsAppHref(item.whatsapp)}" target="_blank" rel="noopener" class="text-[10px] font-semibold px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-700">WhatsApp</a>` : ''}${safeExternalUrl(item.website) ? `<a href="${safeExternalUrl(item.website)}" target="_blank" rel="noopener" class="text-[10px] font-semibold px-2.5 py-1.5 rounded-lg bg-stoneBg text-ink">Site / Réservation ↗</a>` : ''}</div>` : ''}
                     <div class="pt-1.5 flex items-center justify-between border-t border-stoneBg">
