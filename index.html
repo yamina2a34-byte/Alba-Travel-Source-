@@ -2502,7 +2502,7 @@
 
         function autoFillFlightInfo(silent = false) {
             const rawNum = document.getElementById('fl-number').value.trim().toUpperCase();
-            const cleanNum = rawNum.replace(/\\s+/g, '');
+            const cleanNum = rawNum.replace(/\s+/g, '');
             if (!cleanNum) return;
             const prefix = cleanNum.match(/^[A-Z0-9]{2}/)?.[0];
             const detectedAirline = AIRLINE_PREFIXES[prefix];
