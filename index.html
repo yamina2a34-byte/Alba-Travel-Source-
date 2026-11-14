@@ -3818,7 +3818,7 @@
                                 return `<button onclick="toggleInspirationVote('${item.id}','${choice}')" class="rounded-lg px-1.5 py-2 text-[9px] font-semibold ${mine ? 'bg-sand text-white' : 'bg-white text-ink border border-borderSubtle'}">${label}<span class="block text-[9px] opacity-75">${count}</span></button>`;
                             }).join('')}
                         </div>
-                    </div>` : ''}`
+                    </div>` : ''}
                     ${(item.phone || item.whatsapp || safeExternalUrl(item.website)) ? `<div class="flex flex-wrap gap-2 pt-1">${item.phone ? `<a href="tel:${inspoPhoneHref(item.phone)}" class="text-[10px] font-semibold px-2.5 py-1.5 rounded-lg bg-stoneBg text-ink">☎ Appeler</a>` : ''}${item.whatsapp ? `<a href="https://wa.me/${inspoWhatsAppHref(item.whatsapp)}" target="_blank" rel="noopener" class="text-[10px] font-semibold px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-700">WhatsApp</a>` : ''}${safeExternalUrl(item.website) ? `<a href="${safeExternalUrl(item.website)}" target="_blank" rel="noopener" class="text-[10px] font-semibold px-2.5 py-1.5 rounded-lg bg-stoneBg text-ink">Site / Réservation ↗</a>` : ''}</div>` : ''}
                     <div class="pt-1.5 flex items-center justify-between border-t border-stoneBg">
                         <div class="flex items-center gap-3">
