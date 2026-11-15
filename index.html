@@ -11,13 +11,13 @@
     <link rel="manifest" href="./manifest.webmanifest">
     <link rel="apple-touch-icon" sizes="192x192" href="./icon-192.png">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500;6..96,600&family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script defer src="https://unpkg.com/lucide@latest"></script>
     
     <script>
         tailwind.config = {
@@ -145,14 +145,14 @@
             <!-- BANNIÈRE DE MARQUE ALBA TRAVEL (STYLE WANDERLOG) -->
             <header class="bg-brandBg border-b border-brandBorder px-5 safe-top-pad pb-4 flex items-center justify-between shrink-0">
                 <div class="flex items-center gap-3 select-none pt-1">
-                    <!-- Logo Boussole & Carte Pliée Vectoriel Exact -->
+                    <!-- Logo ALBA : icône d'origine + typographie d'origine -->
                     <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0">
                         <img src="./alba-icon.svg" alt="ALBA Travel" class="w-11 h-11 object-contain" />
                     </div>
-                    <!-- Texte ALBA TRAVEL à droite du logo -->
+                    <!-- Wordmark ALBA TRAVEL : Bodoni Moda + Cormorant Garamond, palette d'origine -->
                     <div class="flex flex-col justify-center leading-none">
-                        <span class="font-alba text-ink text-[22px] font-normal tracking-[0.05em] inline-block" style="transform: scaleY(1.24);">ALBA</span>
-                        <span class="font-litterature text-sand text-[10px] font-semibold tracking-[0.2em] mt-1">TRAVEL</span>
+                        <span class="font-alba text-ink text-[23px] font-normal tracking-[0.02em] inline-block" style="transform: scaleY(1.22);">ALBA</span>
+                        <span class="font-litterature text-sand text-[9px] font-semibold tracking-[0.18em] mt-1">TRAVEL</span>
                     </div>
                 </div>
 
@@ -2356,7 +2356,7 @@
             const summary=document.getElementById('trip-readiness-summary');
             const itemsEl=document.getElementById('trip-readiness-items');
             if(scoreEl) scoreEl.textContent=String(score);
-            if(progress) progress.style.strokeDashoffset = (251.33 * (1 - score / 100)).toFixed(2);
+            if(progress) { const offset = (251.33 * (1 - score / 100)).toFixed(2); progress.style.strokeDashoffset = offset; progress.setAttribute('stroke-dashoffset', offset); }
             if(summary) summary.textContent=pending ? pending+' point(s) à vérifier avant le départ' : 'Les informations essentielles sont renseignées';
             if(itemsEl) itemsEl.innerHTML=checks.map(item=>{
                 const complete=item.ratio !== undefined ? item.ratio>=1 : item.ready;
@@ -5680,7 +5680,7 @@
                 setTimeout(() => initCloudSync(), 0);
                 setTimeout(() => {
                     if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
-                        navigator.serviceWorker.register('./sw.js').catch(err => console.warn('ALBA offline worker:', err));
+                        navigator.serviceWorker.register('./sw.js?v=11').catch(err => console.warn('ALBA offline worker:', err));
                     }
                 }, 0);
             });
