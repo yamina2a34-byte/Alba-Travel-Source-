@@ -5672,8 +5672,18 @@
             refreshStoragePreferenceUI();
             renderHome();
             bindLongPress(document.getElementById('trip-header-editable'), () => openEditTripHeaderModal());
-            initCloudSync();
-            if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('./sw.js').catch(err => console.warn('ALBA offline worker:', err));
+
+            // Afficher l’interface locale immédiatement. La synchronisation cloud et le
+            // service worker démarrent après le premier rendu pour éviter le blocage visuel
+            // de quelques secondes sur iPhone.
+            requestAnimationFrame(() => {
+                setTimeout(() => initCloudSync(), 0);
+                setTimeout(() => {
+                    if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+                        navigator.serviceWorker.register('./sw.js').catch(err => console.warn('ALBA offline worker:', err));
+                    }
+                }, 0);
+            });
         });
         window.addEventListener('online', () => {
             if (storageMode === 'hybrid') {
