@@ -2916,9 +2916,80 @@
             if (!trip) return;
             if (!trip.overviewOrder) trip.overviewOrder = ['flights', 'rentals', 'todos'];
             const container = document.getElementById('overview-sortable-sections');
+            if (!container) return;
             trip.overviewOrder.forEach(secId => {
                 const el = container.querySelector(`[data-section-id="${secId}"]`);
                 if (el) container.appendChild(el);
+            });
+            bindOverviewDrag(container);
+        }
+
+        // Réordonnancement tactile fiable : appui long puis glisser la carte.
+        // Les boutons internes (flèches, liens, champs) restent cliquables normalement.
+        function bindOverviewDrag(container) {
+            if (!container) return;
+            container.querySelectorAll('.overview-draggable').forEach(card => {
+                if (card.dataset.dragBound === '1') return;
+                card.dataset.dragBound = '1';
+                let holdTimer = null;
+                let active = false;
+                let pointerId = null;
+                let startY = 0;
+
+                const clearHold = () => {
+                    if (holdTimer) clearTimeout(holdTimer);
+                    holdTimer = null;
+                };
+
+                card.addEventListener('pointerdown', event => {
+                    if (event.pointerType === 'mouse' && event.button !== 0) return;
+                    if (event.target.closest('button, a, input, select, textarea')) return;
+                    pointerId = event.pointerId;
+                    startY = event.clientY;
+                    active = false;
+                    clearHold();
+                    holdTimer = setTimeout(() => {
+                        active = true;
+                        card.classList.add('dragging-section');
+                        card.setPointerCapture?.(pointerId);
+                        if (navigator.vibrate) navigator.vibrate(15);
+                        showToast('Déplacez la section');
+                    }, 520);
+                });
+
+                card.addEventListener('pointermove', event => {
+                    if (event.pointerId !== pointerId) return;
+                    if (!active) {
+                        if (Math.abs(event.clientY - startY) > 10) clearHold();
+                        return;
+                    }
+                    event.preventDefault();
+                    const siblings = [...container.querySelectorAll('.overview-draggable')].filter(el => el !== card);
+                    const target = siblings.find(el => event.clientY < el.getBoundingClientRect().top + el.getBoundingClientRect().height / 2);
+                    if (target) container.insertBefore(card, target);
+                    else container.appendChild(card);
+                });
+
+                const finish = event => {
+                    if (event.pointerId !== pointerId) return;
+                    clearHold();
+                    const didDrag = active;
+                    active = false;
+                    card.classList.remove('dragging-section');
+                    pointerId = null;
+                    if (didDrag) {
+                        const trip = getTrip();
+                        const ids = [...container.querySelectorAll('.overview-draggable')].map(el => el.dataset.sectionId);
+                        if (trip) {
+                            trip.overviewOrder = ids;
+                            saveState();
+                            showToast('Ordre des sections mis à jour');
+                        }
+                    }
+                };
+                card.addEventListener('pointerup', finish);
+                card.addEventListener('pointercancel', finish);
+                card.addEventListener('lostpointercapture', finish);
             });
         }
 
@@ -4106,24 +4177,70 @@
             let holdTimer = null;
             let active = null;
             const clearHold = () => { if (holdTimer) clearTimeout(holdTimer); holdTimer = null; };
+
+            // iPhone / iPad : touchstart/touchmove est plus fiable que pointer capture
+            // pour le maintien puis déplacement d'un handle.
             container.querySelectorAll('.step-drag-handle').forEach(handle => {
-                handle.addEventListener('pointerdown', event => {
-                    if (event.pointerType === 'mouse' && event.button !== 0) return;
+                let touchActive = null;
+                handle.addEventListener('touchstart', event => {
+                    if (!event.touches?.length) return;
+                    const touch = event.touches[0];
                     const card = handle.closest('.step-draggable-item');
                     if (!card) return;
                     clearHold();
-                    active = { card, pointerId: event.pointerId, startY: event.clientY, dragging: false };
+                    touchActive = { card, startY: touch.clientY, dragging: false };
+                    holdTimer = setTimeout(() => {
+                        if (!touchActive) return;
+                        touchActive.dragging = true;
+                        card.classList.add('dragging-section');
+                        if (navigator.vibrate) navigator.vibrate(15);
+                        showToast('Déplacez l’étape');
+                    }, 420);
+                }, { passive: true });
+
+                handle.addEventListener('touchmove', event => {
+                    if (!touchActive || !event.touches?.length) return;
+                    const touch = event.touches[0];
+                    if (!touchActive.dragging) {
+                        if (Math.abs(touch.clientY - touchActive.startY) > 12) clearHold();
+                        return;
+                    }
+                    event.preventDefault();
+                    const siblings = [...container.querySelectorAll('.step-draggable-item')].filter(el => el !== touchActive.card);
+                    const target = siblings.find(el => touch.clientY < el.getBoundingClientRect().top + el.getBoundingClientRect().height / 2);
+                    if (target) container.insertBefore(touchActive.card, target);
+                    else container.appendChild(touchActive.card);
+                }, { passive: false });
+
+                const finishTouch = () => {
+                    if (!touchActive) return;
+                    clearHold();
+                    const didDrag = touchActive.dragging;
+                    touchActive.card.classList.remove('dragging-section');
+                    touchActive = null;
+                    if (didDrag) reorderItineraryFromDOM();
+                };
+                handle.addEventListener('touchend', finishTouch);
+                handle.addEventListener('touchcancel', finishTouch);
+            });
+
+            // Desktop : maintien puis déplacement à la souris.
+            container.querySelectorAll('.step-drag-handle').forEach(handle => {
+                handle.addEventListener('mousedown', event => {
+                    if (event.button !== 0) return;
+                    const card = handle.closest('.step-draggable-item');
+                    if (!card) return;
+                    clearHold();
+                    active = { card, startY: event.clientY, dragging: false };
                     holdTimer = setTimeout(() => {
                         if (!active) return;
                         active.dragging = true;
                         card.classList.add('dragging-section');
-                        handle.setPointerCapture?.(active.pointerId);
-                        if (navigator.vibrate) navigator.vibrate(15);
                         showToast('Déplacez l’étape');
-                    }, 280);
+                    }, 420);
                 });
-                handle.addEventListener('pointermove', event => {
-                    if (!active || event.pointerId !== active.pointerId) return;
+                handle.addEventListener('mousemove', event => {
+                    if (!active) return;
                     if (!active.dragging) {
                         if (Math.abs(event.clientY - active.startY) > 12) clearHold();
                         return;
@@ -4134,18 +4251,18 @@
                     if (target) container.insertBefore(active.card, target);
                     else container.appendChild(active.card);
                 });
-                const finish = event => {
-                    if (!active || event.pointerId !== active.pointerId) return;
+                const finishMouse = () => {
+                    if (!active) return;
                     clearHold();
                     const didDrag = active.dragging;
                     active.card.classList.remove('dragging-section');
                     active = null;
                     if (didDrag) reorderItineraryFromDOM();
                 };
-                handle.addEventListener('pointerup', finish);
-                handle.addEventListener('pointercancel', finish);
-                handle.addEventListener('lostpointercapture', finish);
+                handle.addEventListener('mouseup', finishMouse);
+                handle.addEventListener('mouseleave', () => { if (active && !active.dragging) clearHold(); });
             });
+
             // Souris / trackpad : glisser-déposer natif.
             container.querySelectorAll('.step-draggable-item').forEach(card => {
                 card.draggable = true;
