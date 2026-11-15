@@ -1,8 +1,17 @@
-const CACHE_NAME = 'alba-travel-shell-v10';
+const CACHE_NAME = 'alba-travel-shell-v11';
 const APP_SHELL = ['./index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    for (const asset of APP_SHELL) {
+      try {
+        const response = await fetch(asset, { cache: 'no-store' });
+        if (response.ok) await cache.put(asset, response);
+      } catch (_) {}
+    }
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', event => {
@@ -15,11 +24,13 @@ self.addEventListener('fetch', event => {
   const url = new URL(request.url);
   if (request.mode === 'navigate') {
     event.respondWith(caches.match('./index.html').then(cached => {
-      const network = fetch(request).then(response => {
+      const network = fetch(request, { cache: 'no-store' }).then(response => {
         const copy = response.clone();
         caches.open(CACHE_NAME).then(cache => cache.put('./index.html', copy));
         return response;
       }).catch(() => cached);
+      // Une version déjà installée s'affiche immédiatement, puis la version réseau
+      // remplace le cache pour la prochaine ouverture.
       return cached || network;
     }));
     return;
