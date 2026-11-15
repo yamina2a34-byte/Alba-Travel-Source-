@@ -15,7 +15,17 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('activate', event => {
-  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))).then(() => self.clients.claim()));
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)));
+    await self.clients.claim();
+    // L'ancienne version pouvait rester affichée dans l'app installée.
+    // Une seule navigation après activation garantit que le nouvel index est visible.
+    const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const client of clients) {
+      try { await client.navigate(client.url); } catch (_) {}
+    }
+  })());
 });
 
 self.addEventListener('fetch', event => {
