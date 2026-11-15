@@ -1,4 +1,4 @@
-const CACHE_NAME = 'alba-travel-shell-v9';
+const CACHE_NAME = 'alba-travel-shell-v10';
 const APP_SHELL = ['./index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', event => {
@@ -14,11 +14,14 @@ self.addEventListener('fetch', event => {
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
   if (request.mode === 'navigate') {
-    event.respondWith(fetch(request).then(response => {
-      const copy = response.clone();
-      caches.open(CACHE_NAME).then(cache => cache.put('./index.html', copy));
-      return response;
-    }).catch(() => caches.match('./index.html')));
+    event.respondWith(caches.match('./index.html').then(cached => {
+      const network = fetch(request).then(response => {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put('./index.html', copy));
+        return response;
+      }).catch(() => cached);
+      return cached || network;
+    }));
     return;
   }
   // Les tuiles cartographiques restent gérées par le cache HTTP natif du navigateur.
