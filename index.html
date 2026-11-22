@@ -1024,6 +1024,9 @@
                         <option value="Fast Food">🍔 Fast Food</option>
                         <option value="Bar">🍸 Bar</option>
                         <option value="Hôtel">🏨 Hôtel</option>
+                        <option value="Maison">🏠 Maison</option>
+                        <option value="Aéroport">✈️ Aéroport</option>
+                        <option value="Port">⚓ Port</option>
                         <option value="Lieu à visiter">🏛️ Lieu à visiter</option>
                         <option value="Musée">🏛️ Musée</option>
                         <option value="Monument">🏰 Monument</option>
@@ -1572,7 +1575,7 @@
 
         const PLACE_CATEGORIES = [
             'Café', 'Restaurant', 'Glacier', 'Fast Food', 'Bar',
-            'Hôtel', 'Lieu à visiter', 'Musée', 'Monument', 'Nature',
+            'Hôtel', 'Maison', 'Aéroport', 'Port', 'Lieu à visiter', 'Musée', 'Monument', 'Nature',
             'Point de vue', 'Plage', 'Activité', 'Shopping', 'Marché', 'Autre'
         ];
 
@@ -4349,38 +4352,84 @@
         }
 
         function bindItineraryDrag(container) {
-            if(!container)return;
-            container.querySelectorAll('.step-draggable-item').forEach(card=>{
-                const handle=card.querySelector('.step-drag-handle');
-                if(!handle||handle.dataset.dragBound==='1')return;
-                handle.dataset.dragBound='1';
-                let timer=null,drag=null;
-                const clear=()=>{if(timer)clearTimeout(timer);timer=null};
-                const finish=save=>{
-                    clear();if(!drag)return;
-                    const moved=drag.moved;card.classList.remove('dragging-section');
-                    try{if(handle.hasPointerCapture(drag.pointerId))handle.releasePointerCapture(drag.pointerId)}catch(_){}
-                    drag=null;if(save&&moved)reorderItineraryFromDOM();
+            if (!container) return;
+            container.querySelectorAll('.step-draggable-item').forEach(card => {
+                const handle = card.querySelector('.step-drag-handle');
+                if (!handle || handle.dataset.dragBound === '1') return;
+                handle.dataset.dragBound = '1';
+
+                let timer = null;
+                let drag = null;
+
+                const clearTimer = () => {
+                    if (timer) {
+                        clearTimeout(timer);
+                        timer = null;
+                    }
                 };
-                handle.addEventListener('pointerdown',e=>{
-                    if(e.button!==undefined&&e.button!==0)return;
-                    drag={pointerId:e.pointerId,startY:e.clientY,active:false,moved:false};
-                    try{handle.setPointerCapture(e.pointerId)}catch(_){}
-                    timer=setTimeout(()=>{if(drag){drag.active=true;card.classList.add('dragging-section');if(navigator.vibrate)navigator.vibrate(15);showToast('Déplacez l’étape')}},350);
-                });
-                handle.addEventListener('pointermove',e=>{
-                    if(!drag||e.pointerId!==drag.pointerId)return;
-                    if(!drag.active){if(Math.abs(e.clientY-drag.startY)>10)finish(false);return}
+
+                const finish = (save) => {
+                    clearTimer();
+                    if (!drag) return;
+                    const moved = drag.moved;
+                    card.classList.remove('dragging-section');
+                    try {
+                        if (handle.hasPointerCapture(drag.pointerId)) handle.releasePointerCapture(drag.pointerId);
+                    } catch (_) {}
+                    drag = null;
+                    if (save && moved) reorderItineraryFromDOM();
+                };
+
+                handle.addEventListener('pointerdown', e => {
+                    if (e.button !== undefined && e.button !== 0) return;
                     e.preventDefault();
-                    const siblings=[...container.querySelectorAll('.step-draggable-item')].filter(x=>x!==card);
-                    const target=siblings.find(x=>e.clientY<x.getBoundingClientRect().top+x.getBoundingClientRect().height/2);
-                    const before=card.nextElementSibling;
-                    if(target)container.insertBefore(card,target);else container.appendChild(card);
-                    drag.moved=drag.moved||before!==card.nextElementSibling;
+                    drag = {
+                        pointerId: e.pointerId,
+                        active: false,
+                        moved: false
+                    };
+                    try { handle.setPointerCapture(e.pointerId); } catch (_) {}
+
+                    // Le déplacement devient actif après un vrai appui long.
+                    // On ne l'annule pas si le doigt bouge légèrement pendant ces quelques ms :
+                    // c'était la cause du drag qui ne démarrait pas correctement sur iPhone.
+                    timer = setTimeout(() => {
+                        if (!drag) return;
+                        drag.active = true;
+                        card.classList.add('dragging-section');
+                        if (navigator.vibrate) navigator.vibrate(15);
+                        showToast('Déplacez l’étape');
+                    }, 300);
                 });
-                handle.addEventListener('pointerup',e=>{if(drag&&e.pointerId===drag.pointerId)finish(true)});
-                handle.addEventListener('pointercancel',()=>finish(false));
-                handle.addEventListener('lostpointercapture',()=>{if(drag)finish(true)});
+
+                handle.addEventListener('pointermove', e => {
+                    if (!drag || e.pointerId !== drag.pointerId) return;
+
+                    // Pendant le délai d'appui long, on laisse le geste continuer.
+                    if (!drag.active) return;
+
+                    e.preventDefault();
+
+                    const siblings = [...container.querySelectorAll('.step-draggable-item')].filter(x => x !== card);
+                    const target = siblings.find(x => {
+                        const rect = x.getBoundingClientRect();
+                        return e.clientY < rect.top + rect.height / 2;
+                    });
+
+                    const previousNext = card.nextElementSibling;
+                    if (target) container.insertBefore(card, target);
+                    else container.appendChild(card);
+
+                    if (previousNext !== card.nextElementSibling) drag.moved = true;
+                });
+
+                handle.addEventListener('pointerup', e => {
+                    if (drag && e.pointerId === drag.pointerId) finish(true);
+                });
+                handle.addEventListener('pointercancel', () => finish(false));
+                handle.addEventListener('lostpointercapture', () => {
+                    if (drag) finish(true);
+                });
             });
         }
 
@@ -4529,6 +4578,18 @@
         }
 
         function toMinutes(value) { const m = String(value||'').match(/^(\d{1,2}):(\d{2})$/); return m ? Number(m[1])*60+Number(m[2]) : 0; }
+
+        function sortItineraryByTime(steps) {
+            if (!Array.isArray(steps)) return;
+            steps.sort((a, b) => {
+                const aTime = String(a?.time || '');
+                const bTime = String(b?.time || '');
+                if (!aTime && !bTime) return 0;
+                if (!aTime) return 1;
+                if (!bTime) return -1;
+                return toMinutes(aTime) - toMinutes(bTime);
+            });
+        }
 
         function saveDayJournal(value) {
             const trip = getTrip();
@@ -4702,6 +4763,7 @@
             if (editingItineraryStepId != null) {
                 const step = trip.itinerary[selectedDay].find(s => String(s.id) === String(editingItineraryStepId));
                 if (!step) return showToast('Étape introuvable');
+                const previousTime = step.time || '';
                 step.time = time;
                 step.tag = tag;
                 step.title = title;
@@ -4709,6 +4771,7 @@
                 step.booked = booked;
                 step.lat = undefined;
                 step.lon = undefined;
+                if (previousTime !== time) sortItineraryByTime(trip.itinerary[selectedDay]);
                 editingItineraryStepId = null;
                 closeModal('step-modal');
                 saveState();
@@ -4729,6 +4792,7 @@
                 tag,
                 durationMinutes
             });
+            sortItineraryByTime(trip.itinerary[selectedDay]);
 
             document.getElementById('new-step-title').value = '';
             document.getElementById('new-step-address').value = '';
