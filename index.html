@@ -451,8 +451,8 @@
                         <div class="flex items-center justify-between"><div><p class="text-xs font-bold text-ink">Ton voyage, en un coup d’œil</p><p id="trip-countdown-detail" class="text-[10px] text-muted">Compte à rebours et rappels</p></div><button onclick="openReminderModal()" class="text-[10px] font-semibold text-sand px-2.5 py-2 rounded-lg bg-sandLight">Gérer les rappels</button></div>
                         <div class="grid grid-cols-3 gap-2">
                             <button onclick="openDocModal()" class="rounded-xl bg-stoneBg p-2.5 text-center"><i data-lucide="shield-check" class="w-4 h-4 mx-auto mb-1 text-sand"></i><span class="text-[10px] font-semibold text-ink">Coffre-fort</span></button>
-                            <button onclick="openAlbumModal()" class="rounded-xl bg-stoneBg p-2.5 text-center"><i data-lucide="images" class="w-4 h-4 mx-auto mb-1 text-sand"></i><span class="text-[10px] font-semibold text-ink">Souvenirs</span></button>
-                            <button onclick="openAiPlannerModal()" class="rounded-xl bg-stoneBg p-2.5 text-center"><i data-lucide="sparkles" class="w-4 h-4 mx-auto mb-1 text-sand"></i><span class="text-[10px] font-semibold text-ink">Assistant</span></button>
+                            <button onclick="openAiPlannerModal()" class="rounded-xl bg-stoneBg p-2.5 text-center"><i data-lucide="sparkles" class="w-4 h-4 mx-auto mb-1 text-sand"></i><span class="text-[10px] font-semibold text-ink">Assistant ALBA</span></button>
+                            <button onclick="openAiPlannerModal()" class="rounded-xl bg-stoneBg p-2.5 text-center"><i data-lucide="sparkles" class="w-4 h-4 mx-auto mb-1 text-sand"></i><span class="text-[10px] font-semibold text-ink">Assistant ALBA</span></button>
                         </div>
                     </div>
                     <!-- PRÉPARATION : volontairement tout en bas de l’aperçu -->
@@ -485,8 +485,8 @@
                 <!-- ====================================== -->
                 <section id="tab-inspirations" class="tab-content hidden px-5 pt-4 space-y-5">
                     <header>
-                        <h1 class="text-2xl font-bold tracking-tight text-ink">Inspirations & Résas</h1>
-                        <p class="text-xs text-muted mt-0.5">Liens cliquables (TikTok, Insta, Maps...) • Appui long pour éditer</p>
+                        <h1 class="text-2xl font-bold tracking-tight text-ink">Inspirations</h1>
+                        <p class="text-xs text-muted mt-0.5">Lieux, activités et idées à organiser avant de réserver · Appui long pour modifier</p>
                     </header>
 
                     <!-- Quick Add Card -->
@@ -799,6 +799,7 @@
                             </div>
                         </div>
                         <div id="budget-chart-container" class="space-y-2 pt-1"></div>
+                        <div class="border-t border-borderSubtle pt-2 space-y-1"><p class="text-[10px] font-semibold text-ink">Dépenses par jour</p><div id="budget-daily-summary" class="space-y-0.5"><p class="text-[10px] text-muted">Les dépenses par jour apparaîtront ici après tes premiers ajouts.</p></div></div>
                     </div>
 
                     <!-- Add Expense Form (with CB / Espèces) -->
@@ -1429,7 +1430,7 @@
 
         <div id="ai-planner-modal" class="hidden absolute inset-0 z-[58] bg-zinc-950/50 backdrop-blur-[2px] flex items-end justify-center">
             <div class="bg-white w-full rounded-t-3xl p-5 pb-8 space-y-3 max-h-[90%] overflow-y-auto">
-                <div class="flex items-center justify-between"><div><h3 class="text-base font-bold text-ink">ALBA · Assistant de voyage</h3><p class="text-[10px] text-muted">Suggestions et vérifications sans frais</p></div><button onclick="closeModal('ai-planner-modal')" class="w-8 h-8 rounded-full bg-stoneBg"><i data-lucide="x" class="w-4 h-4 mx-auto"></i></button></div>
+                <div class="flex items-center justify-between"><div><h3 class="text-base font-bold text-ink">Assistant ALBA</h3><p class="text-[10px] text-muted">Organisation locale · sans IA externe ni frais d’API</p></div><button onclick="closeModal('ai-planner-modal')" class="w-8 h-8 rounded-full bg-stoneBg"><i data-lucide="x" class="w-4 h-4 mx-auto"></i></button></div>
                 <label class="text-[10px] font-semibold text-muted">Journée à travailler</label><select id="ai-planner-day" class="w-full bg-stoneBg rounded-xl px-3 py-2.5 text-xs"></select>
                 <div class="grid grid-cols-3 gap-2"><button onclick="runAlbaAssistant('build')" class="bg-stoneBg rounded-xl p-2 text-[10px] font-semibold">Construire</button><button onclick="runAlbaAssistant('optimize')" class="bg-stoneBg rounded-xl p-2 text-[10px] font-semibold">Optimiser</button><button onclick="runAlbaAssistant('check')" class="bg-stoneBg rounded-xl p-2 text-[10px] font-semibold">Vérifier</button></div>
                 <div id="ai-planner-status" class="text-[10px] text-muted"></div>
@@ -2903,27 +2904,32 @@
         }
 
         function openTrip(id) {
+            const requestedTrip = state.trips.find(item => item.id === id);
+            if (!requestedTrip || requestedTrip.deletedAt) { showToast('Ce voyage est introuvable.'); return; }
             activeTripId = id;
-            const tripToOpen = normalizeTripForOpening(getTrip());
+            const tripToOpen = normalizeTripForOpening(requestedTrip);
             if (!tripToOpen) { activeTripId = null; showToast('Ce voyage est introuvable.'); return; }
             selectedDay = 1;
             isEurFirst = true;
             expCurrency = 'EUR';
             expenseCategoryFilter = null;
-            document.getElementById('home-view').classList.add('hidden');
-            document.getElementById('trip-workspace').classList.remove('hidden');
-            switchTab('apercu');
             try {
+                document.getElementById('home-view')?.classList.add('hidden');
+                document.getElementById('trip-workspace')?.classList.remove('hidden');
+                switchTab('apercu');
                 refreshTripUI();
             } catch (error) {
                 console.error('ALBA ouverture du voyage :', error);
-                showToast('Le voyage est ouvert, un module rencontre un problème.');
+                showToast('Le voyage est ouvert, mais un module n’a pas pu se charger. Essaie un autre onglet.');
             }
-            subscribeToTripChanges();
-            refreshTripGroupMode().then(() => loadTripVotes());
-            checkDueTripReminders();
+            // Les tâches réseau ne doivent jamais bloquer l’ouverture locale du voyage.
+            Promise.resolve(subscribeToTripChanges()).catch(error => console.warn('Synchronisation temps réel ALBA:', error));
+            Promise.resolve(refreshTripGroupMode())
+                .then(() => loadTripVotes())
+                .catch(error => console.warn('Chargement du partage ALBA:', error));
+            try { checkDueTripReminders(); } catch (error) { console.warn('Rappels ALBA:', error); }
             const openedTrip = getTrip();
-            if (openedTrip && openedTrip._albaRole !== 'owner' && storageMode === 'hybrid' && albaUserId) {
+            if (openedTrip && openedTrip._albaRole !== 'owner' && storageMode === 'hybrid' && albaUserId && supabaseClient?.rpc) {
                 supabaseClient.rpc('mark_trip_viewed', { p_trip_id: openedTrip.id })
                     .then(({ error }) => { if (error) console.warn('Suivi de consultation ALBA:', error); })
                     .catch(error => console.warn('Suivi de consultation ALBA:', error));
@@ -3205,43 +3211,36 @@
         function refreshTripUI() {
             const trip = getTrip();
             if (!trip) return;
-            if (!trip.flights) trip.flights = [];
-            if (!trip.rentals) trip.rentals = [];
-            if (!trip.reservations) trip.reservations = [];
-            if (!trip.todos) trip.todos = [];
-            if (!trip.luggages || !trip.luggages.length) {
-                trip.luggages = [{ id: 'bag-1', name: 'Valise Cabine', emptyWeight: 2.2, maxWeight: 10.0 }];
-            }
-
-            updateTripCountdown(trip);
-            document.getElementById('trip-duration-label').textContent = pluralize(trip.duration || 1, 'jour');
-            document.getElementById('trip-title-display').textContent = trip.title;
-            document.getElementById('trip-subtitle-display').textContent = trip.destination;
-
-            const compLabel = trip.companions.length ? `Avec ${trip.companions.join(', ')}` : 'Solo';
-            document.getElementById('companions-label').textContent = trip._albaRole === 'owner' ? compLabel : `${compLabel} · ${trip._albaRole === 'viewer' ? 'Lecture' : 'Partagé'}`;
-
-            document.getElementById('curr-rate-label').textContent = `1 EUR ≈ ${trip.rate} ${trip.currency}`;
-            document.getElementById('curr-label-1').textContent = isEurFirst ? 'EUR (€)' : trip.currency;
-            document.getElementById('curr-label-2').textContent = isEurFirst ? trip.currency : 'EUR (€)';
-            convertCurrency(1);
-
-            applyOverviewSectionOrder();
-            renderFlights();
-            renderRentals();
-            renderReservations();
-            renderTodos();
-            renderInspirations();
-            renderDaySelector();
-            renderItinerary();
-            renderGear();
-            renderBudget();
-            renderTabChecklists();
-            if (!document.getElementById('itinerary-map-wrapper').classList.contains('hidden')) {
-                refreshItineraryMap();
-            }
-            window.lucide?.createIcons?.();
-            applyTripPermissions();
+            normalizeTripForOpening(trip);
+            const safeRender = (label, render) => {
+                try { render(); }
+                catch (error) { console.error('ALBA module ' + label + ':', error); }
+            };
+            safeRender('en-tête', () => {
+                updateTripCountdown(trip);
+                document.getElementById('trip-duration-label').textContent = pluralize(trip.duration || 1, 'jour');
+                document.getElementById('trip-title-display').textContent = trip.title || 'Mon voyage';
+                document.getElementById('trip-subtitle-display').textContent = trip.destination || '';
+                const compLabel = trip.companions.length ? `Avec ${trip.companions.join(', ')}` : 'Solo';
+                document.getElementById('companions-label').textContent = trip._albaRole === 'owner' ? compLabel : `${compLabel} · ${trip._albaRole === 'viewer' ? 'Lecture' : 'Partagé'}`;
+                document.getElementById('curr-rate-label').textContent = `1 EUR ≈ ${trip.rate} ${trip.currency}`;
+                document.getElementById('curr-label-1').textContent = isEurFirst ? 'EUR (€)' : trip.currency;
+                document.getElementById('curr-label-2').textContent = isEurFirst ? trip.currency : 'EUR (€)';
+                convertCurrency(1);
+            });
+            safeRender('ordre de l’aperçu', applyOverviewSectionOrder);
+            [
+                ['vols', renderFlights], ['locations', renderRentals], ['réservations', renderReservations],
+                ['tâches', renderTodos], ['inspirations', renderInspirations], ['jours', renderDaySelector],
+                ['itinéraire', renderItinerary], ['bagages', renderGear], ['budget', renderBudget],
+                ['checklists', renderTabChecklists]
+            ].forEach(([label, render]) => safeRender(label, render));
+            safeRender('carte', () => {
+                const wrapper = document.getElementById('itinerary-map-wrapper');
+                if (wrapper && !wrapper.classList.contains('hidden')) refreshItineraryMap();
+            });
+            safeRender('icônes', () => window.lucide?.createIcons?.());
+            safeRender('permissions', applyTripPermissions);
         }
 
         function applyTripPermissions() {
@@ -4684,7 +4683,7 @@
             const total = emptyBagsTotal + itemsTotal;
             const max = trip.luggages.reduce((s, b) => s + (b.maxWeight || 10), 0);
 
-            const pct = Math.min((total / max) * 100, 100);
+            const pct = max > 0 ? Math.min((total / max) * 100, 100) : 0;
             const rem = (max - total).toFixed(2);
             const gearCount = trip.gearList.length;
             const gearChecked = trip.gearList.filter(item => item.checked).length;
@@ -4714,9 +4713,10 @@
             const container = document.getElementById('gear-by-bag-container');
             container.innerHTML = trip.luggages.map(bag => {
                 const bagItems = trip.gearList.filter(i => (i.bagId || trip.luggages[0].id) === bag.id);
-                const checkedWeight = bagItems.reduce((s, i) => s + (i.checked ? i.weight : 0), 0);
-                const bagTotalW = (bag.emptyWeight || 0) + checkedWeight;
-                const bagPct = Math.min((bagTotalW / (bag.maxWeight || 10)) * 100, 100);
+                const checkedWeight = bagItems.reduce((sum, item) => sum + (item.checked ? (Number(item.weight) || 0) : 0), 0);
+                const bagTotalW = (Number(bag.emptyWeight) || 0) + checkedWeight;
+                const bagLimit = Number(bag.maxWeight) > 0 ? Number(bag.maxWeight) : 10;
+                const bagPct = Math.min((bagTotalW / bagLimit) * 100, 100);
 
                 return `
                     <div class="bg-white rounded-2xl p-4 border border-borderSubtle space-y-3">
@@ -4726,7 +4726,7 @@
                                     <i data-lucide="briefcase" class="w-4 h-4 text-sand"></i>
                                     <h3 class="text-sm font-bold text-ink">${bag.name}</h3>
                                 </div>
-                                <p class="text-[11px] text-muted mt-0.5">Poids à vide : ${bag.emptyWeight.toFixed(2)} kg • Contenu : ${checkedWeight.toFixed(2)} kg</p>
+                                <p class="text-[11px] text-muted mt-0.5">Poids à vide : ${(Number(bag.emptyWeight)||0).toFixed(2)} kg • Contenu : ${checkedWeight.toFixed(2)} kg</p>
                             </div>
                             <div class="flex items-center gap-2">
                                 <span class="text-xs font-bold font-mono text-ink bg-stoneBg px-2.5 py-1 rounded-lg border border-borderSubtle">${bagTotalW.toFixed(2)} / ${bag.maxWeight} kg</span>
@@ -4967,8 +4967,10 @@
             const day = document.getElementById('exp-day-select').value;
             const paidBy = document.getElementById('exp-paid-by').value;
 
-            if (!label || isNaN(raw) || raw <= 0) return;
-            const amountEur = expCurrency === 'EUR' ? raw : raw / trip.rate;
+            if (!label || !Number.isFinite(raw) || raw <= 0) { showToast('Indique un libellé et un montant valide'); return; }
+            const rate = Number(trip.rate);
+            if (expCurrency !== 'EUR' && (!Number.isFinite(rate) || rate <= 0)) { showToast('Vérifie le taux de change avant d’ajouter cette dépense'); return; }
+            const amountEur = expCurrency === 'EUR' ? raw : raw / rate;
 
             const people = getTripPeople(trip);
             const splitWith = people.length > 1 ? [...(selectedExpenseParticipants || people)] : ['Moi'];
@@ -4991,24 +4993,38 @@
 
         function renderBudget() {
             const trip = getTrip();
-            const spent = trip.expenses.reduce((s, e) => s + e.amountEur, 0);
-            const rem = trip.totalBudget - spent;
-            const pct = Math.min((spent / trip.totalBudget) * 100, 100);
+            const spent = (trip.expenses || []).reduce((sum, expense) => sum + (Number(expense.amountEur) || 0), 0);
+            const totalBudget = Math.max(0, Number(trip.totalBudget) || 0);
+            const rem = totalBudget - spent;
+            const pct = totalBudget > 0 ? Math.min((spent / totalBudget) * 100, 100) : (spent > 0 ? 100 : 0);
 
-            document.getElementById('budget-total-label').textContent = `Budget prévu : ${Number(trip.totalBudget || 0).toLocaleString('fr-FR')} €`;
+            document.getElementById('budget-total-label').textContent = `Budget prévu : ${totalBudget.toLocaleString('fr-FR')} €`;
             document.getElementById('budget-remaining').textContent = `${rem.toFixed(2).replace('.', ',')} €`;
             document.getElementById('budget-remaining-local').textContent = `≈ ${Math.round(rem * trip.rate).toLocaleString('fr-FR')} ${trip.currency}`;
             document.getElementById('budget-spent').textContent = `${spent.toFixed(2).replace('.', ',')} €`;
             document.getElementById('budget-bar').style.width = `${pct}%`;
             document.getElementById('budget-per-day').textContent = `~${Math.max(0, Math.round(rem / (trip.duration || 1)))} € / jour`;
             document.getElementById('overview-budget-val').textContent = `${Math.round(rem)} €`;
-            document.getElementById('overview-budget-sub').textContent = `sur ${trip.totalBudget} €`;
+            document.getElementById('overview-budget-sub').textContent = totalBudget > 0 ? `sur ${totalBudget.toLocaleString('fr-FR')} €` : 'Aucun budget défini';
 
             const daySel = document.getElementById('exp-day-select');
             daySel.innerHTML = Object.keys(trip.daysMeta).map(d => `<option value="Jour ${d}">Jour ${d}</option>`).join('');
 
             const paidSel = document.getElementById('exp-paid-by');
             paidSel.innerHTML = `<option value="Moi">Payé par Moi</option>` + trip.companions.map(c => `<option value="${c}">Payé par ${c}</option>`).join('');
+
+            const dailySummary = document.getElementById('budget-daily-summary');
+            if (dailySummary) {
+                const days = Object.keys(trip.daysMeta || {}).sort((a,b) => Number(a) - Number(b));
+                const dayTotals = days.map(day => {
+                    const total = (trip.expenses || []).filter(expense => String(expense.day || '') === `Jour ${day}`)
+                        .reduce((sum, expense) => sum + (Number(expense.amountEur) || 0), 0);
+                    return { day, total };
+                }).filter(item => item.total > 0);
+                dailySummary.innerHTML = dayTotals.length
+                    ? dayTotals.map(item => `<div class="flex items-center justify-between text-[10px] py-1"><span class="text-muted">Jour ${item.day}</span><strong class="text-ink">${item.total.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})} €</strong></div>`).join('')
+                    : '<p class="text-[10px] text-muted">Les dépenses par jour apparaîtront ici après tes premiers ajouts.</p>';
+            }
 
             const people = getTripPeople(trip);
             const splitCard = document.getElementById('split-balance-card');
