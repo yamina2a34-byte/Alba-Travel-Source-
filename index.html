@@ -301,6 +301,7 @@
                             <div class="w-full h-1.5 bg-stoneBg rounded-full mt-2 overflow-hidden">
                                 <div id="overview-weight-bar" class="h-full bg-ink rounded-full transition-all duration-300" style="width: 0%"></div>
                             </div>
+                            <p id="gear-progress-overview" class="text-[10px] text-muted mt-1">0 article préparé</p>
                         </div>
 
                         <div onclick="switchTab('budget')" class="bg-white rounded-2xl p-3.5 border border-borderSubtle cursor-pointer active:scale-[0.98] transition">
@@ -1802,6 +1803,8 @@
             trip._albaDemoVersion = 2;
             return true;
         }
+        // Les modèles complets sont aussi utilisés lors de la création d'un nouveau voyage.
+        initialTrips.forEach(trip => applyAlbaDemoContent(trip));
 
         // --- STATE ---
         let state = loadState();
@@ -4644,6 +4647,8 @@
             const gearProgressBar = document.getElementById('gear-checklist-progress-bar');
             if (gearProgress) gearProgress.textContent = `${gearChecked} / ${gearCount} articles préparés`;
             if (gearProgressBar) gearProgressBar.style.width = `${gearCount ? Math.round((gearChecked / gearCount) * 100) : 0}%`;
+            const overviewGearProgress = document.getElementById('gear-progress-overview');
+            if (overviewGearProgress) overviewGearProgress.textContent = `${gearChecked} / ${gearCount} articles préparés`;
 
             document.getElementById('bag-total-weight').textContent = total.toFixed(2).replace('.', ',');
             document.getElementById('bag-max-label').textContent = `/ ${max.toFixed(1).replace('.', ',')} kg max`;
