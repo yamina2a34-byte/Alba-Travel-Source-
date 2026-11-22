@@ -10,7 +10,7 @@
     <meta name="theme-color" content="#EBDEC5">
     <link rel="manifest" href="./manifest.webmanifest">
     <link rel="apple-touch-icon" sizes="192x192" href="./icon-192.png">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -5838,7 +5838,7 @@
                 runWhenIdle(() => initCloudSync(), 2200);
                 runWhenIdle(() => {
                     if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
-                        navigator.serviceWorker.register('./sw.js?v=17')
+                        navigator.serviceWorker.register('./sw.js?v=18')
                             .then(reg => reg.update().catch(() => {}))
                             .catch(err => console.warn('ALBA offline worker:', err));
                     }
