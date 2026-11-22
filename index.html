@@ -2049,9 +2049,10 @@
             const changedTrip = activeTripId ? state.trips.find(t => t.id === activeTripId) : null;
             if (changedTrip) changedTrip.updated_at = new Date().toISOString();
             try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+                const serialized = JSON.stringify(state);
+                localStorage.setItem(STORAGE_KEY, serialized);
                 // Maintient aussi la clé historique pour compatibilité avec les anciens exports.
-                localStorage.setItem('noma_travel_v4_state', JSON.stringify(state));
+                localStorage.setItem('noma_travel_v4_state', serialized);
             } catch (e) {
                 showToast('Stockage local saturé (photo trop lourde)');
                 return;
@@ -2370,7 +2371,7 @@
             const score = totalWeight ? Math.round(earned/totalWeight*100) : 0;
             const pending = checks.filter(item=>item.ratio !== undefined ? item.ratio<1 : !item.ready).length;
             const scoreEl=document.getElementById('trip-readiness-score');
-            const progress=document.getElementById('trip-readiness-progress');
+            const progress=document.getElementById('trip-readiness-ring');
             const summary=document.getElementById('trip-readiness-summary');
             const itemsEl=document.getElementById('trip-readiness-items');
             if(scoreEl) scoreEl.textContent=String(score);
@@ -2940,52 +2941,24 @@
             container.querySelectorAll('.overview-draggable').forEach(card => {
                 if (card.dataset.dragBound === '1') return;
                 card.dataset.dragBound = '1';
+
                 let holdTimer = null;
-                let active = false;
-                let pointerId = null;
-                let startY = 0;
+                let touchState = null;
 
                 const clearHold = () => {
-                    if (holdTimer) clearTimeout(holdTimer);
-                    holdTimer = null;
+                    if (holdTimer) {
+                        clearTimeout(holdTimer);
+                        holdTimer = null;
+                    }
                 };
 
-                card.addEventListener('pointerdown', event => {
-                    if (event.pointerType === 'mouse' && event.button !== 0) return;
-                    if (event.target.closest('button, a, input, select, textarea')) return;
-                    pointerId = event.pointerId;
-                    startY = event.clientY;
-                    active = false;
+                const finishTouch = (didDrag) => {
                     clearHold();
-                    holdTimer = setTimeout(() => {
-                        active = true;
-                        card.classList.add('dragging-section');
-                        card.setPointerCapture?.(pointerId);
-                        if (navigator.vibrate) navigator.vibrate(15);
-                        showToast('Déplacez la section');
-                    }, 520);
-                });
+                    if (!touchState) return;
+                    const draggedCard = touchState.card;
+                    draggedCard.classList.remove('dragging-section');
+                    touchState = null;
 
-                card.addEventListener('pointermove', event => {
-                    if (event.pointerId !== pointerId) return;
-                    if (!active) {
-                        if (Math.abs(event.clientY - startY) > 10) clearHold();
-                        return;
-                    }
-                    event.preventDefault();
-                    const siblings = [...container.querySelectorAll('.overview-draggable')].filter(el => el !== card);
-                    const target = siblings.find(el => event.clientY < el.getBoundingClientRect().top + el.getBoundingClientRect().height / 2);
-                    if (target) container.insertBefore(card, target);
-                    else container.appendChild(card);
-                });
-
-                const finish = event => {
-                    if (event.pointerId !== pointerId) return;
-                    clearHold();
-                    const didDrag = active;
-                    active = false;
-                    card.classList.remove('dragging-section');
-                    pointerId = null;
                     if (didDrag) {
                         const trip = getTrip();
                         const ids = [...container.querySelectorAll('.overview-draggable')].map(el => el.dataset.sectionId);
@@ -2996,9 +2969,123 @@
                         }
                     }
                 };
-                card.addEventListener('pointerup', finish);
-                card.addEventListener('pointercancel', finish);
-                card.addEventListener('lostpointercapture', finish);
+
+                card.addEventListener('touchstart', event => {
+                    if (!event.touches?.length) return;
+                    if (event.target.closest('button, a, input, select, textarea')) return;
+
+                    const touch = event.touches[0];
+                    touchState = {
+                        card,
+                        startY: touch.clientY,
+                        dragging: false
+                    };
+
+                    clearHold();
+                    holdTimer = setTimeout(() => {
+                        if (!touchState) return;
+                        touchState.dragging = true;
+                        card.classList.add('dragging-section');
+                        if (navigator.vibrate) navigator.vibrate(15);
+                        showToast('Déplacez la section');
+                    }, 520);
+                }, { passive: true });
+
+                card.addEventListener('touchmove', event => {
+                    if (!touchState || !event.touches?.length) return;
+
+                    const touch = event.touches[0];
+
+                    if (!touchState.dragging) {
+                        if (Math.abs(touch.clientY - touchState.startY) > 12) {
+                            clearHold();
+                            touchState = null;
+                        }
+                        return;
+                    }
+
+                    event.preventDefault();
+
+                    const siblings = [...container.querySelectorAll('.overview-draggable')]
+                        .filter(el => el !== card);
+
+                    const target = siblings.find(el => {
+                        const rect = el.getBoundingClientRect();
+                        return touch.clientY < rect.top + rect.height / 2;
+                    });
+
+                    if (target) container.insertBefore(card, target);
+                    else container.appendChild(card);
+                }, { passive: false });
+
+                card.addEventListener('touchend', () => {
+                    const didDrag = !!touchState?.dragging;
+                    finishTouch(didDrag);
+                });
+
+                card.addEventListener('touchcancel', () => finishTouch(false));
+
+                // Desktop fallback.
+                let mouseState = null;
+
+                card.addEventListener('mousedown', event => {
+                    if (event.button !== 0) return;
+                    if (event.target.closest('button, a, input, select, textarea')) return;
+
+                    mouseState = { startY: event.clientY, dragging: false };
+                    clearHold();
+
+                    holdTimer = setTimeout(() => {
+                        if (!mouseState) return;
+                        mouseState.dragging = true;
+                        card.classList.add('dragging-section');
+                        showToast('Déplacez la section');
+                    }, 520);
+                });
+
+                card.addEventListener('mousemove', event => {
+                    if (!mouseState) return;
+
+                    if (!mouseState.dragging) {
+                        if (Math.abs(event.clientY - mouseState.startY) > 12) clearHold();
+                        return;
+                    }
+
+                    event.preventDefault();
+                    const siblings = [...container.querySelectorAll('.overview-draggable')]
+                        .filter(el => el !== card);
+
+                    const target = siblings.find(el => {
+                        const rect = el.getBoundingClientRect();
+                        return event.clientY < rect.top + rect.height / 2;
+                    });
+
+                    if (target) container.insertBefore(card, target);
+                    else container.appendChild(card);
+                });
+
+                const finishMouse = () => {
+                    if (!mouseState) return;
+                    clearHold();
+                    const didDrag = mouseState.dragging;
+                    mouseState = null;
+                    card.classList.remove('dragging-section');
+
+                    if (didDrag) {
+                        const trip = getTrip();
+                        const ids = [...container.querySelectorAll('.overview-draggable')].map(el => el.dataset.sectionId);
+                        if (trip) {
+                            trip.overviewOrder = ids;
+                            saveState();
+                            showToast('Ordre des sections mis à jour');
+                        }
+                    }
+                };
+
+                card.addEventListener('mouseup', finishMouse);
+                card.addEventListener('mouseleave', () => {
+                    if (mouseState && !mouseState.dragging) clearHold();
+                });
             });
         }
 
@@ -5695,12 +5782,21 @@
             // service worker démarrent après le premier rendu pour éviter le blocage visuel
             // de quelques secondes sur iPhone.
             requestAnimationFrame(() => {
-                setTimeout(() => initCloudSync(), 0);
-                setTimeout(() => {
+                // Le premier écran reste entièrement local : le cloud et le SW ne doivent
+                // jamais concurrencer le premier rendu sur iPhone.
+                const runWhenIdle = (fn, timeout = 1800) => {
+                    if ('requestIdleCallback' in window) window.requestIdleCallback(fn, { timeout });
+                    else setTimeout(fn, 900);
+                };
+
+                runWhenIdle(() => initCloudSync(), 2200);
+                runWhenIdle(() => {
                     if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
-                        navigator.serviceWorker.register('./sw.js?v=11').catch(err => console.warn('ALBA offline worker:', err));
+                        navigator.serviceWorker.register('./sw.js?v=12')
+                            .then(reg => reg.update().catch(() => {}))
+                            .catch(err => console.warn('ALBA offline worker:', err));
                     }
-                }, 0);
+                }, 2600);
             });
         });
         window.addEventListener('online', () => {
