@@ -715,6 +715,7 @@
                     </div>
 
                     <!-- UNE SECTION PAR BAGAGE POUR VOIR CE QUE CHAQUE BAGAGE CONTIENT -->
+                    <div class="bg-white rounded-2xl px-4 py-3 border border-borderSubtle space-y-2"><div class="flex items-center justify-between"><span class="text-[11px] font-semibold text-ink">Progression des bagages</span><span id="gear-checklist-progress" class="text-[10px] font-semibold text-sand">0 / 0 articles préparés</span></div><div class="h-1.5 rounded-full bg-stoneBg overflow-hidden"><div id="gear-checklist-progress-bar" class="h-full rounded-full bg-sand transition-all" style="width:0%"></div></div></div>
                     <div id="gear-by-bag-container" class="space-y-4"></div>
 
                     <!-- ESPACE BAS BAGAGES : NOTES & CHECK-LIST -->
@@ -1411,7 +1412,7 @@
                     <button onclick="document.getElementById('vault-file-input').click()" class="flex-1 bg-ink text-white rounded-xl py-2.5 text-[11px] font-semibold">+ Ajouter un document</button>
                     <input id="vault-file-input" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.heic,.heif,.doc,.docx,.xls,.xlsx" class="hidden" onchange="handleVaultFileUpload(this,'document')">
                 </div>
-                <div id="vault-files-list" class="space-y-2 max-h-52 overflow-y-auto no-scrollbar"><p class="text-[10px] text-muted text-center py-2">Chargement du coffre-fort…</p></div>
+                <input id="vault-search-input" type="search" oninput="filterVaultFiles(this.value)" placeholder="Rechercher un billet, une réservation, un fichier…" class="w-full bg-stoneBg text-xs text-ink rounded-xl px-3 py-2.5 border border-borderSubtle focus:outline-none focus:border-sand"><div id="vault-files-list" class="space-y-2 max-h-52 overflow-y-auto no-scrollbar"><p class="text-[10px] text-muted text-center py-2">Chargement du coffre-fort…</p></div>
                 <div class="border-t border-borderSubtle pt-3"><p class="text-[10px] font-semibold text-muted uppercase tracking-wide mb-2">Liens et billets déjà enregistrés</p><div id="doc-modal-body" class="space-y-2.5 max-h-52 overflow-y-auto no-scrollbar"></div></div>
             </div>
         </div>
@@ -4578,6 +4579,12 @@
 
             const pct = Math.min((total / max) * 100, 100);
             const rem = (max - total).toFixed(2);
+            const gearCount = trip.gearList.length;
+            const gearChecked = trip.gearList.filter(item => item.checked).length;
+            const gearProgress = document.getElementById('gear-checklist-progress');
+            const gearProgressBar = document.getElementById('gear-checklist-progress-bar');
+            if (gearProgress) gearProgress.textContent = `${gearChecked} / ${gearCount} articles préparés`;
+            if (gearProgressBar) gearProgressBar.style.width = `${gearCount ? Math.round((gearChecked / gearCount) * 100) : 0}%`;
 
             document.getElementById('bag-total-weight').textContent = total.toFixed(2).replace('.', ',');
             document.getElementById('bag-max-label').textContent = `/ ${max.toFixed(1).replace('.', ',')} kg max`;
@@ -5266,12 +5273,25 @@
                         <div class="absolute inset-x-0 bottom-0 bg-zinc-950/60 p-2 flex items-center justify-between gap-1"><span class="text-[9px] text-white truncate">${escapePrintHtml(file.file_name)}</span><button onclick="deleteTripFile('${file.id}')" class="text-white text-[10px] px-1.5">✕</button></div>
                     </div>`).join('');
             } else {
-                target.innerHTML = files.map(file => `
+                const query = (document.getElementById('vault-search-input')?.value || '').trim().toLocaleLowerCase('fr');
+                const visibleFiles = files.filter(file => !query || (file.file_name || '').toLocaleLowerCase('fr').includes(query));
+                if (!visibleFiles.length) { target.innerHTML = '<p class="text-[10px] text-muted text-center py-3">Aucun document ne correspond à cette recherche.</p>'; return; }
+                target.innerHTML = visibleFiles.map(file => `
                     <div class="flex items-center justify-between gap-2 bg-stoneBg border border-borderSubtle rounded-xl p-2.5">
                         <div class="min-w-0"><p class="text-[10px] font-semibold text-ink truncate">${escapePrintHtml(file.file_name)}</p><p class="text-[9px] text-muted">${(file.size_bytes / 1048576).toFixed(1)} Mo · ${new Date(file.created_at).toLocaleDateString('fr-FR')}</p></div>
                         <div class="flex items-center gap-2 shrink-0"><button onclick="openTripFile('${file.id}')" class="text-[10px] font-semibold text-sand">Ouvrir</button><button onclick="deleteTripFile('${file.id}')" class="text-[10px] text-red-500">✕</button></div>
                     </div>`).join('');
             }
+        }
+
+        function filterVaultFiles(query) {
+            const target = document.getElementById('vault-files-list');
+            if (!target) return;
+            const files = (window.albaTripFilesCache || []).filter(x => x.category === 'document');
+            const q = (query || '').trim().toLocaleLowerCase('fr');
+            const visible = files.filter(file => !q || (file.file_name || '').toLocaleLowerCase('fr').includes(q));
+            if (!visible.length) { target.innerHTML = '<p class="text-[10px] text-muted text-center py-3">Aucun document ne correspond à cette recherche.</p>'; return; }
+            target.innerHTML = visible.map(file => `<div class="flex items-center justify-between gap-2 bg-stoneBg border border-borderSubtle rounded-xl p-2.5"><div class="min-w-0"><p class="text-[10px] font-semibold text-ink truncate">${escapePrintHtml(file.file_name)}</p><p class="text-[9px] text-muted">${(file.size_bytes / 1048576).toFixed(1)} Mo · ${new Date(file.created_at).toLocaleDateString('fr-FR')}</p></div><div class="flex items-center gap-2 shrink-0"><button onclick="openTripFile('${file.id}')" class="text-[10px] font-semibold text-sand">Ouvrir</button><button onclick="deleteTripFile('${file.id}')" class="text-[10px] text-red-500">✕</button></div></div>`).join('');
         }
 
         async function handleVaultFileUpload(input, category) {
