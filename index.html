@@ -524,6 +524,9 @@
                                 <option value="Fast Food">🍔 Fast Food</option>
                                 <option value="Bar">🍸 Bar</option>
                                 <option value="Hôtel">🏨 Hôtel</option>
+                        <option value="Maison">🏠 Maison</option>
+                        <option value="Aéroport">✈️ Aéroport</option>
+                        <option value="Port">⚓ Port</option>
                                 <option value="Lieu à visiter">🏛️ Lieu à visiter</option>
                                 <option value="Musée">🏛️ Musée</option>
                                 <option value="Monument">🏰 Monument</option>
@@ -1322,7 +1325,7 @@
             <div class="bg-white w-full rounded-t-3xl p-5 pb-8 space-y-3.5 shadow-xl">
                 <div class="w-10 h-1 bg-zinc-200 rounded-full mx-auto"></div>
                 <div class="flex items-center justify-between">
-                    <h3 class="text-base font-bold text-ink">Ajouter une étape</h3>
+                    <h3 id="step-modal-heading" class="text-base font-bold text-ink">Ajouter une étape</h3>
                     <button onclick="closeModal('step-modal')" class="w-7 h-7 rounded-full bg-stoneBg flex items-center justify-center text-muted">
                         <i data-lucide="x" class="w-4 h-4"></i>
                     </button>
@@ -1354,7 +1357,7 @@
                     <option value="false">À réserver / Libre</option>
                     <option value="true">Réservé ✓</option>
                 </select>
-                <button onclick="saveManualStep()" class="w-full bg-ink text-white text-xs font-semibold py-3 rounded-xl">Enregistrer</button>
+                <button id="step-modal-save-btn" onclick="saveManualStep()" class="w-full bg-ink text-white text-xs font-semibold py-3 rounded-xl">Enregistrer</button>
             </div>
         </div>
 
@@ -1836,6 +1839,7 @@
         let editingReservationId = null;
         let editingInspoId = null;
         let editingTransitStepId = null;
+        let editingItineraryStepId = null;
         let inspoFilter = 'all';
         let activeCategoryPill = 'ALL';
         let activeAssignInspoId = null;
@@ -4616,6 +4620,7 @@
                                     ${step.booked ? `<span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700">Réservé ✓</span>` : ''}
                                     ${linkedReservation ? `<span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700">Réservation liée</span>` : ''}
                                     <span class="text-[10px] font-medium px-2 py-0.5 rounded-md bg-sandLight text-sand">${step.tag || 'Étape'}</span>
+                                    <button onclick="openEditItineraryStepModal(${step.id})" class="p-1.5 rounded-lg text-muted hover:text-ink hover:bg-stoneBg" title="Modifier l’étape" aria-label="Modifier l’étape"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
                                     <button onclick="removeItineraryStep(${step.id})" class="p-1.5 rounded-lg text-muted hover:text-red-600 hover:bg-red-50" title="Retirer du programme" aria-label="Retirer du programme"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
                                 </div>
                             </div>
@@ -4643,7 +4648,33 @@
         }
 
         function openAddStepModal() {
+            editingItineraryStepId = null;
+            document.getElementById('step-modal-heading').textContent = 'Ajouter une étape';
+            document.getElementById('step-modal-save-btn').textContent = 'Enregistrer';
+            document.getElementById('new-step-time').value = '14:00';
+            document.getElementById('new-step-tag').value = 'Activité';
+            document.getElementById('new-step-title').value = '';
+            document.getElementById('new-step-address').value = '';
+            document.getElementById('new-step-booked').value = 'false';
             document.getElementById('step-modal').classList.remove('hidden');
+            window.lucide?.createIcons?.();
+        }
+
+        function openEditItineraryStepModal(stepId) {
+            const trip = getTrip();
+            const steps = trip?.itinerary?.[selectedDay] || [];
+            const step = steps.find(s => String(s.id) === String(stepId));
+            if (!step) return;
+            editingItineraryStepId = step.id;
+            document.getElementById('step-modal-heading').textContent = 'Modifier l’étape';
+            document.getElementById('step-modal-save-btn').textContent = 'Enregistrer les modifications';
+            document.getElementById('new-step-time').value = step.time || '14:00';
+            document.getElementById('new-step-tag').value = step.tag || 'Autre';
+            document.getElementById('new-step-title').value = step.title || '';
+            document.getElementById('new-step-address').value = step.address || '';
+            document.getElementById('new-step-booked').value = step.booked ? 'true' : 'false';
+            document.getElementById('step-modal').classList.remove('hidden');
+            window.lucide?.createIcons?.();
         }
 
         function openImportInspoModal() {
@@ -4665,11 +4696,39 @@
             const address = document.getElementById('new-step-address').value.trim();
             const booked = document.getElementById('new-step-booked').value === 'true';
 
-            if (!title) return;
+            if (!trip || !title) return;
             if (!trip.itinerary[selectedDay]) trip.itinerary[selectedDay] = [];
+
+            if (editingItineraryStepId != null) {
+                const step = trip.itinerary[selectedDay].find(s => String(s.id) === String(editingItineraryStepId));
+                if (!step) return showToast('Étape introuvable');
+                step.time = time;
+                step.tag = tag;
+                step.title = title;
+                step.address = address;
+                step.booked = booked;
+                step.lat = undefined;
+                step.lon = undefined;
+                editingItineraryStepId = null;
+                closeModal('step-modal');
+                saveState();
+                refreshTripUI();
+                showToast('Étape modifiée');
+                return;
+            }
+
             const durationInput = document.getElementById('new-step-duration');
             const durationMinutes = durationInput ? (Number(durationInput.value) || 0) : 0;
-            trip.itinerary[selectedDay].push({ id: Date.now(), time, title, address, transit: '', booked, tag, durationMinutes });
+            trip.itinerary[selectedDay].push({
+                id: Date.now(),
+                time,
+                title,
+                address,
+                transit: '',
+                booked,
+                tag,
+                durationMinutes
+            });
 
             document.getElementById('new-step-title').value = '';
             document.getElementById('new-step-address').value = '';
