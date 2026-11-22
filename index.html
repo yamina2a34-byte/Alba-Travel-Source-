@@ -1767,7 +1767,7 @@
         // --- VOYAGES MODÈLES ALBA : DONNÉES DE DÉMONSTRATION COMPLÈTES ---
         // Les informations sont fictives et servent à montrer les modules. Elles sont librement modifiables.
         function applyAlbaDemoContent(trip) {
-            if (!trip || trip._albaDemoVersion === 2) return false;
+            if (!trip || trip._albaDemoVersion === 3) return false;
             const demos = {
                 'starter-algerian': {
                     flights: [{id:8101,number:'EXEMPLE',airline:'Vol de démonstration',depDate:'À personnaliser',depTime:'09:00',depIata:'CDG',depCity:'Paris',arrDate:'À personnaliser',arrTime:'11:20',arrIata:'ALG',arrCity:'Alger',baggage:'Selon billet',notes:'Exemple fictif : remplace les informations par ton vrai billet.'}],
@@ -1817,7 +1817,8 @@
             if (!hasItinerary) { trip.itinerary = clone(demo.itinerary); trip.daysMeta = clone(demo.daysMeta); trip.duration = Math.max(Number(trip.duration)||1, Object.keys(demo.daysMeta).length); changed = true; }
             if (!trip.tabChecklists || !Object.values(trip.tabChecklists).some(list => Array.isArray(list) && list.length)) { trip.tabChecklists = clone(demo.tabChecklists); changed = true; }
             if (trip.id === 'starter-algerian' && (!trip.startDate || trip.startDate === '')) { trip.startDate = ''; trip.endDate = ''; }
-            trip._albaDemoVersion = 2;
+            if (trip.id === 'starter-omani') { trip.startDate = '2026-11-29'; trip.endDate = '2026-12-09'; }
+            trip._albaDemoVersion = 3;
             return true;
         }
         // Les modèles complets sont aussi utilisés lors de la création d'un nouveau voyage.
