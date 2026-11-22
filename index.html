@@ -1661,7 +1661,7 @@
                 destination: 'Alger, Oran, Bejaïa & more',
                 countdown: 'Planifié',
                 duration: 30,
-                status: 'active',
+                status: 'upcoming',
                 currency: 'DZD',
                 rate: 274,
                 totalBudget: 2000,
@@ -1686,7 +1686,7 @@
             },
             {
                 id: 'starter-omani',
-                title: 'Omani Dreams',
+                title: 'Omani Dreams ✨',
                 destination: 'Oman • Mascate, Nizwa & Wadi Shab',
                 countdown: 'Planifié',
                 duration: 11,
@@ -1714,7 +1714,7 @@
             },
             {
                 id: 'starter-dubai',
-                title: 'Dubaï, entre ville & désert',
+                title: 'Dubaï, entre ville et désert 🇦🇪',
                 destination: 'Émirats arabes unis • Dubaï',
                 countdown: 'Brouillon',
                 duration: 5,
@@ -2075,6 +2075,41 @@
         }
         if (window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => { if (currentThemePreference === 'system') applyTheme(); });
 
+        function applyStarterTripPreferences(trips) {
+            let changed = false;
+            (trips || []).forEach(trip => {
+                if (!trip || typeof trip !== 'object') return;
+                const id = String(trip.id || '');
+                const title = String(trip.title || '').trim().toLocaleLowerCase();
+                if (id === 'starter-omani' || title.startsWith('omani dreams')) {
+                    if (trip.title !== 'Omani Dreams ✨') { trip.title = 'Omani Dreams ✨'; changed = true; }
+                    if (trip.status !== 'active') { trip.status = 'active'; changed = true; }
+                } else if (id === 'starter-algerian' || title.startsWith('algerian escape')) {
+                    if (trip.title !== 'Algerian Escape 🏜️') { trip.title = 'Algerian Escape 🏜️'; changed = true; }
+                    if (trip.status !== 'upcoming') { trip.status = 'upcoming'; changed = true; }
+                } else if (id === 'starter-dubai' || /^(dubai|dubaï),? entre ville/.test(title)) {
+                    if (trip.title !== 'Dubaï, entre ville et désert 🇦🇪') { trip.title = 'Dubaï, entre ville et désert 🇦🇪'; changed = true; }
+                }
+            });
+            return changed;
+        }
+
+        function normalizeTripForOpening(trip) {
+            if (!trip || typeof trip !== 'object') return null;
+            const arrayFields = ['companions','flights','rentals','reservations','todos','inspirations','luggages','gearList','expenses','settlements'];
+            arrayFields.forEach(key => { if (!Array.isArray(trip[key])) trip[key] = []; });
+            if (!trip.luggages.length) trip.luggages = [{ id: 'bag-1', name: 'Valise Cabine', emptyWeight: 2.2, maxWeight: 10.0 }];
+            if (!trip.itinerary || typeof trip.itinerary !== 'object' || Array.isArray(trip.itinerary)) trip.itinerary = { 1: [] };
+            if (!trip.daysMeta || typeof trip.daysMeta !== 'object' || Array.isArray(trip.daysMeta)) trip.daysMeta = { 1: { title: 'Jour 1 • Arrivée', date: trip.startDate || 'Jour 1' } };
+            if (!trip.tabChecklists || typeof trip.tabChecklists !== 'object') trip.tabChecklists = { itinerary: [], bagage: [], budget: [] };
+            ['itinerary','bagage','budget'].forEach(key => { if (!Array.isArray(trip.tabChecklists[key])) trip.tabChecklists[key] = []; });
+            if (!Array.isArray(trip.overviewOrder)) trip.overviewOrder = ['flights','rentals','todos'];
+            if (!trip.currency) trip.currency = 'EUR';
+            if (!Number.isFinite(Number(trip.rate)) || Number(trip.rate) <= 0) trip.rate = 1;
+            if (!Number.isFinite(Number(trip.duration)) || Number(trip.duration) <= 0) trip.duration = 1;
+            return trip;
+        }
+
         function loadState() {
             let saved = null;
             try {
@@ -2089,6 +2124,7 @@
             const restoredTrips = Array.isArray(restoredState.trips) ? restoredState.trips : [];
             let demoTemplatesUpdated = false;
             restoredTrips.forEach(trip => { if (applyAlbaDemoContent(trip)) demoTemplatesUpdated = true; });
+            const starterPreferencesUpdated = applyStarterTripPreferences(restoredTrips);
             const activeTitles = new Set(restoredTrips.filter(trip => !trip.deletedAt).map(trip => (trip.title || '').trim().toLocaleLowerCase()));
             // Les trois voyages de départ sont garantis localement, même si l'ancien stockage
             // contient déjà d'autres voyages ou une liste vide. Les voyages personnels et la corbeille restent conservés.
@@ -2106,7 +2142,7 @@
             // Évite de réécrire tout l'état local deux fois à chaque démarrage.
             // Avec des photos / beaucoup de voyages, JSON.stringify était une source
             // de blocage visible de plusieurs secondes sur iPhone.
-            if (missingStarters.length > 0 || demoTemplatesUpdated || !Array.isArray(restoredState.templates) || JSON.stringify(restored.templates) !== JSON.stringify(restoredState.templates)) {
+            if (missingStarters.length > 0 || demoTemplatesUpdated || starterPreferencesUpdated || !Array.isArray(restoredState.templates) || JSON.stringify(restored.templates) !== JSON.stringify(restoredState.templates)) {
                 try {
                     const serialized = JSON.stringify(restored);
                     localStorage.setItem(STORAGE_KEY, serialized);
@@ -2364,11 +2400,12 @@
                 const cloudTitles = new Set(cloudTrips.map(t => (t.title || '').trim().toLocaleLowerCase()));
                 const localTrips = (state.trips || []).filter(t => !cloudIds.has(t.id) && !cloudTitles.has((t.title || '').trim().toLocaleLowerCase()));
                 // Cloud wins for existing IDs/titles; genuinely local trips are migrated once.
+                const cloudStarterPreferencesUpdated = applyStarterTripPreferences(cloudTrips);
                 state.trips = [...cloudTrips, ...localTrips];
                 state.trips.forEach(t => { t.id = ensureUuid(t.id); });
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
                 isHydrating = false;
-                if (localTrips.length) await syncTripsToCloud();
+                if (localTrips.length || cloudStarterPreferencesUpdated) await syncTripsToCloud();
                 await acceptTripInviteFromUrl();
                 if (location.hash === '') {
                     const { data: refreshedRows } = await supabaseClient.from('trips').select('id,owner_id,title,data,updated_at').order('updated_at', { ascending: false });
@@ -2382,6 +2419,7 @@
                         return { ...source, id: row.id, title: source.title || row.title || 'Voyage', updated_at: localIsNewer ? local.updated_at : row.updated_at, _albaOwnerId: row.owner_id, _albaRole: role };
                     });
                     if (refreshedTrips.length) {
+                        applyStarterTripPreferences(refreshedTrips);
                         const refreshedIds = new Set(refreshedTrips.map(t => t.id));
                         const localOnly = state.trips.filter(t => !refreshedIds.has(t.id));
                         state.trips = [...refreshedTrips, ...localOnly];
@@ -2866,6 +2904,8 @@
 
         function openTrip(id) {
             activeTripId = id;
+            const tripToOpen = normalizeTripForOpening(getTrip());
+            if (!tripToOpen) { activeTripId = null; showToast('Ce voyage est introuvable.'); return; }
             selectedDay = 1;
             isEurFirst = true;
             expCurrency = 'EUR';
@@ -2873,7 +2913,12 @@
             document.getElementById('home-view').classList.add('hidden');
             document.getElementById('trip-workspace').classList.remove('hidden');
             switchTab('apercu');
-            refreshTripUI();
+            try {
+                refreshTripUI();
+            } catch (error) {
+                console.error('ALBA ouverture du voyage :', error);
+                showToast('Le voyage est ouvert, un module rencontre un problème.');
+            }
             subscribeToTripChanges();
             refreshTripGroupMode().then(() => loadTripVotes());
             checkDueTripReminders();
