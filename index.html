@@ -519,12 +519,15 @@
                                 <option value="Bar">🍸 Bar</option>
                                 <option value="Hôtel">🏨 Hôtel</option>
                                 <option value="Lieu à visiter">🏛️ Lieu à visiter</option>
-                                <option value="Drone">🚁 Drone (Zone à capturer)</option>
-                                <option value="Spot photo">📸 Spot photo</option>
-                                <option value="Sunset View">🌅 Sunset View</option>
-                                <option value="Activités">🎟️ Activités</option>
+                                <option value="Musée">🏛️ Musée</option>
+                                <option value="Monument">🏰 Monument</option>
+                                <option value="Nature">🌿 Nature</option>
+                                <option value="Point de vue">🌄 Point de vue</option>
                                 <option value="Plage">🏖️ Plage</option>
-                                <option value="Beach club">⛱️ Beach club</option>
+                                <option value="Activité">🎟️ Activité</option>
+                                <option value="Shopping">🛍️ Shopping</option>
+                                <option value="Marché">🧺 Marché</option>
+                                <option value="Autre">📍 Autre</option>
                             </select>
 
                             <button type="button" id="inspo-booked-toggle" onclick="toggleInspoBookedFlag()" class="px-3 py-2 rounded-xl border border-borderSubtle bg-stoneBg text-[11px] font-medium text-muted transition">À réserver</button>
@@ -687,7 +690,7 @@
                     <div class="bg-white rounded-2xl p-3.5 border border-borderSubtle space-y-2.5">
                         <span class="text-xs font-semibold text-ink block">Ajouter un article dans un bagage</span>
                         <div class="flex items-center gap-2">
-                            <input id="gear-name-input" type="text" placeholder="Article (ex: Drone, Tenues...)" class="flex-1 bg-stoneBg text-xs text-ink placeholder:text-muted rounded-xl px-3 py-2 border border-borderSubtle focus:outline-none focus:border-sand">
+                            <input id="gear-name-input" type="text" placeholder="Article (ex. : T-shirt, chargeur, trousse de toilette…)" class="flex-1 bg-stoneBg text-xs text-ink placeholder:text-muted rounded-xl px-3 py-2 border border-borderSubtle focus:outline-none focus:border-sand">
                             <input id="gear-weight-input" type="number" step="0.05" placeholder="kg" class="w-16 bg-stoneBg text-xs text-ink placeholder:text-muted rounded-xl px-2.5 py-2 border border-borderSubtle focus:outline-none focus:border-sand">
                             <button onclick="addGearItem()" class="w-8 h-8 rounded-xl bg-ink text-white flex items-center justify-center shrink-0 active:scale-95 transition">
                                 <i data-lucide="plus" class="w-4 h-4"></i>
@@ -696,9 +699,14 @@
                         <div class="grid grid-cols-2 gap-2">
                             <select id="gear-bag-select" class="bg-stoneBg text-[11px] font-semibold text-ink rounded-lg px-2.5 py-1.5 border border-borderSubtle"></select>
                             <select id="gear-cat-select" class="bg-stoneBg text-[11px] text-ink rounded-lg px-2.5 py-1.5 border border-borderSubtle">
-                                <option value="Tech & Drone">Tech & Drone</option>
-                                <option value="Essentiels & Papiers">Essentiels & Papiers</option>
-                                <option value="Tenues & Soins">Tenues & Soins</option>
+                                <option value="Vêtements">Vêtements</option>
+                                <option value="Chaussures">Chaussures</option>
+                                <option value="Toilette & soins">Toilette & soins</option>
+                                <option value="Santé & pharmacie">Santé & pharmacie</option>
+                                <option value="Documents & essentiels">Documents & essentiels</option>
+                                <option value="Électronique">Électronique</option>
+                                <option value="Accessoires">Accessoires</option>
+                                <option value="Divers">Divers</option>
                             </select>
                         </div>
                     </div>
@@ -711,7 +719,7 @@
                         <span class="text-xs font-bold text-ink flex items-center gap-1.5">
                             <i data-lucide="list-todo" class="w-3.5 h-3.5 text-sand"></i> Notes & Check-list Bagages
                         </span>
-                        <textarea id="bagage-extra-notes" rows="2" oninput="saveTabExtraNote('bagageNotes', this.value)" placeholder="Règles compagnie aérienne, dimensions cabine, batteries LiPo..." class="w-full bg-stoneBg text-xs text-ink rounded-xl p-2.5 border border-borderSubtle focus:outline-none focus:border-sand"></textarea>
+                        <textarea id="bagage-extra-notes" rows="2" oninput="saveTabExtraNote('bagageNotes', this.value)" placeholder="Ex. : règles de la compagnie, dimensions et poids autorisés…" class="w-full bg-stoneBg text-xs text-ink rounded-xl p-2.5 border border-borderSubtle focus:outline-none focus:border-sand"></textarea>
                         <div id="bagage-checklist-items" class="space-y-1.5"></div>
                         <div class="flex gap-1.5">
                             <input id="new-bagage-check-input" type="text" placeholder="Ajouter une vérification bagage..." class="flex-1 bg-stoneBg text-xs text-ink rounded-xl px-3 py-1.5 border border-borderSubtle focus:outline-none">
@@ -994,12 +1002,15 @@
                         <option value="Bar">🍸 Bar</option>
                         <option value="Hôtel">🏨 Hôtel</option>
                         <option value="Lieu à visiter">🏛️ Lieu à visiter</option>
-                        <option value="Drone">🚁 Drone</option>
-                        <option value="Spot photo">📸 Spot photo</option>
-                        <option value="Sunset View">🌅 Sunset View</option>
-                        <option value="Activités">🎟️ Activités</option>
+                        <option value="Musée">🏛️ Musée</option>
+                        <option value="Monument">🏰 Monument</option>
+                        <option value="Nature">🌿 Nature</option>
+                        <option value="Point de vue">🌄 Point de vue</option>
                         <option value="Plage">🏖️ Plage</option>
-                        <option value="Beach club">⛱️ Beach club</option>
+                        <option value="Activité">🎟️ Activité</option>
+                        <option value="Shopping">🛍️ Shopping</option>
+                        <option value="Marché">🧺 Marché</option>
+                        <option value="Autre">📍 Autre</option>
                     </select>
                     <select id="edit-inspo-booked" class="bg-stoneBg text-xs text-ink rounded-xl px-3 py-2.5 border border-borderSubtle">
                         <option value="false">À réserver</option>
@@ -1123,7 +1134,7 @@
                         <i data-lucide="x" class="w-4 h-4"></i>
                     </button>
                 </div>
-                <input id="lug-name" type="text" placeholder="Nom du bagage (ex: Valise Cabine, Sac Drone...)" class="w-full bg-stoneBg text-xs text-ink rounded-xl px-3 py-2.5 border border-borderSubtle">
+                <input id="lug-name" type="text" placeholder="Nom du bagage (ex. : Valise cabine, sac à dos…)" class="w-full bg-stoneBg text-xs text-ink rounded-xl px-3 py-2.5 border border-borderSubtle">
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="text-[10px] text-muted block mb-1">Poids à vide du contenant (kg)</label>
@@ -1306,12 +1317,15 @@
                         <option value="Bar">🍸 Bar</option>
                         <option value="Hôtel">🏨 Hôtel</option>
                         <option value="Lieu à visiter">🏛️ Lieu à visiter</option>
-                        <option value="Drone">🚁 Drone</option>
-                        <option value="Spot photo">📸 Spot photo</option>
-                        <option value="Sunset View">🌅 Sunset View</option>
-                        <option value="Activités">🎟️ Activités</option>
+                        <option value="Musée">🏛️ Musée</option>
+                        <option value="Monument">🏰 Monument</option>
+                        <option value="Nature">🌿 Nature</option>
+                        <option value="Point de vue">🌄 Point de vue</option>
                         <option value="Plage">🏖️ Plage</option>
-                        <option value="Beach club">⛱️ Beach club</option>
+                        <option value="Activité">🎟️ Activité</option>
+                        <option value="Shopping">🛍️ Shopping</option>
+                        <option value="Marché">🧺 Marché</option>
+                        <option value="Autre">📍 Autre</option>
                     </select>
                 </div>
                 <input id="new-step-title" type="text" placeholder="Titre de l'étape" class="w-full bg-stoneBg text-xs text-ink rounded-xl px-3 py-2.5 border border-borderSubtle">
@@ -1535,8 +1549,8 @@
 
         const PLACE_CATEGORIES = [
             'Café', 'Restaurant', 'Glacier', 'Fast Food', 'Bar',
-            'Hôtel', 'Lieu à visiter', 'Drone', 'Spot photo',
-            'Sunset View', 'Activités', 'Plage', 'Beach club'
+            'Hôtel', 'Lieu à visiter', 'Musée', 'Monument', 'Nature',
+            'Point de vue', 'Plage', 'Activité', 'Shopping', 'Marché', 'Autre'
         ];
 
         const EXPENSE_CATEGORIES = [
@@ -1610,24 +1624,27 @@
         const defaultTemplates = [
             {
                 id: 'tpl-1',
-                name: 'Kit Cabine 10 kg + Drone',
+                name: 'Voyage classique',
                 items: [
-                    { category: 'Tech & Drone', name: 'DJI Mini 4 Pro + Fly More', weight: 1.15 },
-                    { category: 'Tech & Drone', name: 'Radiocommande DJI RC 2', weight: 0.42 },
-                    { category: 'Tech & Drone', name: '3 Batteries LiPo (Sac ignifugé)', weight: 0.35 },
-                    { category: 'Tech & Drone', name: 'SSD Externe 1 To + Câbles USB-C', weight: 0.18 },
-                    { category: 'Essentiels & Papiers', name: 'Passeport + Pochette documents', weight: 0.15 },
-                    { category: 'Tenues & Soins', name: 'Tenues légères (Compression)', weight: 3.80 },
-                    { category: 'Tenues & Soins', name: 'Trousse toilette 100ml', weight: 1.10 }
+                    { category: 'Vêtements', name: 'Hauts et bas', weight: 2.00 },
+                    { category: 'Vêtements', name: 'Sous-vêtements et chaussettes', weight: 0.50 },
+                    { category: 'Chaussures', name: 'Une paire de chaussures de rechange', weight: 0.90 },
+                    { category: 'Toilette & soins', name: 'Trousse de toilette', weight: 0.80 },
+                    { category: 'Santé & pharmacie', name: 'Petite trousse de premiers soins', weight: 0.30 },
+                    { category: 'Documents & essentiels', name: 'Papiers et documents de voyage', weight: 0.20 },
+                    { category: 'Électronique', name: 'Téléphone et chargeur', weight: 0.35 },
+                    { category: 'Accessoires', name: 'Lunettes et accessoires personnels', weight: 0.30 }
                 ]
             },
             {
                 id: 'tpl-2',
-                name: 'Week-end Express (Sac à dos)',
+                name: 'Week-end léger',
                 items: [
-                    { category: 'Essentiels & Papiers', name: 'Carte d’identité + Carte bancaire', weight: 0.10 },
-                    { category: 'Tech & Drone', name: 'iPhone + Batterie externe 10k', weight: 0.45 },
-                    { category: 'Tenues & Soins', name: '2 tenues de rechange', weight: 1.80 }
+                    { category: 'Vêtements', name: 'Deux tenues de rechange', weight: 1.20 },
+                    { category: 'Toilette & soins', name: 'Trousse de toilette compacte', weight: 0.40 },
+                    { category: 'Documents & essentiels', name: 'Pièce d’identité et moyen de paiement', weight: 0.10 },
+                    { category: 'Électronique', name: 'Téléphone et chargeur', weight: 0.30 },
+                    { category: 'Accessoires', name: 'Sac et accessoires utiles', weight: 0.30 }
                 ]
             }
         ];
@@ -1649,7 +1666,7 @@
                 todos: [],
                 inspirations: [
                     { id: 1, url: 'https://maps.app.goo.gl/3YAX8FTa12kB9UWG7?g_st=ic', platform: 'Maps', title: 'Djamaâ El Djazaïr 🕌', address: 'Alger', category: 'Lieu à visiter', booked: false, status: 'unorganized', assignedDay: null, image: null },
-                    { id: 2, url: 'https://vm.tiktok.com/ZN85kju9c/', platform: 'TikTok', title: 'Horseback riding 🐎', address: 'Tipaza', category: 'Drone', booked: false, status: 'unorganized', assignedDay: null, image: null }
+                    { id: 2, url: 'https://vm.tiktok.com/ZN85kju9c/', platform: 'TikTok', title: 'Balade à cheval 🐎', address: 'Tipaza', category: 'Activité', booked: false, status: 'unorganized', assignedDay: null, image: null }
                 ],
                 daysMeta: { 1: { title: 'Jour 1 • Arrivée', date: 'Jour 1' } },
                 itinerary: { 1: [] },
@@ -3751,10 +3768,10 @@
         }
 
         function pasteDemoLink() {
-            document.getElementById('inspo-url-input').value = 'https://www.tiktok.com/@travel/video/sunset-drone-spot';
-            document.getElementById('inspo-title-input').value = 'Falaise Sunset & Plan Drone';
+            document.getElementById('inspo-url-input').value = 'https://www.google.com/maps';
+            document.getElementById('inspo-title-input').value = 'Lieu à découvrir';
             document.getElementById('inspo-address-input').value = 'Muscat, Oman';
-            document.getElementById('inspo-category-select').value = 'Drone';
+            document.getElementById('inspo-category-select').value = 'Lieu à visiter';
         }
 
         function detectPlatform(url) {
