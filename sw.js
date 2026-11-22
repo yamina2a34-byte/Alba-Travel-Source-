@@ -1,4 +1,4 @@
-const CACHE_NAME = 'alba-travel-shell-v11';
+const CACHE_NAME = 'alba-travel-shell-v12';
 const APP_SHELL = ['./index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', event => {
@@ -61,7 +61,7 @@ self.addEventListener('fetch', event => {
   }
 });
 
-// Deploy trigger: 2026-11-14T14:24Z
+// Deploy trigger: 2026-11-22T16:21Z
 
 
 self.addEventListener('push', event => {
