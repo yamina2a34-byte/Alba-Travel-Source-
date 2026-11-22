@@ -4353,6 +4353,7 @@
 
         function bindItineraryDrag(container) {
             if (!container) return;
+
             container.querySelectorAll('.step-draggable-item').forEach(card => {
                 const handle = card.querySelector('.step-drag-handle');
                 if (!handle || handle.dataset.dragBound === '1') return;
@@ -4368,71 +4369,97 @@
                     }
                 };
 
+                const moveCard = (clientY) => {
+                    if (!drag || !drag.active) return;
+
+                    const siblings = [...container.querySelectorAll('.step-draggable-item')].filter(el => el !== card);
+                    if (!siblings.length) return;
+
+                    const target = siblings.find(el => {
+                        const rect = el.getBoundingClientRect();
+                        return clientY < rect.top + rect.height / 2;
+                    });
+
+                    const before = card.nextElementSibling;
+                    if (target) {
+                        container.insertBefore(card, target);
+                    } else {
+                        container.appendChild(card);
+                    }
+
+                    if (before !== card.nextElementSibling) drag.moved = true;
+                };
+
                 const finish = (save) => {
                     clearTimer();
                     if (!drag) return;
+
                     const moved = drag.moved;
                     card.classList.remove('dragging-section');
-                    try {
-                        if (handle.hasPointerCapture(drag.pointerId)) handle.releasePointerCapture(drag.pointerId);
-                    } catch (_) {}
+
+                    if (drag.moveHandler) document.removeEventListener('pointermove', drag.moveHandler);
+                    if (drag.upHandler) document.removeEventListener('pointerup', drag.upHandler);
+                    if (drag.cancelHandler) document.removeEventListener('pointercancel', drag.cancelHandler);
+
                     drag = null;
+
                     if (save && moved) reorderItineraryFromDOM();
                 };
 
                 handle.addEventListener('pointerdown', e => {
                     if (e.button !== undefined && e.button !== 0) return;
+
                     e.preventDefault();
+                    clearTimer();
+
                     drag = {
                         pointerId: e.pointerId,
                         active: false,
-                        moved: false
+                        moved: false,
+                        moveHandler: null,
+                        upHandler: null,
+                        cancelHandler: null
                     };
-                    try { handle.setPointerCapture(e.pointerId); } catch (_) {}
 
-                    // Le déplacement devient actif après un vrai appui long.
-                    // On ne l'annule pas si le doigt bouge légèrement pendant ces quelques ms :
-                    // c'était la cause du drag qui ne démarrait pas correctement sur iPhone.
+                    // Appui long puis déplacement : les événements de déplacement sont
+                    // écoutés sur le document pour rester fiables sur iPhone/iPad.
                     timer = setTimeout(() => {
                         if (!drag) return;
+
                         drag.active = true;
                         card.classList.add('dragging-section');
                         if (navigator.vibrate) navigator.vibrate(15);
                         showToast('Déplacez l’étape');
+
+                        drag.moveHandler = ev => {
+                            if (!drag || ev.pointerId !== drag.pointerId || !drag.active) return;
+                            ev.preventDefault();
+                            moveCard(ev.clientY);
+                        };
+
+                        drag.upHandler = ev => {
+                            if (!drag || ev.pointerId !== drag.pointerId) return;
+                            finish(true);
+                        };
+
+                        drag.cancelHandler = ev => {
+                            if (!drag || ev.pointerId !== drag.pointerId) return;
+                            finish(false);
+                        };
+
+                        document.addEventListener('pointermove', drag.moveHandler, { passive: false });
+                        document.addEventListener('pointerup', drag.upHandler);
+                        document.addEventListener('pointercancel', drag.cancelHandler);
                     }, 300);
                 });
 
-                handle.addEventListener('pointermove', e => {
-                    if (!drag || e.pointerId !== drag.pointerId) return;
-
-                    // Pendant le délai d'appui long, on laisse le geste continuer.
-                    if (!drag.active) return;
-
-                    e.preventDefault();
-
-                    const siblings = [...container.querySelectorAll('.step-draggable-item')].filter(x => x !== card);
-                    const target = siblings.find(x => {
-                        const rect = x.getBoundingClientRect();
-                        return e.clientY < rect.top + rect.height / 2;
-                    });
-
-                    const previousNext = card.nextElementSibling;
-                    if (target) container.insertBefore(card, target);
-                    else container.appendChild(card);
-
-                    if (previousNext !== card.nextElementSibling) drag.moved = true;
-                });
-
                 handle.addEventListener('pointerup', e => {
-                    if (drag && e.pointerId === drag.pointerId) finish(true);
+                    if (drag && e.pointerId === drag.pointerId && !drag.active) finish(false);
                 });
+
                 handle.addEventListener('pointercancel', () => finish(false));
-                handle.addEventListener('lostpointercapture', () => {
-                    if (drag) finish(true);
-                });
             });
         }
-
         function openEditTransitModal(stepId) {
             const trip = getTrip();
             const steps = trip.itinerary[selectedDay] || [];
