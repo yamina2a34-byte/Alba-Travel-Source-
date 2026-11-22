@@ -2716,8 +2716,12 @@
         // --- HOME HUB (PROCHAIN DÉPART, BADGE BROUILLON, MENU •••) ---
         function renderHome() {
             const visibleTrips = state.trips.filter(t => !t.deletedAt);
-            const activeTrip = visibleTrips.find(t => t.status === 'active') || visibleTrips.filter(t => t.status === 'upcoming').sort((a,b)=>(a.startDate||'9999').localeCompare(b.startDate||'9999'))[0];
-            const upcomingTrips = visibleTrips.filter(t => t.status !== 'past' && t.id !== activeTrip?.id);
+            const isOmaniStarter = trip => trip.id === 'starter-omani' || String(trip.title || '').trim().toLocaleLowerCase().startsWith('omani dreams');
+            const isAlgerianStarter = trip => trip.id === 'starter-algerian' || String(trip.title || '').trim().toLocaleLowerCase().startsWith('algerian escape');
+            // Omani Dreams reste toujours le voyage mis en avant, même si d'anciens voyages sont encore actifs.
+            const activeTrip = visibleTrips.find(t => isOmaniStarter(t) && t.status !== 'past') || visibleTrips.find(t => t.status === 'active') || visibleTrips.filter(t => t.status === 'upcoming').sort((a,b)=>(a.startDate||'9999').localeCompare(b.startDate||'9999'))[0];
+            // Conserver tous les voyages, mais afficher Algerian Escape juste après Omani Dreams.
+            const upcomingTrips = visibleTrips.filter(t => t.status !== 'past' && t.id !== activeTrip?.id).sort((a,b) => Number(isAlgerianStarter(b)) - Number(isAlgerianStarter(a)) || (a.startDate||'9999').localeCompare(b.startDate||'9999'));
             const pastTrips = visibleTrips.filter(t => t.status === 'past');
 
             const heroEl = document.getElementById('home-hero-container');
