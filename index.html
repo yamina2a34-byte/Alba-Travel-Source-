@@ -5753,7 +5753,7 @@
                 runWhenIdle(() => initCloudSync(), 2200);
                 runWhenIdle(() => {
                     if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
-                        navigator.serviceWorker.register('./sw.js?v=12')
+                        navigator.serviceWorker.register('./sw.js?v=13')
                             .then(reg => reg.update().catch(() => {}))
                             .catch(err => console.warn('ALBA offline worker:', err));
                     }
