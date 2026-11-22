@@ -1526,9 +1526,13 @@
         // Configuration publique Supabase : la sécurité repose sur les politiques RLS.
         const SUPABASE_URL = 'https://ziqbklqpsrsxbqvzynil.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppcWJrbHFwc3JzeGJxdnp5bmlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ1OTE5NTIsImV4cCI6MjExMDE2Nzk1Mn0.ODNBckkvVx8dZADI7RHO1ljx3m55dfm8X99yFbLpDBE';
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-            auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
-        });
+        // Supabase est optionnel au démarrage : l'application locale doit fonctionner
+        // même si le CDN est lent, bloqué ou momentanément indisponible.
+        let supabaseClient = window.supabase?.createClient
+            ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+            })
+            : null;
         let albaUserId = null;
         let syncQueue = Promise.resolve();
         let syncTimer = null;
@@ -2224,6 +2228,17 @@
         }
 
         async function performCloudSyncInit(options = {}) {
+            // Le cloud ne doit jamais empêcher ALBA de fonctionner en local.
+            // Si le CDN Supabase n'est pas disponible, on conserve immédiatement la copie locale.
+            if (!supabaseClient) {
+                isHydrating = false;
+                lastSyncError = 'Bibliothèque cloud indisponible';
+                const status = document.getElementById('cloud-sync-status');
+                if (status) status.textContent = 'Hors ligne · copie locale conservée';
+                if (options.throwOnError) throw new Error('Le service cloud est momentanément indisponible.');
+                renderHome();
+                return;
+            }
             // L'accueil est déjà rendu depuis la copie locale : le cloud ne doit jamais le masquer
             // ni laisser croire que les voyages sont indisponibles pendant une connexion lente.
             if (storageMode === 'hybrid') setCloudSyncStatus('Copie locale chargée · synchronisation…');
