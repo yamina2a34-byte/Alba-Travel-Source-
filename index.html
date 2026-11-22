@@ -712,6 +712,11 @@
                                 <option value="Divers">Divers</option>
                             </select>
                         </div>
+                        <select id="gear-priority-select" class="w-full bg-stoneBg text-[11px] text-ink rounded-lg px-2.5 py-1.5 border border-borderSubtle">
+                            <option value="essential">Indispensable</option>
+                            <option value="normal" selected>Utile</option>
+                            <option value="optional">Optionnel</option>
+                        </select>
                     </div>
 
                     <!-- UNE SECTION PAR BAGAGE POUR VOIR CE QUE CHAQUE BAGAGE CONTIENT -->
@@ -4524,7 +4529,8 @@
             });
             const daySpend = (trip.expenses || []).filter(e => String(e.day || '') === `Jour ${selectedDay}`).reduce((sum,e) => sum + (Number(e.amountEur)||0), 0);
             const linkedCount = (trip.reservations || []).filter(r => (r.date && r.date === meta.date) || (r.linkedStepId && steps.some(st => String(st.id)===String(r.linkedStepId)))).length;
-            document.getElementById('current-day-date').textContent = `${meta.date && /^\d{4}-\d{2}-\d{2}$/.test(meta.date) ? prettyDate(meta.date) + ' • ' : ''}${pluralize(steps.length, 'étape')} • ${daySpend.toFixed(0)} € dépensés • ${linkedCount} réservation(s)`;
+            const travelSummary = steps.length > 1 ? (dayTotalMins > 0 ? `Trajets renseignés : ${formatRouteDuration(dayTotalMins * 60)}` : 'Trajets à vérifier sur Maps') : '';
+            document.getElementById('current-day-date').textContent = `${meta.date && /^\d{4}-\d{2}-\d{2}$/.test(meta.date) ? prettyDate(meta.date) + ' • ' : ''}${pluralize(steps.length, 'étape')} • ${daySpend.toFixed(0)} € dépensés • ${linkedCount} réservation(s)${travelSummary ? ' • ' + travelSummary : ''}`;
 
             const container = document.getElementById('itinerary-timeline');
             loadDayWeather(false);
@@ -4677,10 +4683,10 @@
             const bagSel = document.getElementById('gear-bag-select');
             bagSel.innerHTML = trip.luggages.map(b => `<option value="${b.id}">Dans : ${b.name}</option>`).join('');
 
-            const emptyBagsTotal = trip.luggages.reduce((s, b) => s + (b.emptyWeight || 0), 0);
-            const itemsTotal = trip.gearList.reduce((s, i) => s + (i.checked ? i.weight : 0), 0);
+            const emptyBagsTotal = trip.luggages.reduce((sum, bag) => sum + (Number(bag.emptyWeight) || 0), 0);
+            const itemsTotal = trip.gearList.reduce((sum, item) => sum + (item.checked ? (Number(item.weight) || 0) : 0), 0);
             const total = emptyBagsTotal + itemsTotal;
-            const max = trip.luggages.reduce((s, b) => s + (b.maxWeight || 10), 0);
+            const max = trip.luggages.reduce((sum, bag) => sum + (Number(bag.maxWeight) > 0 ? Number(bag.maxWeight) : 10), 0);
 
             const pct = max > 0 ? Math.min((total / max) * 100, 100) : 0;
             const rem = (max - total).toFixed(2);
@@ -4743,12 +4749,12 @@
                                     <label class="flex items-center gap-2.5 cursor-pointer flex-1">
                                         <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleGear(${item.id})" class="w-4 h-4 accent-zinc-900 rounded">
                                         <div>
-                                            <span class="text-xs block ${item.checked ? 'text-ink font-medium' : 'text-muted line-through'}">${item.name}</span>
-                                            <span class="text-[10px] text-sand">${item.category}</span>
+                                            <span class="text-xs block ${item.checked ? 'text-ink font-medium' : 'text-muted line-through'}">${escapeHtml(item.name || 'Article')}</span>
+                                            <span class="text-[10px] text-sand">${escapeHtml(item.category || 'Divers')} · ${item.priority === 'essential' ? 'Indispensable' : item.priority === 'optional' ? 'Optionnel' : 'Utile'}</span>
                                         </div>
                                     </label>
                                     <div class="flex items-center gap-2">
-                                        <span class="text-[11px] text-muted font-mono">${item.weight.toFixed(2)} kg</span>
+                                        <span class="text-[11px] text-muted font-mono">${(Number(item.weight) || 0).toFixed(2)} kg</span>
                                         <button onclick="deleteGearItem(${item.id})" class="text-muted hover:text-red-500"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
                                     </div>
                                 </div>
@@ -4778,11 +4784,14 @@
         function addGearItem() {
             const trip = getTrip();
             const name = document.getElementById('gear-name-input').value.trim();
-            const weight = parseFloat(document.getElementById('gear-weight-input').value) || 0.20;
+            const rawWeight = document.getElementById('gear-weight-input').value.trim();
+            const weight = rawWeight === '' ? 0.20 : Number(rawWeight);
             const category = document.getElementById('gear-cat-select').value;
+            const priority = document.getElementById('gear-priority-select')?.value || 'normal';
             const bagId = document.getElementById('gear-bag-select').value || trip.luggages[0]?.id;
-            if (!name) return;
-            trip.gearList.push({ id: Date.now(), bagId, category, name, weight, checked: true });
+            if (!name) { showToast('Ajoute le nom de l’article'); return; }
+            if (!Number.isFinite(weight) || weight < 0) { showToast('Indique un poids valide'); return; }
+            trip.gearList.push({ id: Date.now(), bagId, category, priority, name, weight, checked: true });
             document.getElementById('gear-name-input').value = '';
             document.getElementById('gear-weight-input').value = '';
             saveState();
