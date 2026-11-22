@@ -1215,17 +1215,17 @@
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="text-[10px] text-muted block mb-1">Date de départ</label>
-                        <input id="new-trip-start" type="date" onchange="updateNewTripDuration()" class="w-full bg-stoneBg text-xs text-ink rounded-xl px-3 py-2 border border-borderSubtle">
+                        <input id="new-trip-start" type="date" onchange="updateNewTripDuration(\'start\')" class="w-full bg-stoneBg text-xs text-ink rounded-xl px-3 py-2 border border-borderSubtle">
                     </div>
                     <div>
                         <label class="text-[10px] text-muted block mb-1">Date de retour</label>
-                        <input id="new-trip-end" type="date" onchange="updateNewTripDuration()" class="w-full bg-stoneBg text-xs text-ink rounded-xl px-3 py-2 border border-borderSubtle">
+                        <input id="new-trip-end" type="date" onchange="updateNewTripDuration(\'end\')" class="w-full bg-stoneBg text-xs text-ink rounded-xl px-3 py-2 border border-borderSubtle">
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="text-[10px] text-muted block mb-1">Durée (jours)</label>
-                        <input id="new-trip-days" type="number" value="10" class="w-full bg-stoneBg text-xs text-ink rounded-xl px-3 py-2 border border-borderSubtle">
+                        <input id="new-trip-days" type="number" min="1" value="10" oninput="updateNewTripDatesFromDuration()" class="w-full bg-stoneBg text-xs text-ink rounded-xl px-3 py-2 border border-borderSubtle">
                     </div>
                     <div>
                         <label class="text-[10px] text-muted block mb-1">Statut</label>
@@ -2960,9 +2960,22 @@
             document.getElementById('create-trip-modal').classList.remove('hidden');
         }
 
-        function updateNewTripDuration() {
-            const start = document.getElementById('new-trip-start').value; const end = document.getElementById('new-trip-end').value;
-            if (start && end && end >= start) document.getElementById('new-trip-days').value = Math.floor((new Date(end+'T12:00:00')-new Date(start+'T12:00:00'))/86400000)+1;
+        function updateNewTripDuration(changedField) {
+            const startInput = document.getElementById('new-trip-start'), endInput = document.getElementById('new-trip-end'), daysInput = document.getElementById('new-trip-days');
+            const start = startInput.value, end = endInput.value;
+            if (changedField === 'start' && start) {
+                const days = Math.max(1, parseInt(daysInput.value, 10) || 1), nextEnd = new Date(start + 'T12:00:00');
+                nextEnd.setDate(nextEnd.getDate() + days - 1);
+                endInput.value = nextEnd.getFullYear() + '-' + String(nextEnd.getMonth()+1).padStart(2,'0') + '-' + String(nextEnd.getDate()).padStart(2,'0');
+            } else if (changedField === 'end' && start && end && end >= start) {
+                daysInput.value = Math.floor((new Date(end+'T12:00:00')-new Date(start+'T12:00:00'))/86400000)+1;
+            }
+        }
+        function updateNewTripDatesFromDuration() {
+            const start = document.getElementById('new-trip-start').value, days = parseInt(document.getElementById('new-trip-days').value, 10);
+            if (!start || !Number.isFinite(days) || days < 1) return;
+            const end = new Date(start + 'T12:00:00'); end.setDate(end.getDate() + days - 1);
+            document.getElementById('new-trip-end').value = end.getFullYear() + '-' + String(end.getMonth()+1).padStart(2,'0') + '-' + String(end.getDate()).padStart(2,'0');
         }
 
         function createNewTrip() {
