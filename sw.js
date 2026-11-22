@@ -1,4 +1,4 @@
-const CACHE_NAME = 'alba-travel-shell-v15';
+const CACHE_NAME = 'alba-travel-shell-v16';
 const APP_SHELL = ['./index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', event => {
