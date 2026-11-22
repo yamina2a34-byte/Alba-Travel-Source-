@@ -1412,7 +1412,7 @@
                     <button onclick="document.getElementById('vault-file-input').click()" class="flex-1 bg-ink text-white rounded-xl py-2.5 text-[11px] font-semibold">+ Ajouter un document</button>
                     <input id="vault-file-input" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.heic,.heif,.doc,.docx,.xls,.xlsx" class="hidden" onchange="handleVaultFileUpload(this,'document')">
                 </div>
-                <input id="vault-search-input" type="search" oninput="filterVaultFiles(this.value)" placeholder="Rechercher un billet, une réservation, un fichier…" class="w-full bg-stoneBg text-xs text-ink rounded-xl px-3 py-2.5 border border-borderSubtle focus:outline-none focus:border-sand"><div id="vault-files-list" class="space-y-2 max-h-52 overflow-y-auto no-scrollbar"><p class="text-[10px] text-muted text-center py-2">Chargement du coffre-fort…</p></div>
+                <input id="vault-search-input" type="search" oninput="filterVaultFiles(this.value)" placeholder="Rechercher un fichier par nom…" class="w-full bg-stoneBg text-xs text-ink rounded-xl px-3 py-2.5 border border-borderSubtle focus:outline-none focus:border-sand"><div id="vault-files-list" class="space-y-2 max-h-52 overflow-y-auto no-scrollbar"><p class="text-[10px] text-muted text-center py-2">Chargement du coffre-fort…</p></div>
                 <div class="border-t border-borderSubtle pt-3"><p class="text-[10px] font-semibold text-muted uppercase tracking-wide mb-2">Liens et billets déjà enregistrés</p><div id="doc-modal-body" class="space-y-2.5 max-h-52 overflow-y-auto no-scrollbar"></div></div>
             </div>
         </div>
