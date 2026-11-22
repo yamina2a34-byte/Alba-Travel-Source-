@@ -2359,6 +2359,13 @@
                     const source = localIsNewer ? local : (row.data || {});
                     return { ...source, id: row.id, title: source.title || row.title || 'Voyage', updated_at: localIsNewer ? local.updated_at : row.updated_at, _albaOwnerId: row.owner_id, _albaRole: role };
                 });
+                // Le cloud peut encore contenir les anciennes fiches de démarrage. Réappliquer
+                // les données de démonstration après l'hydratation, avant qu'elles remplacent
+                // les modèles enrichis chargés depuis le stockage local.
+                let cloudDemoUpdated = false;
+                cloudTrips.forEach(trip => {
+                    if (applyAlbaDemoContent(trip)) cloudDemoUpdated = true;
+                });
                 knownCloudTripIds = new Set(cloudTrips.filter(t => t._albaRole === 'owner').map(t => t.id));
                 const cloudIds = new Set(cloudTrips.map(t => t.id));
                 const cloudTitles = new Set(cloudTrips.map(t => (t.title || '').trim().toLocaleLowerCase()));
@@ -2368,7 +2375,7 @@
                 state.trips.forEach(t => { t.id = ensureUuid(t.id); });
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
                 isHydrating = false;
-                if (localTrips.length) await syncTripsToCloud();
+                if (localTrips.length || cloudDemoUpdated) await syncTripsToCloud();
                 await acceptTripInviteFromUrl();
                 if (location.hash === '') {
                     const { data: refreshedRows } = await supabaseClient.from('trips').select('id,owner_id,title,data,updated_at').order('updated_at', { ascending: false });
