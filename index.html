@@ -1776,7 +1776,7 @@
             currentThemePreference = mode; localStorage.setItem('alba_theme_preference', mode); applyTheme();
         }
         function openPreferencesModal() {
-            applyTheme(); refreshStoragePreferenceUI(); document.getElementById('preferences-modal').classList.remove('hidden'); lucide.createIcons();
+            applyTheme(); refreshStoragePreferenceUI(); document.getElementById('preferences-modal').classList.remove('hidden'); window.lucide?.createIcons?.();
         }
         async function openAccountModal() {
             let user = null;
@@ -1824,7 +1824,7 @@
             document.getElementById('account-new-password').value = '';
             document.getElementById('account-message').textContent = '';
             document.getElementById('account-modal').classList.remove('hidden');
-            lucide.createIcons();
+            window.lucide?.createIcons?.();
         }
         function setAccountMessage(message) {
             const el = document.getElementById('account-message');
@@ -2416,7 +2416,7 @@
                     return '<button type="button" onclick="navigatePreparation(\''+a.tab+'\',\''+(a.target||'')+'\',\''+(a.accordion||'')+'\')" class="w-full flex items-start gap-2 rounded-xl bg-stoneBg p-2.5 text-left"><i data-lucide="'+icon+'" class="w-4 h-4 '+tone+' shrink-0 mt-0.5"></i><span class="min-w-0"><span class="block text-[10px] font-semibold text-ink">'+a.title+'</span><span class="block text-[9px] text-muted">'+a.detail+'</span></span></button>';
                 }).join('') : '<p class="text-[10px] text-emerald-700">Aucune alerte particulière pour le moment.</p>';
             }
-            if(window.lucide) lucide.createIcons();
+            if(window.lucide) window.lucide?.createIcons?.();
         }
 
         function navigatePreparation(tabName,targetId,accordionId) {
@@ -2501,7 +2501,7 @@
                 const link=place?'<a target="_blank" rel="noopener" class="text-[10px] text-sand underline" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(place)+'">Itinéraire / carte</a>':'';
                 return '<article class="rounded-xl bg-white border border-borderSubtle p-3 flex items-start gap-2"><input type="checkbox" aria-label="Marquer comme terminé" onchange="toggleDepartureStepDone(\''+safe(currentDay)+'\',\''+safe(step.id)+'\',this.checked)" class="mt-1 w-4 h-4 accent-zinc-900 shrink-0"><div class="min-w-0 flex-1"><p class="text-[11px] font-bold text-ink">'+safe(name)+'</p><p class="text-[10px] text-muted">'+safe(time)+'</p>'+(place?'<p class="text-[10px] text-muted">'+safe(place)+'</p>':'')+link+'</div></article>';
             }).join(''):'<div class="rounded-xl bg-white border border-borderSubtle p-3 text-[10px] text-muted">'+(daySteps.length?'Toutes les étapes du jour sont terminées ✓':'Aucune étape prévue pour '+safe(dayLabel)+'.')+'</div>'):'<div class="rounded-xl bg-white border border-borderSubtle p-3 text-[10px] text-muted">Le programme du jour s’affichera pendant les dates du séjour.</div>';
-            if(window.lucide)lucide.createIcons();
+            if(window.lucide)window.lucide?.createIcons?.();
         }
 
         function showToast(msg) {
@@ -2638,7 +2638,7 @@
             `).join('') : `<p class="text-xs text-muted text-center py-2">Aucun voyage archivé.</p>`;
 
             document.getElementById('templates-count-label').textContent = `${pluralize(state.templates.length, 'modèle prêt', 'modèles prêts')}`;
-            lucide.createIcons();
+            window.lucide?.createIcons?.();
         }
 
         // Actions ••• sur un voyage (Dupliquer, Archiver, Mettre en Prochain départ, Supprimer)
@@ -2666,7 +2666,7 @@
                 </button>
             `;
             document.getElementById('trip-actions-modal').classList.remove('hidden');
-            lucide.createIcons();
+            window.lucide?.createIcons?.();
         }
 
         function setAsMainActiveTrip(tripId) {
@@ -2727,7 +2727,7 @@
         function openTrashModal() {
             renderTrash();
             document.getElementById('trash-modal').classList.remove('hidden');
-            lucide.createIcons();
+            window.lucide?.createIcons?.();
         }
         function renderTrash() {
             const el = document.getElementById('trash-list');
@@ -3164,7 +3164,7 @@
                     </div>
                 `).join('');
             });
-            lucide.createIcons();
+            window.lucide?.createIcons?.();
         }
 
         // --- REFRESH ACTIVE TRIP ---
@@ -3206,7 +3206,7 @@
             if (!document.getElementById('itinerary-map-wrapper').classList.contains('hidden')) {
                 refreshItineraryMap();
             }
-            lucide.createIcons();
+            window.lucide?.createIcons?.();
             applyTripPermissions();
         }
 
@@ -3240,7 +3240,7 @@
             });
             document.getElementById('app-viewport').scrollTop = 0;
             if (tabName === 'apercu') renderTripReadiness();
-            lucide.createIcons();
+            window.lucide?.createIcons?.();
         }
 
         // --- VOLS (AUTO-FILL, VUE DÉTAILLÉE CENTRALISÉE & ÉDITION) ---
@@ -3433,7 +3433,7 @@
                 <button onclick="deleteFlight(${f.id})" class="bg-red-50 text-red-600 text-xs font-semibold py-2.5 rounded-xl">Supprimer ce vol</button>
             `;
             document.getElementById('item-detail-modal').classList.remove('hidden');
-            lucide.createIcons();
+            window.lucide?.createIcons?.();
         }
 
         function renderFlights() {
@@ -3470,7 +3470,7 @@
                     </div>
                 </div>
             `).join('');
-            lucide.createIcons();
+            window.lucide?.createIcons?.();
         }
 
         // --- LOCATION VOITURE / SCOOTER (AVEC VUE DÉTAILLÉE & CONTACT D'URGENCE) ---
@@ -3558,7 +3558,7 @@
                 <button onclick="deleteRental(${r.id})" class="bg-red-50 text-red-600 text-xs font-semibold py-2.5 rounded-xl">Supprimer</button>
             `;
             document.getElementById('item-detail-modal').classList.remove('hidden');
-            lucide.createIcons();
+            window.lucide?.createIcons?.();
         }
 
         function renderRentals() {
@@ -3582,7 +3582,7 @@
                     </div>
                 </div>
             `).join('');
-            lucide.createIcons();
+            window.lucide?.createIcons?.();
         }
 
         // --- CENTRE DE RÉSERVATIONS (HÉBERGEMENTS, TRAINS, ACTIVITÉS...) ---
@@ -3602,7 +3602,7 @@
             document.getElementById('res-url').value = r?.url || '';
             document.getElementById('res-notes').value = r?.notes || '';
             document.getElementById('reservation-modal').classList.remove('hidden');
-            lucide.createIcons();
+            window.lucide?.createIcons?.();
         }
         function saveReservation() {
             const trip = getTrip(); if (!trip) return;
@@ -3619,7 +3619,7 @@
             const trip = getTrip(); const el = document.getElementById('reservations-list'); if (!trip || !el) return;
             const rows = trip.reservations || [];
             el.innerHTML = rows.length ? rows.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(r => `<div class="bg-stoneBg border border-borderSubtle rounded-xl p-3 flex items-start justify-between gap-2"><button onclick="openReservationModal('${r.id}')" class="text-left flex-1 min-w-0"><p class="text-[11px] font-bold text-ink">${r.name}</p><p class="text-[10px] text-muted">${r.type}${r.date ? ' • '+new Date(r.date+'T12:00:00').toLocaleDateString('fr-FR') : ''}${r.time ? ' • '+r.time : ''}</p>${r.location ? `<p class="text-[10px] text-muted truncate">${r.location}</p>` : ''}<p class="text-[10px] text-sand">${r.reference ? 'Réf. '+r.reference+' • ' : ''}${r.price ? r.price.toFixed(2)+' €' : ''}</p></button><button onclick="deleteReservation('${r.id}')" class="p-1.5 text-muted hover:text-red-500" aria-label="Supprimer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div>`).join('') : '<p class="text-[10px] text-muted text-center py-2">Aucune réservation ajoutée ici pour le moment.</p>';
-            lucide.createIcons();
+            window.lucide?.createIcons?.();
         }
         function deleteReservation(id) {
             const trip = getTrip(); if (!trip) return;
@@ -3675,7 +3675,7 @@
 
             renderList('todo', 'todo-items-list');
             renderList('buy', 'buy-items-list');
-            lucide.createIcons();
+            window.lucide?.createIcons?.();
         }
 
         // --- CURRENCY ---
@@ -4003,7 +4003,7 @@
                 bindLongPress(card, () => openEditInspoModal(id));
             });
 
-            lucide.createIcons();
+            window.lucide?.createIcons?.();
         }
 
         function deleteInspiration(id) {
@@ -4464,7 +4464,7 @@
         function renderWeatherResult(w) {
             const target = document.getElementById('day-weather-content'); if (!target) return;
             target.innerHTML = `<div class="flex items-center justify-between gap-3"><div class="flex items-center gap-2"><i data-lucide="${w.icon}" class="w-7 h-7 text-sand"></i><div><p class="text-sm font-bold text-ink">${w.label}</p><p class="text-[10px] text-muted">${w.place} · ${prettyDate(w.date)}</p></div></div><div class="text-right"><p class="text-lg font-bold text-ink">${Math.round(w.max)}° <span class="text-muted font-normal">/ ${Math.round(w.min)}°</span></p><p class="text-[9px] text-muted">Max / min</p></div></div><div class="grid grid-cols-2 gap-2 pt-1"><div class="bg-stoneBg rounded-lg px-2.5 py-2 text-[10px] text-muted">Pluie : <b class="text-ink">${w.rain ?? '—'}%</b></div><div class="bg-stoneBg rounded-lg px-2.5 py-2 text-[10px] text-muted">Vent : <b class="text-ink">${w.wind ?? '—'} km/h</b></div></div>`;
-            if (window.lucide) lucide.createIcons();
+            if (window.lucide) window.lucide?.createIcons?.();
         }
 
         function renderDaySelector() {
@@ -4625,7 +4625,7 @@
                     </div>
                 `;
             }).join('');
-            lucide.createIcons();
+            window.lucide?.createIcons?.();
             bindItineraryDrag(container);
         }
 
@@ -4790,7 +4790,7 @@
                     </div>
                 `;
             }).join('');
-            lucide.createIcons();
+            window.lucide?.createIcons?.();
         }
 
         function toggleGear(id) {
@@ -4855,7 +4855,7 @@
             });
 
             document.getElementById('templates-modal').classList.remove('hidden');
-            lucide.createIcons();
+            window.lucide?.createIcons?.();
         }
 
         function renameTemplate(tplId) {
@@ -5134,7 +5134,7 @@
                     </div>
                 `;
             }).join('') : `<p class="text-xs text-muted text-center py-4 bg-white rounded-2xl border border-borderSubtle">Aucune dépense dans cette sélection.</p>`;
-            lucide.createIcons();
+            window.lucide?.createIcons?.();
         }
 
         function escapePrintHtml(value) {
@@ -5163,7 +5163,7 @@
         async function openCompanionsModal() {
             document.getElementById('companions-modal').classList.remove('hidden');
             await renderCompanionsList();
-            lucide.createIcons();
+            window.lucide?.createIcons?.();
         }
 
         async function renderCompanionsList() {
@@ -5460,7 +5460,7 @@
         function openAlbumModal() {
             document.getElementById('album-modal').classList.remove('hidden');
             loadTripFiles('photo');
-            lucide.createIcons();
+            window.lucide?.createIcons?.();
         }
 
         // --- ALBA AI TRIP PLANNER ---
@@ -5473,7 +5473,7 @@
             document.getElementById('ai-planner-answer').textContent = 'Choisis une action pour obtenir une proposition adaptée à ton voyage.';
             document.getElementById('ai-planner-status').textContent = '';
             document.getElementById('ai-planner-modal').classList.remove('hidden');
-            lucide.createIcons();
+            window.lucide?.createIcons?.();
         }
 
         function runAlbaAssistant(task) {
@@ -5621,7 +5621,7 @@
             document.getElementById('reminder-title').value = 'Vérifier les passeports, billets et bagages';
             document.getElementById('reminder-modal').classList.remove('hidden');
             renderTripReminders();
-            lucide.createIcons();
+            window.lucide?.createIcons?.();
         }
 
         const ALBA_VAPID_PUBLIC_KEY = 'BA_UG-JdOuTw-rwAdn61zK48Omqknz4yCwngFNhmKaXGrM5q6eFGGpgGG-dohyg0xaloR8Rb16xofO_WthTNU6k';
@@ -5770,6 +5770,8 @@
             }, { passive: true });
         })();
 
+        // Le moteur d'icônes est externe : son indisponibilité ne doit jamais empêcher
+        // l'application locale de démarrer.
         window.addEventListener('DOMContentLoaded', () => {
             const createAccountButton = document.getElementById('account-create-button');
             if (createAccountButton) createAccountButton.addEventListener('click', createAlbaAccount);
