@@ -609,7 +609,7 @@
                         </div>
                     </div>
 
-                    <div id="day-selector" class="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5"></div>
+                    <div class="flex items-center justify-between"><span class="text-[10px] font-semibold uppercase tracking-wider text-muted">Programme jour par jour</span><span class="text-[10px] text-muted">Sélectionne une journée</span></div><div id="day-selector" class="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5"></div>
 
                     <div class="flex items-center justify-between bg-white px-4 py-3 rounded-2xl border border-borderSubtle">
                         <div class="min-w-0 pr-2">
@@ -719,9 +719,7 @@
 
                     <!-- ESPACE BAS BAGAGES : NOTES & CHECK-LIST -->
                     <div class="bg-white rounded-2xl p-4 border border-borderSubtle space-y-3 mt-4">
-                        <span class="text-xs font-bold text-ink flex items-center gap-1.5">
-                            <i data-lucide="list-todo" class="w-3.5 h-3.5 text-sand"></i> Notes & Check-list Bagages
-                        </span>
+                        <div class="flex items-center justify-between gap-2"><span class="text-xs font-bold text-ink flex items-center gap-1.5"><i data-lucide="list-todo" class="w-3.5 h-3.5 text-sand"></i> Notes & Check-list Bagages</span><span id="bagage-checklist-progress" class="text-[10px] font-semibold text-sand">0 / 0 vérifiés</span></div>
                         <textarea id="bagage-extra-notes" rows="2" oninput="saveTabExtraNote('bagageNotes', this.value)" placeholder="Ex. : règles de la compagnie, dimensions et poids autorisés…" class="w-full bg-stoneBg text-xs text-ink rounded-xl p-2.5 border border-borderSubtle focus:outline-none focus:border-sand"></textarea>
                         <div id="bagage-checklist-items" class="space-y-1.5"></div>
                         <div class="flex gap-1.5">
@@ -749,7 +747,7 @@
                     <div class="bg-zinc-900 text-white rounded-2xl p-5 shadow-sm">
                         <div class="flex items-center justify-between text-zinc-400 text-xs mb-1">
                             <span>Reste disponible</span>
-                            <span id="budget-total-label">Total : 1 800 €</span>
+                            <span id="budget-total-label">Budget prévu : 1 800 €</span>
                         </div>
                         <div class="flex items-baseline justify-between">
                             <h2 id="budget-remaining" class="text-3xl font-bold tracking-tight">1 800,00 €</h2>
@@ -1404,7 +1402,7 @@
             <div class="bg-white w-full rounded-t-3xl p-5 pb-8 space-y-4 shadow-xl">
                 <div class="w-10 h-1 bg-zinc-200 rounded-full mx-auto"></div>
                 <div class="flex items-center justify-between">
-                    <h3 class="text-base font-bold text-ink">Portefeuille QR & Documents</h3>
+                    <div><h3 class="text-base font-bold text-ink">Documents & confirmations</h3><p class="text-[10px] text-muted mt-0.5">Billets, réservations et fichiers privés</p></div>
                     <button onclick="closeModal('doc-modal')" class="w-7 h-7 rounded-full bg-stoneBg flex items-center justify-center text-muted">
                         <i data-lucide="x" class="w-4 h-4"></i>
                     </button>
@@ -2580,6 +2578,21 @@
             return `${count} ${count <= 1 ? singular : (plural || singular + 's')}`;
         }
 
+        // Compte à rebours partagé entre l'accueil et la fiche voyage.
+        function getTripCountdownText(trip) {
+            if (!trip?.startDate) return trip?.countdown || 'Dates à définir';
+            const today = new Date(); today.setHours(0,0,0,0);
+            const start = new Date(trip.startDate + 'T00:00:00');
+            if (Number.isNaN(start.getTime())) return trip.countdown || 'Planifié';
+            const days = Math.round((start - today) / 86400000);
+            if (days > 1) return 'Départ dans ' + days + ' jours';
+            if (days === 1) return 'Départ demain';
+            if (days === 0) return 'Départ aujourd’hui';
+            const endDate = trip.endDate || (trip.duration ? addDaysToISO(trip.startDate, Number(trip.duration) - 1) : '');
+            if (endDate && today <= new Date(endDate + 'T23:59:59')) return 'Voyage · jour ' + (Math.floor((today - start) / 86400000) + 1);
+            return 'Voyage terminé';
+        }
+
         // --- HOME HUB (PROCHAIN DÉPART, BADGE BROUILLON, MENU •••) ---
         function renderHome() {
             const visibleTrips = state.trips.filter(t => !t.deletedAt);
@@ -2593,12 +2606,13 @@
                 const flightsCount = activeTrip.flights?.length || 0;
                 const spotsCount = activeTrip.inspirations?.length || 0;
                 const daysCount = activeTrip.duration || 1;
+                const countdownText = getTripCountdownText(activeTrip);
 
                 heroEl.innerHTML = `
                     <div onclick="openTrip('${activeTrip.id}')" class="bg-zinc-900 text-white rounded-3xl p-5 shadow-sm cursor-pointer active:scale-[0.99] transition space-y-4 relative">
                         <div class="flex items-center justify-between">
                             <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-sand text-white">
-                                Prochain départ • ${activeTrip.countdown || 'Planifié'}
+                                ${countdownText}
                             </span>
                             <div class="flex items-center gap-2">
                                 <span class="text-xs text-zinc-400">${pluralize(daysCount, 'jour')}</span>
@@ -3065,6 +3079,7 @@
             ['itinerary', 'bagage', 'budget'].forEach(tabKey => {
                 const container = document.getElementById(`${tabKey}-checklist-items`);
                 const items = trip.tabChecklists[tabKey] || [];
+                if (tabKey === 'bagage') { const progress = document.getElementById('bagage-checklist-progress'); const done = items.filter(item => item.done).length; if (progress) progress.textContent = `${done} / ${items.length} vérifiés`; }
                 container.innerHTML = items.map(item => `
                     <div class="flex items-center justify-between py-1 px-2 bg-stoneBg rounded-lg">
                         <label class="flex items-center gap-2 cursor-pointer flex-1">
@@ -4864,7 +4879,7 @@
             const rem = trip.totalBudget - spent;
             const pct = Math.min((spent / trip.totalBudget) * 100, 100);
 
-            document.getElementById('budget-total-label').textContent = `Total : ${trip.totalBudget} €`;
+            document.getElementById('budget-total-label').textContent = `Budget prévu : ${Number(trip.totalBudget || 0).toLocaleString('fr-FR')} €`;
             document.getElementById('budget-remaining').textContent = `${rem.toFixed(2).replace('.', ',')} €`;
             document.getElementById('budget-remaining-local').textContent = `≈ ${Math.round(rem * trip.rate).toLocaleString('fr-FR')} ${trip.currency}`;
             document.getElementById('budget-spent').textContent = `${spent.toFixed(2).replace('.', ',')} €`;
