@@ -2967,8 +2967,14 @@
                 const days = Math.max(1, parseInt(daysInput.value, 10) || 1), nextEnd = new Date(start + 'T12:00:00');
                 nextEnd.setDate(nextEnd.getDate() + days - 1);
                 endInput.value = nextEnd.getFullYear() + '-' + String(nextEnd.getMonth()+1).padStart(2,'0') + '-' + String(nextEnd.getDate()).padStart(2,'0');
-            } else if (changedField === 'new-trip-end' && start && end && end >= start) {
-                daysInput.value = Math.floor((new Date(end+'T12:00:00')-new Date(start+'T12:00:00'))/86400000)+1;
+            } else if (changedField === 'new-trip-end' && end) {
+                if (start && end >= start) {
+                    daysInput.value = Math.floor((new Date(end+'T12:00:00')-new Date(start+'T12:00:00'))/86400000)+1;
+                } else {
+                    const days = Math.max(1, parseInt(daysInput.value, 10) || 1), previousStart = new Date(end + 'T12:00:00');
+                    previousStart.setDate(previousStart.getDate() - days + 1);
+                    startInput.value = previousStart.getFullYear() + '-' + String(previousStart.getMonth()+1).padStart(2,'0') + '-' + String(previousStart.getDate()).padStart(2,'0');
+                }
             }
         }
         function updateNewTripDatesFromDuration() {
