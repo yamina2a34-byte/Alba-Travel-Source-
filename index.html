@@ -4667,11 +4667,13 @@
 
             if (!title) return;
             if (!trip.itinerary[selectedDay]) trip.itinerary[selectedDay] = [];
-            trip.itinerary[selectedDay].push({ id: Date.now(), time, title, address, transit: '', booked, tag, durationMinutes: Number(document.getElementById('new-step-duration').value)||0 });
+            const durationInput = document.getElementById('new-step-duration');
+            const durationMinutes = durationInput ? (Number(durationInput.value) || 0) : 0;
+            trip.itinerary[selectedDay].push({ id: Date.now(), time, title, address, transit: '', booked, tag, durationMinutes });
 
             document.getElementById('new-step-title').value = '';
             document.getElementById('new-step-address').value = '';
-            document.getElementById('new-step-duration').value = '';
+            if (durationInput) durationInput.value = '';
             closeModal('step-modal');
             saveState();
             refreshTripUI();
