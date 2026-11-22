@@ -2165,7 +2165,7 @@
         }
 
         function saveState() {
-            const changedTrip = activeTripId ? state.trips.find(t => t.id === activeTripId) : null;
+            const changedTrip = activeTripId != null && Array.isArray(state.trips) ? state.trips.find(t => String(t.id) === String(activeTripId)) : null;
             if (changedTrip) changedTrip.updated_at = new Date().toISOString();
             try {
                 const serialized = JSON.stringify(state);
@@ -2459,7 +2459,8 @@
         }
 
         function getTrip() {
-            return state.trips.find(t => t.id === activeTripId);
+            if (!Array.isArray(state.trips) || activeTripId == null) return null;
+            return state.trips.find(trip => String(trip.id) === String(activeTripId)) || null;
         }
 
         // Tableau de préparation : calcul local, sans API ni modification des données.
@@ -2908,9 +2909,10 @@
         }
 
         function openTrip(id) {
-            const requestedTrip = state.trips.find(item => item.id === id);
+            const requestedTrip = Array.isArray(state.trips) ? state.trips.find(item => String(item.id) === String(id)) : null;
             if (!requestedTrip || requestedTrip.deletedAt) { showToast('Ce voyage est introuvable.'); return; }
-            activeTripId = id;
+            // Toujours conserver l'identifiant tel qu'il existe réellement dans les données.
+            activeTripId = requestedTrip.id;
             const tripToOpen = normalizeTripForOpening(requestedTrip);
             if (!tripToOpen) { activeTripId = null; showToast('Ce voyage est introuvable.'); return; }
             selectedDay = 1;
