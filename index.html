@@ -44,6 +44,9 @@
     </script>
 
     <style>
+        /* Masquer les indicateurs de défilement natifs sans désactiver le scroll */
+        html, body, * { scrollbar-width: none; -ms-overflow-style: none; }
+        html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar { width: 0 !important; height: 0 !important; display: none !important; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .tab-content { animation: fadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1); }
