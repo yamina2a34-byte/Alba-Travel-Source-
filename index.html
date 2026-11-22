@@ -2963,11 +2963,11 @@
         function updateNewTripDuration(changedField) {
             const startInput = document.getElementById('new-trip-start'), endInput = document.getElementById('new-trip-end'), daysInput = document.getElementById('new-trip-days');
             const start = startInput.value, end = endInput.value;
-            if (changedField === 'start' && start) {
+            if (changedField === 'new-trip-start' && start) {
                 const days = Math.max(1, parseInt(daysInput.value, 10) || 1), nextEnd = new Date(start + 'T12:00:00');
                 nextEnd.setDate(nextEnd.getDate() + days - 1);
                 endInput.value = nextEnd.getFullYear() + '-' + String(nextEnd.getMonth()+1).padStart(2,'0') + '-' + String(nextEnd.getDate()).padStart(2,'0');
-            } else if (changedField === 'end' && start && end && end >= start) {
+            } else if (changedField === 'new-trip-end' && start && end && end >= start) {
                 daysInput.value = Math.floor((new Date(end+'T12:00:00')-new Date(start+'T12:00:00'))/86400000)+1;
             }
         }
@@ -5624,22 +5624,19 @@
             const start = trip.startDate ? new Date(trip.startDate + 'T00:00:00') : null;
             const fallbackEnd = trip.startDate && trip.duration ? addDaysToISO(trip.startDate, Math.max(0, Number(trip.duration) - 1)) : '';
             const end = (trip.endDate || fallbackEnd) ? new Date((trip.endDate || fallbackEnd) + 'T23:59:59') : null;
-            let label = trip.countdown || 'À planifier';
-            let copy = 'Ajoute les dates de ton voyage pour lancer le compte à rebours.';
+            let label = 'Dates à définir', copy = 'Ajoute les dates de ton voyage pour afficher le compte à rebours.', icon = 'calendar-days';
             if (start && !Number.isNaN(start.getTime())) {
                 const days = Math.ceil((start - today) / 86400000);
-                if (days > 1) { label = 'J-' + days; copy = 'Départ dans ' + days + ' jours'; }
-                else if (days === 1) { label = 'J-1'; copy = 'Départ demain · dernière ligne droite !'; }
-                else if (days === 0) { label = 'Départ aujourd’hui'; copy = 'C’est le grand départ !'; }
-                else if (end && new Date() <= end) {
-                    const day = Math.floor((today - start) / 86400000) + 1;
-                    label = 'J' + day;
-                    copy = 'Voyage en cours · jour ' + day + (trip.duration ? ' / ' + trip.duration : '');
-                } else { label = 'Terminé'; copy = 'Ce voyage est terminé · garde tes souvenirs.'; }
+                if (days > 1) { label = 'Départ dans ' + days + ' jours'; copy = 'Encore ' + days + ' jours avant le départ · prépare les derniers détails.'; icon = 'plane-takeoff'; }
+                else if (days === 1) { label = 'Départ demain'; copy = 'Dernière ligne droite · demain, c’est le grand départ !'; icon = 'luggage'; }
+                else if (days === 0) { label = 'C’est le grand départ'; copy = 'Bon voyage ! Profite de chaque instant.'; icon = 'plane'; }
+                else if (end && new Date() <= end) { const day = Math.floor((today - start) / 86400000) + 1; label = 'En voyage · jour ' + day + (trip.duration ? ' / ' + trip.duration : ''); copy = 'Ton aventure est en cours · profite bien de ton séjour.'; icon = 'map-pinned'; }
+                else { label = 'Voyage terminé'; copy = 'Ce voyage est terminé · tu peux toujours retrouver ton programme.'; icon = 'check-circle-2'; }
             }
-            if (badge) badge.textContent = label;
+            if (badge) { badge.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold bg-ink text-white shadow-sm'; badge.innerHTML = '<i data-lucide="' + icon + '" class="w-3.5 h-3.5 text-sand"></i><span>' + escapePrintHtml(label) + '</span>'; }
             if (detail) detail.textContent = copy;
             if (reminderCopy) reminderCopy.textContent = copy;
+            window.lucide?.createIcons?.();
         }
 
         function openReminderModal() {
