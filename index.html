@@ -5053,7 +5053,7 @@
             const splitCard = document.getElementById('split-balance-card');
             const settlementPanel = document.getElementById('settlement-panel');
             renderExpenseSplitPicker();
-            if (people.length > 1) {
+            if (people.length > 1 && ((trip.expenses || []).length > 0 || (trip.settlements || []).length > 0)) {
                 splitCard.classList.remove('hidden'); settlementPanel.classList.remove('hidden');
                 const balances = calculateTripBalances(trip);
                 document.getElementById('split-balance-details').innerHTML = people.map(person => {
