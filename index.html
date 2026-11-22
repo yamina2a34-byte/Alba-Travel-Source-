@@ -791,7 +791,7 @@
                     </div>
 
                     <!-- Interactive Category & Day Breakdown -->
-                    <div class="bg-white rounded-2xl p-4 border border-borderSubtle space-y-3.5">
+                    <div id="budget-breakdown-card" class="hidden bg-white rounded-2xl p-4 border border-borderSubtle space-y-3.5">
                         <div class="flex items-center justify-between">
                             <div>
                                 <span class="text-xs font-bold text-ink">Répartition interactive</span>
@@ -803,7 +803,7 @@
                             </div>
                         </div>
                         <div id="budget-chart-container" class="space-y-2 pt-1"></div>
-                        <div class="border-t border-borderSubtle pt-2 space-y-1"><p class="text-[10px] font-semibold text-ink">Dépenses par jour</p><div id="budget-daily-summary" class="space-y-0.5"><p class="text-[10px] text-muted">Les dépenses par jour apparaîtront ici après tes premiers ajouts.</p></div></div>
+                        <div id="budget-daily-summary-wrap" class="hidden border-t border-borderSubtle pt-2 space-y-1"><p class="text-[10px] font-semibold text-ink">Dépenses par jour</p><div id="budget-daily-summary" class="space-y-0.5"><p class="text-[10px] text-muted">Les dépenses par jour apparaîtront ici après tes premiers ajouts.</p></div></div>
                     </div>
 
                     <!-- Add Expense Form (with CB / Espèces) -->
@@ -1215,11 +1215,11 @@
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="text-[10px] text-muted block mb-1">Date de départ</label>
-                        <input id="new-trip-start" type="date" onchange="updateNewTripDuration(\'start\')" class="w-full bg-stoneBg text-xs text-ink rounded-xl px-3 py-2 border border-borderSubtle">
+                        <input id="new-trip-start" type="date" onchange="updateNewTripDuration(this.id)" class="w-full bg-stoneBg text-xs text-ink rounded-xl px-3 py-2 border border-borderSubtle">
                     </div>
                     <div>
                         <label class="text-[10px] text-muted block mb-1">Date de retour</label>
-                        <input id="new-trip-end" type="date" onchange="updateNewTripDuration(\'end\')" class="w-full bg-stoneBg text-xs text-ink rounded-xl px-3 py-2 border border-borderSubtle">
+                        <input id="new-trip-end" type="date" onchange="updateNewTripDuration(this.id)" class="w-full bg-stoneBg text-xs text-ink rounded-xl px-3 py-2 border border-borderSubtle">
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
@@ -5037,6 +5037,7 @@
             paidSel.innerHTML = `<option value="Moi">Payé par Moi</option>` + trip.companions.map(c => `<option value="${c}">Payé par ${c}</option>`).join('');
 
             const dailySummary = document.getElementById('budget-daily-summary');
+            const dailySummaryWrap = document.getElementById('budget-daily-summary-wrap');
             if (dailySummary) {
                 const days = Object.keys(trip.daysMeta || {}).sort((a,b) => Number(a) - Number(b));
                 const dayTotals = days.map(day => {
@@ -5044,9 +5045,8 @@
                         .reduce((sum, expense) => sum + (Number(expense.amountEur) || 0), 0);
                     return { day, total };
                 }).filter(item => item.total > 0);
-                dailySummary.innerHTML = dayTotals.length
-                    ? dayTotals.map(item => `<div class="flex items-center justify-between text-[10px] py-1"><span class="text-muted">Jour ${item.day}</span><strong class="text-ink">${item.total.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})} €</strong></div>`).join('')
-                    : '<p class="text-[10px] text-muted">Les dépenses par jour apparaîtront ici après tes premiers ajouts.</p>';
+                if (dailySummaryWrap) dailySummaryWrap.classList.toggle('hidden', !dayTotals.length);
+                dailySummary.innerHTML = dayTotals.map(item => `<div class="flex items-center justify-between text-[10px] py-1"><span class="text-muted">Jour ${item.day}</span><strong class="text-ink">${item.total.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})} €</strong></div>`).join('');
             }
 
             const people = getTripPeople(trip);
@@ -5073,11 +5073,13 @@
             } else { splitCard.classList.add('hidden'); settlementPanel.classList.add('hidden'); }
 
             const chartEl = document.getElementById('budget-chart-container');
+            const breakdownCard = document.getElementById('budget-breakdown-card');
+            if (breakdownCard) breakdownCard.classList.toggle('hidden', !trip.expenses.length);
             if (budgetChartMode === 'category') {
                 const rows = EXPENSE_CATEGORIES.map(c => ({
                     label: c,
                     val: trip.expenses.filter(e => e.category === c).reduce((s, e) => s + e.amountEur, 0)
-                })).sort((a, b) => b.val - a.val);
+                })).filter(r => r.val > 0).sort((a, b) => b.val - a.val);
 
                 chartEl.innerHTML = rows.map(r => {
                     const sharePct = spent > 0 ? Math.round((r.val / spent) * 100) : 0;
@@ -5099,7 +5101,7 @@
                 const rows = days.map(dLabel => ({
                     label: dLabel,
                     val: trip.expenses.filter(e => (e.day || 'Jour 1') === dLabel).reduce((s, e) => s + e.amountEur, 0)
-                }));
+                })).filter(r => r.val > 0);
                 const maxVal = Math.max(...rows.map(r => r.val), 1);
                 chartEl.innerHTML = rows.map(r => {
                     const barW = Math.round((r.val / maxVal) * 100);
