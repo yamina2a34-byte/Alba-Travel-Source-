@@ -334,7 +334,8 @@
                                     </div>
                                 </button>
                                 <div class="flex items-center gap-1.5">
-                                    <button onclick="moveOverviewSection('flights', -1)" class="p-1 text-muted hover:text-ink" title="Monter"><i data-lucide="arrow-up" class="w-3.5 h-3.5"></i></button>
+                                    <button type="button" class="overview-drag-handle w-7 h-8 rounded-lg bg-stoneBg text-muted flex items-center justify-center" style="touch-action:none" aria-label="Maintenir pour déplacer"><i data-lucide="grip-vertical" class="w-4 h-4"></i></button>
+                                     <button onclick="moveOverviewSection('flights', -1)" class="p-1 text-muted hover:text-ink" title="Monter"><i data-lucide="arrow-up" class="w-3.5 h-3.5"></i></button>
                                     <button onclick="moveOverviewSection('flights', 1)" class="p-1 text-muted hover:text-ink" title="Descendre"><i data-lucide="arrow-down" class="w-3.5 h-3.5"></i></button>
                                     <button onclick="toggleAccordion('flights-accordion')" class="p-1 text-muted"><i data-lucide="chevron-down" class="w-4 h-4"></i></button>
                                 </div>
@@ -360,7 +361,8 @@
                                     </div>
                                 </button>
                                 <div class="flex items-center gap-1.5">
-                                    <button onclick="moveOverviewSection('rentals', -1)" class="p-1 text-muted hover:text-ink" title="Monter"><i data-lucide="arrow-up" class="w-3.5 h-3.5"></i></button>
+                                    <button type="button" class="overview-drag-handle w-7 h-8 rounded-lg bg-stoneBg text-muted flex items-center justify-center" style="touch-action:none" aria-label="Maintenir pour déplacer"><i data-lucide="grip-vertical" class="w-4 h-4"></i></button>
+                                     <button onclick="moveOverviewSection('rentals', -1)" class="p-1 text-muted hover:text-ink" title="Monter"><i data-lucide="arrow-up" class="w-3.5 h-3.5"></i></button>
                                     <button onclick="moveOverviewSection('rentals', 1)" class="p-1 text-muted hover:text-ink" title="Descendre"><i data-lucide="arrow-down" class="w-3.5 h-3.5"></i></button>
                                     <button onclick="toggleAccordion('rentals-accordion')" class="p-1 text-muted"><i data-lucide="chevron-down" class="w-4 h-4"></i></button>
                                 </div>
@@ -386,7 +388,8 @@
                                     </div>
                                 </button>
                                 <div class="flex items-center gap-1.5">
-                                    <button onclick="moveOverviewSection('todos', -1)" class="p-1 text-muted hover:text-ink"><i data-lucide="arrow-up" class="w-3.5 h-3.5"></i></button>
+                                    <button type="button" class="overview-drag-handle w-7 h-8 rounded-lg bg-stoneBg text-muted flex items-center justify-center" style="touch-action:none" aria-label="Maintenir pour déplacer"><i data-lucide="grip-vertical" class="w-4 h-4"></i></button>
+                                     <button onclick="moveOverviewSection('todos', -1)" class="p-1 text-muted hover:text-ink"><i data-lucide="arrow-up" class="w-3.5 h-3.5"></i></button>
                                     <button onclick="moveOverviewSection('todos', 1)" class="p-1 text-muted hover:text-ink"><i data-lucide="arrow-down" class="w-3.5 h-3.5"></i></button>
                                     <button onclick="toggleAccordion('todos-accordion')" class="p-1 text-muted"><i data-lucide="chevron-down" class="w-4 h-4"></i></button>
                                 </div>
@@ -1622,31 +1625,33 @@
         };
 
         const defaultTemplates = [
-            {
-                id: 'tpl-1',
-                name: 'Voyage classique',
-                items: [
-                    { category: 'Vêtements', name: 'Hauts et bas', weight: 2.00 },
-                    { category: 'Vêtements', name: 'Sous-vêtements et chaussettes', weight: 0.50 },
-                    { category: 'Chaussures', name: 'Une paire de chaussures de rechange', weight: 0.90 },
-                    { category: 'Toilette & soins', name: 'Trousse de toilette', weight: 0.80 },
-                    { category: 'Santé & pharmacie', name: 'Petite trousse de premiers soins', weight: 0.30 },
-                    { category: 'Documents & essentiels', name: 'Papiers et documents de voyage', weight: 0.20 },
-                    { category: 'Électronique', name: 'Téléphone et chargeur', weight: 0.35 },
-                    { category: 'Accessoires', name: 'Lunettes et accessoires personnels', weight: 0.30 }
-                ]
-            },
-            {
-                id: 'tpl-2',
-                name: 'Week-end léger',
-                items: [
-                    { category: 'Vêtements', name: 'Deux tenues de rechange', weight: 1.20 },
-                    { category: 'Toilette & soins', name: 'Trousse de toilette compacte', weight: 0.40 },
-                    { category: 'Documents & essentiels', name: 'Pièce d’identité et moyen de paiement', weight: 0.10 },
-                    { category: 'Électronique', name: 'Téléphone et chargeur', weight: 0.30 },
-                    { category: 'Accessoires', name: 'Sac et accessoires utiles', weight: 0.30 }
-                ]
-            }
+            { id:'tpl-1', name:'Voyage classique', items:[
+                {category:'Vêtements',name:'Hauts et bas',weight:2.00},{category:'Vêtements',name:'Sous-vêtements et chaussettes',weight:0.50},
+                {category:'Chaussures',name:'Chaussures de rechange',weight:0.90},{category:'Toilette & soins',name:'Trousse de toilette',weight:0.80},
+                {category:'Santé & pharmacie',name:'Petite trousse de premiers soins',weight:0.30},{category:'Documents & essentiels',name:'Papiers et documents de voyage',weight:0.20},
+                {category:'Électronique',name:'Téléphone et chargeur',weight:0.35},{category:'Accessoires',name:'Lunettes et accessoires personnels',weight:0.30}
+            ]},
+            { id:'tpl-2', name:'Week-end léger', items:[
+                {category:'Vêtements',name:'Deux tenues de rechange',weight:1.20},{category:'Toilette & soins',name:'Trousse de toilette compacte',weight:0.40},
+                {category:'Documents & essentiels',name:'Pièce d’identité et moyen de paiement',weight:0.10},{category:'Électronique',name:'Téléphone et chargeur',weight:0.30},
+                {category:'Accessoires',name:'Sac et accessoires utiles',weight:0.30}
+            ]},
+            { id:'tpl-3', name:'Vacances en famille', items:[
+                {category:'Vêtements',name:'Tenues pour chaque jour',weight:4.00},{category:'Vêtements',name:'Pyjamas et sous-vêtements',weight:1.20},
+                {category:'Chaussures',name:'Chaussures et sandales',weight:1.50},{category:'Toilette & soins',name:'Trousses de toilette',weight:1.00},
+                {category:'Santé & pharmacie',name:'Pharmacie et ordonnances',weight:0.50},{category:'Documents & essentiels',name:'Papiers de la famille',weight:0.30},
+                {category:'Accessoires',name:'Lunettes, chapeaux et sacs',weight:0.80}
+            ]},
+            { id:'tpl-4', name:'Séjour professionnel', items:[
+                {category:'Vêtements',name:'Tenues professionnelles',weight:2.00},{category:'Chaussures',name:'Chaussures adaptées',weight:0.90},
+                {category:'Toilette & soins',name:'Trousse de toilette',weight:0.60},{category:'Documents & essentiels',name:'Pièce d’identité et documents utiles',weight:0.20},
+                {category:'Électronique',name:'Ordinateur, téléphone et chargeurs',weight:1.80},{category:'Accessoires',name:'Carnet, stylo et sac',weight:0.50}
+            ]},
+            { id:'tpl-5', name:'Séjour plage & détente', items:[
+                {category:'Vêtements',name:'Tenues légères et maillots',weight:2.00},{category:'Chaussures',name:'Sandales et chaussures confortables',weight:0.80},
+                {category:'Toilette & soins',name:'Protection solaire et soins',weight:0.70},{category:'Santé & pharmacie',name:'Petite trousse de premiers soins',weight:0.30},
+                {category:'Accessoires',name:'Lunettes, chapeau et serviette',weight:0.90},{category:'Électronique',name:'Téléphone et chargeur',weight:0.35}
+            ]}
         ];
 
         const initialTrips = [
@@ -2032,12 +2037,15 @@
             const restored = {
                 ...restoredState,
                 trips: [...restoredTrips, ...missingStarters],
-                templates: Array.isArray(restoredState.templates) ? restoredState.templates : defaultTemplates
+                templates: Array.isArray(restoredState.templates)
+                    ? [...restoredState.templates.filter(t => !/\+?\s*drone/i.test(String(t.name || ''))),
+                       ...defaultTemplates.filter(t => !restoredState.templates.some(x => x.name === t.name))]
+                    : defaultTemplates
             };
             // Évite de réécrire tout l'état local deux fois à chaque démarrage.
             // Avec des photos / beaucoup de voyages, JSON.stringify était une source
             // de blocage visible de plusieurs secondes sur iPhone.
-            if (missingStarters.length > 0 || !Array.isArray(restoredState.templates)) {
+            if (missingStarters.length > 0 || !Array.isArray(restoredState.templates) || JSON.stringify(restored.templates) !== JSON.stringify(restoredState.templates)) {
                 try {
                     const serialized = JSON.stringify(restored);
                     localStorage.setItem(STORAGE_KEY, serialized);
@@ -2954,158 +2962,41 @@
             bindOverviewDrag(container);
         }
 
-        // Réordonnancement tactile fiable : appui long puis glisser la carte.
-        // Les boutons internes (flèches, liens, champs) restent cliquables normalement.
+        // Déplacement iPhone/ordinateur via Pointer Events et capture du pointeur.
         function bindOverviewDrag(container) {
             if (!container) return;
             container.querySelectorAll('.overview-draggable').forEach(card => {
-                if (card.dataset.dragBound === '1') return;
-                card.dataset.dragBound = '1';
-
-                let holdTimer = null;
-                let touchState = null;
-
-                const clearHold = () => {
-                    if (holdTimer) {
-                        clearTimeout(holdTimer);
-                        holdTimer = null;
-                    }
+                const handle=card.querySelector('.overview-drag-handle');
+                if(!handle || handle.dataset.dragBound==='1') return;
+                handle.dataset.dragBound='1';
+                let timer=null, drag=null;
+                const clear=()=>{if(timer)clearTimeout(timer);timer=null;};
+                const finish=(save)=>{
+                    clear(); if(!drag)return;
+                    const moved=drag.moved; card.classList.remove('dragging-section');
+                    try{if(handle.hasPointerCapture(drag.pointerId))handle.releasePointerCapture(drag.pointerId)}catch(_){}
+                    drag=null;
+                    if(save&&moved){const trip=getTrip();if(trip){trip.overviewOrder=[...container.querySelectorAll('.overview-draggable')].map(x=>x.dataset.sectionId);saveState();showToast('Ordre des sections mis à jour')}}
                 };
-
-                const finishTouch = (didDrag) => {
-                    clearHold();
-                    if (!touchState) return;
-                    const draggedCard = touchState.card;
-                    draggedCard.classList.remove('dragging-section');
-                    touchState = null;
-
-                    if (didDrag) {
-                        const trip = getTrip();
-                        const ids = [...container.querySelectorAll('.overview-draggable')].map(el => el.dataset.sectionId);
-                        if (trip) {
-                            trip.overviewOrder = ids;
-                            saveState();
-                            showToast('Ordre des sections mis à jour');
-                        }
-                    }
-                };
-
-                card.addEventListener('touchstart', event => {
-                    if (!event.touches?.length) return;
-                    if (event.target.closest('button, a, input, select, textarea')) return;
-
-                    const touch = event.touches[0];
-                    touchState = {
-                        card,
-                        startY: touch.clientY,
-                        dragging: false
-                    };
-
-                    clearHold();
-                    holdTimer = setTimeout(() => {
-                        if (!touchState) return;
-                        touchState.dragging = true;
-                        card.classList.add('dragging-section');
-                        if (navigator.vibrate) navigator.vibrate(15);
-                        showToast('Déplacez la section');
-                    }, 520);
-                }, { passive: true });
-
-                card.addEventListener('touchmove', event => {
-                    if (!touchState || !event.touches?.length) return;
-
-                    const touch = event.touches[0];
-
-                    if (!touchState.dragging) {
-                        if (Math.abs(touch.clientY - touchState.startY) > 12) {
-                            clearHold();
-                            touchState = null;
-                        }
-                        return;
-                    }
-
-                    event.preventDefault();
-
-                    const siblings = [...container.querySelectorAll('.overview-draggable')]
-                        .filter(el => el !== card);
-
-                    const target = siblings.find(el => {
-                        const rect = el.getBoundingClientRect();
-                        return touch.clientY < rect.top + rect.height / 2;
-                    });
-
-                    if (target) container.insertBefore(card, target);
-                    else container.appendChild(card);
-                }, { passive: false });
-
-                card.addEventListener('touchend', () => {
-                    const didDrag = !!touchState?.dragging;
-                    finishTouch(didDrag);
+                handle.addEventListener('pointerdown',e=>{
+                    if(e.button!==undefined&&e.button!==0)return;
+                    drag={pointerId:e.pointerId,startY:e.clientY,active:false,moved:false};
+                    try{handle.setPointerCapture(e.pointerId)}catch(_){}
+                    timer=setTimeout(()=>{if(drag){drag.active=true;card.classList.add('dragging-section');if(navigator.vibrate)navigator.vibrate(15);showToast('Déplacez la section')}},350);
                 });
-
-                card.addEventListener('touchcancel', () => finishTouch(false));
-
-                // Desktop fallback.
-                let mouseState = null;
-
-                card.addEventListener('mousedown', event => {
-                    if (event.button !== 0) return;
-                    if (event.target.closest('button, a, input, select, textarea')) return;
-
-                    mouseState = { startY: event.clientY, dragging: false };
-                    clearHold();
-
-                    holdTimer = setTimeout(() => {
-                        if (!mouseState) return;
-                        mouseState.dragging = true;
-                        card.classList.add('dragging-section');
-                        showToast('Déplacez la section');
-                    }, 520);
+                handle.addEventListener('pointermove',e=>{
+                    if(!drag||e.pointerId!==drag.pointerId)return;
+                    if(!drag.active){if(Math.abs(e.clientY-drag.startY)>10)finish(false);return}
+                    e.preventDefault();
+                    const siblings=[...container.querySelectorAll('.overview-draggable')].filter(x=>x!==card);
+                    const target=siblings.find(x=>e.clientY<x.getBoundingClientRect().top+x.getBoundingClientRect().height/2);
+                    const before=card.nextElementSibling;
+                    if(target)container.insertBefore(card,target);else container.appendChild(card);
+                    drag.moved=drag.moved||before!==card.nextElementSibling;
                 });
-
-                card.addEventListener('mousemove', event => {
-                    if (!mouseState) return;
-
-                    if (!mouseState.dragging) {
-                        if (Math.abs(event.clientY - mouseState.startY) > 12) clearHold();
-                        return;
-                    }
-
-                    event.preventDefault();
-                    const siblings = [...container.querySelectorAll('.overview-draggable')]
-                        .filter(el => el !== card);
-
-                    const target = siblings.find(el => {
-                        const rect = el.getBoundingClientRect();
-                        return event.clientY < rect.top + rect.height / 2;
-                    });
-
-                    if (target) container.insertBefore(card, target);
-                    else container.appendChild(card);
-                });
-
-                const finishMouse = () => {
-                    if (!mouseState) return;
-                    clearHold();
-                    const didDrag = mouseState.dragging;
-                    mouseState = null;
-                    card.classList.remove('dragging-section');
-
-                    if (didDrag) {
-                        const trip = getTrip();
-                        const ids = [...container.querySelectorAll('.overview-draggable')].map(el => el.dataset.sectionId);
-                        if (trip) {
-                            trip.overviewOrder = ids;
-                            saveState();
-                            showToast('Ordre des sections mis à jour');
-                        }
-                    }
-                };
-
-                card.addEventListener('mouseup', finishMouse);
-                card.addEventListener('mouseleave', () => {
-                    if (mouseState && !mouseState.dragging) clearHold();
-                });
+                handle.addEventListener('pointerup',e=>{if(drag&&e.pointerId===drag.pointerId)finish(true)});
+                handle.addEventListener('pointercancel',()=>finish(false));
+                handle.addEventListener('lostpointercapture',()=>{if(drag)finish(true)});
             });
         }
 
@@ -4290,112 +4181,38 @@
         }
 
         function bindItineraryDrag(container) {
-            let holdTimer = null;
-            let active = null;
-            const clearHold = () => { if (holdTimer) clearTimeout(holdTimer); holdTimer = null; };
-
-            // iPhone / iPad : touchstart/touchmove est plus fiable que pointer capture
-            // pour le maintien puis déplacement d'un handle.
-            container.querySelectorAll('.step-drag-handle').forEach(handle => {
-                let touchActive = null;
-                handle.addEventListener('touchstart', event => {
-                    if (!event.touches?.length) return;
-                    const touch = event.touches[0];
-                    const card = handle.closest('.step-draggable-item');
-                    if (!card) return;
-                    clearHold();
-                    touchActive = { card, startY: touch.clientY, dragging: false };
-                    holdTimer = setTimeout(() => {
-                        if (!touchActive) return;
-                        touchActive.dragging = true;
-                        card.classList.add('dragging-section');
-                        if (navigator.vibrate) navigator.vibrate(15);
-                        showToast('Déplacez l’étape');
-                    }, 420);
-                }, { passive: true });
-
-                handle.addEventListener('touchmove', event => {
-                    if (!touchActive || !event.touches?.length) return;
-                    const touch = event.touches[0];
-                    if (!touchActive.dragging) {
-                        if (Math.abs(touch.clientY - touchActive.startY) > 12) clearHold();
-                        return;
-                    }
-                    event.preventDefault();
-                    const siblings = [...container.querySelectorAll('.step-draggable-item')].filter(el => el !== touchActive.card);
-                    const target = siblings.find(el => touch.clientY < el.getBoundingClientRect().top + el.getBoundingClientRect().height / 2);
-                    if (target) container.insertBefore(touchActive.card, target);
-                    else container.appendChild(touchActive.card);
-                }, { passive: false });
-
-                const finishTouch = () => {
-                    if (!touchActive) return;
-                    clearHold();
-                    const didDrag = touchActive.dragging;
-                    touchActive.card.classList.remove('dragging-section');
-                    touchActive = null;
-                    if (didDrag) reorderItineraryFromDOM();
+            if(!container)return;
+            container.querySelectorAll('.step-draggable-item').forEach(card=>{
+                const handle=card.querySelector('.step-drag-handle');
+                if(!handle||handle.dataset.dragBound==='1')return;
+                handle.dataset.dragBound='1';
+                let timer=null,drag=null;
+                const clear=()=>{if(timer)clearTimeout(timer);timer=null};
+                const finish=save=>{
+                    clear();if(!drag)return;
+                    const moved=drag.moved;card.classList.remove('dragging-section');
+                    try{if(handle.hasPointerCapture(drag.pointerId))handle.releasePointerCapture(drag.pointerId)}catch(_){}
+                    drag=null;if(save&&moved)reorderItineraryFromDOM();
                 };
-                handle.addEventListener('touchend', finishTouch);
-                handle.addEventListener('touchcancel', finishTouch);
-            });
-
-            // Desktop : maintien puis déplacement à la souris.
-            container.querySelectorAll('.step-drag-handle').forEach(handle => {
-                handle.addEventListener('mousedown', event => {
-                    if (event.button !== 0) return;
-                    const card = handle.closest('.step-draggable-item');
-                    if (!card) return;
-                    clearHold();
-                    active = { card, startY: event.clientY, dragging: false };
-                    holdTimer = setTimeout(() => {
-                        if (!active) return;
-                        active.dragging = true;
-                        card.classList.add('dragging-section');
-                        showToast('Déplacez l’étape');
-                    }, 420);
+                handle.addEventListener('pointerdown',e=>{
+                    if(e.button!==undefined&&e.button!==0)return;
+                    drag={pointerId:e.pointerId,startY:e.clientY,active:false,moved:false};
+                    try{handle.setPointerCapture(e.pointerId)}catch(_){}
+                    timer=setTimeout(()=>{if(drag){drag.active=true;card.classList.add('dragging-section');if(navigator.vibrate)navigator.vibrate(15);showToast('Déplacez l’étape')}},350);
                 });
-                handle.addEventListener('mousemove', event => {
-                    if (!active) return;
-                    if (!active.dragging) {
-                        if (Math.abs(event.clientY - active.startY) > 12) clearHold();
-                        return;
-                    }
-                    event.preventDefault();
-                    const siblings = [...container.querySelectorAll('.step-draggable-item')].filter(el => el !== active.card);
-                    const target = siblings.find(el => event.clientY < el.getBoundingClientRect().top + el.getBoundingClientRect().height / 2);
-                    if (target) container.insertBefore(active.card, target);
-                    else container.appendChild(active.card);
+                handle.addEventListener('pointermove',e=>{
+                    if(!drag||e.pointerId!==drag.pointerId)return;
+                    if(!drag.active){if(Math.abs(e.clientY-drag.startY)>10)finish(false);return}
+                    e.preventDefault();
+                    const siblings=[...container.querySelectorAll('.step-draggable-item')].filter(x=>x!==card);
+                    const target=siblings.find(x=>e.clientY<x.getBoundingClientRect().top+x.getBoundingClientRect().height/2);
+                    const before=card.nextElementSibling;
+                    if(target)container.insertBefore(card,target);else container.appendChild(card);
+                    drag.moved=drag.moved||before!==card.nextElementSibling;
                 });
-                const finishMouse = () => {
-                    if (!active) return;
-                    clearHold();
-                    const didDrag = active.dragging;
-                    active.card.classList.remove('dragging-section');
-                    active = null;
-                    if (didDrag) reorderItineraryFromDOM();
-                };
-                handle.addEventListener('mouseup', finishMouse);
-                handle.addEventListener('mouseleave', () => { if (active && !active.dragging) clearHold(); });
-            });
-
-            // Souris / trackpad : glisser-déposer natif.
-            container.querySelectorAll('.step-draggable-item').forEach(card => {
-                card.draggable = true;
-                card.addEventListener('dragstart', event => {
-                    if (event.target.closest('button,a')) { event.preventDefault(); return; }
-                    card.classList.add('dragging-section');
-                    event.dataTransfer.effectAllowed = 'move';
-                    event.dataTransfer.setData('text/plain', card.dataset.stepId);
-                });
-                card.addEventListener('dragend', () => { card.classList.remove('dragging-section'); reorderItineraryFromDOM(); });
-                card.addEventListener('dragover', event => {
-                    event.preventDefault();
-                    const dragging = container.querySelector('.step-draggable-item.dragging-section');
-                    if (!dragging || dragging === card) return;
-                    const rect = card.getBoundingClientRect();
-                    container.insertBefore(dragging, event.clientY < rect.top + rect.height / 2 ? card : card.nextSibling);
-                });
+                handle.addEventListener('pointerup',e=>{if(drag&&e.pointerId===drag.pointerId)finish(true)});
+                handle.addEventListener('pointercancel',()=>finish(false));
+                handle.addEventListener('lostpointercapture',()=>{if(drag)finish(true)});
             });
         }
 
@@ -4858,20 +4675,36 @@
         function openTemplatesModal() {
             const body = document.getElementById('templates-list-body');
             body.innerHTML = state.templates.map(t => `
-                <div data-tpl-id="${t.id}" class="tpl-card-item long-press-hint bg-stoneBg p-3.5 rounded-2xl border border-borderSubtle flex items-center justify-between">
+                <div data-tpl-id="${t.id}" class="tpl-card-item bg-stoneBg p-3.5 rounded-2xl border border-borderSubtle flex items-center justify-between">
                     <div>
                         <p class="text-xs font-semibold text-ink">${t.name}</p>
                         <p class="text-[11px] text-muted mt-0.5">${pluralize(t.items.length, 'article')} • ${t.items.reduce((s, i) => s + i.weight, 0).toFixed(2)} kg</p>
                     </div>
                     <div class="flex items-center gap-1.5">
-                        <button onclick="renameTemplate('${t.id}')" class="p-1.5 bg-white rounded-lg border border-borderSubtle text-muted hover:text-ink" title="Renommer"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+                        <button type="button" class="template-drag-handle w-7 h-8 rounded-lg bg-white text-muted flex items-center justify-center" style="touch-action:none" aria-label="Maintenir pour déplacer"><i data-lucide="grip-vertical" class="w-4 h-4"></i></button>
+                         <button onclick="renameTemplate('${t.id}')" class="p-1.5 bg-white rounded-lg border border-borderSubtle text-muted hover:text-ink" title="Renommer"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
                         <button onclick="deleteTemplate('${t.id}')" class="p-1.5 bg-white rounded-lg border border-borderSubtle text-muted hover:text-red-500" title="Supprimer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
                     </div>
                 </div>
             `).join('');
 
             body.querySelectorAll('.tpl-card-item').forEach(el => {
-                bindLongPress(el, () => renameTemplate(el.dataset.tplId));
+                const handle=el.querySelector('.template-drag-handle');
+                if(!handle||handle.dataset.dragBound==='1')return;
+                handle.dataset.dragBound='1';
+                let timer=null,drag=null;
+                const finish=save=>{
+                    if(timer)clearTimeout(timer);timer=null;if(!drag)return;
+                    const moved=drag.moved;el.classList.remove('dragging-section');
+                    try{if(handle.hasPointerCapture(drag.pointerId))handle.releasePointerCapture(drag.pointerId)}catch(_){}
+                    drag=null;
+                    if(save&&moved){const ids=[...body.querySelectorAll('.tpl-card-item')].map(x=>x.dataset.tplId);const byId=new Map(state.templates.map(x=>[String(x.id),x]));state.templates=ids.map(id=>byId.get(id)).filter(Boolean);saveState();renderHome();showToast('Ordre des modèles mis à jour')}
+                };
+                handle.addEventListener('pointerdown',e=>{if(e.button!==undefined&&e.button!==0)return;drag={pointerId:e.pointerId,startY:e.clientY,active:false,moved:false};try{handle.setPointerCapture(e.pointerId)}catch(_){};timer=setTimeout(()=>{if(drag){drag.active=true;el.classList.add('dragging-section')}},350)});
+                handle.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.pointerId)return;if(!drag.active){if(Math.abs(e.clientY-drag.startY)>10)finish(false);return}e.preventDefault();const siblings=[...body.querySelectorAll('.tpl-card-item')].filter(x=>x!==el);const target=siblings.find(x=>e.clientY<x.getBoundingClientRect().top+x.getBoundingClientRect().height/2);const before=el.nextElementSibling;if(target)body.insertBefore(el,target);else body.appendChild(el);drag.moved=drag.moved||before!==el.nextElementSibling});
+                handle.addEventListener('pointerup',e=>{if(drag&&e.pointerId===drag.pointerId)finish(true)});
+                handle.addEventListener('pointercancel',()=>finish(false));
+                handle.addEventListener('lostpointercapture',()=>{if(drag)finish(true)});
             });
 
             document.getElementById('templates-modal').classList.remove('hidden');
